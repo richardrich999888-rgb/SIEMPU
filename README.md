@@ -2,6 +2,8 @@
 
 A working, synthetic-data prototype for secure inter-unit information exchange over an untrusted network. The repository slug is `SIEMPU`; the official challenge acronym is **SIEPMU**.
 
+For filed DISC-14 Annexures 1–3, see the [original-application baseline](docs/application/DISC14_PS69_FILED_BASELINE.md) and [delivery tracker](docs/application/DELIVERY_TRACKER.md). Optional six-duty-role/four-priority gating is a **synthetic, unclassified lab implementation**, not an approved IAF security policy.
+
 Start with the [delivery report](docs/DELIVERY_REPORT.md), [both-brief execution checklist](docs/EXECUTION_CHECKLIST.md), [source map](#repository-map) and [tests](tests/). The checklist maps all 90 numbered sections from the two implementation briefs to files, evidence and remaining work.
 
 **Status: PROTOTYPE with measured engineering tests.** This is not IAF approved, SAG graded, operationally accredited, externally penetration tested, or a patentability claim. See [implementation status](docs/IMPLEMENTATION_STATUS.md), [limitations](docs/limitations.md) and [claims](docs/claims.md).
