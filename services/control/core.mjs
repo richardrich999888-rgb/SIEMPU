@@ -68,15 +68,6 @@ const loginRoute = (authority, request) => ({
   status: 200,
   body: authority.login(request.body, request.context.ip ?? 'local'),
 });
-const authenticatedRoute = (authority, request) =>
-  authority.dispatchAuthenticated(request.method, request.path, request.body, request.token);
-const publicRoutes = new Map([
-  ['GET /health', healthRoute],
-  ['GET /live', healthRoute],
-  ['GET /ready', healthRoute],
-  ['GET /api/meta', metadataRoute],
-  ['POST /api/auth/login', loginRoute],
-]);
 export class Authority {
   constructor({ dbPath, signingKey, masterKey, hooks = {}, relay }) {
     this.key = signingKey;
@@ -788,8 +779,20 @@ export class Authority {
     };
   }
   async dispatch(method, path, b = {}, token, context = { ip: 'local' }) {
-    const route = publicRoutes.get(`${method} ${path}`) ?? authenticatedRoute;
-    return route(this, { method, path, body: b, token, context });
+    // Fixed call targets make the public allowlist explicit. Request strings
+    // never become a method name or a callable; the default always authenticates.
+    switch (`${method} ${path}`) {
+      case 'GET /health':
+      case 'GET /live':
+      case 'GET /ready':
+        return healthRoute(this);
+      case 'GET /api/meta':
+        return metadataRoute(this);
+      case 'POST /api/auth/login':
+        return loginRoute(this, { body: b, context });
+      default:
+        return this.dispatchAuthenticated(method, path, b, token);
+    }
   }
   async dispatchAuthenticated(method, path, b, token) {
     let s = this.authenticate(token);

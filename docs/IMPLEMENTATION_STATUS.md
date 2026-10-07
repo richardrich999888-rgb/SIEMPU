@@ -33,7 +33,7 @@ Status: **IMPLEMENTED AND LOCALLY TESTED SYNTHETIC PROTOTYPE**. Hosted checks, b
 
 Designed for integration with service-mandated and approved cryptographic suites.
 
-## Measured local validation
+## Measured local validation at afababc
 
 Command: `npm run validate`; Node v24.19.0, Linux x64; 2026-10-07 UTC / 2026-10-08 IST.
 
@@ -59,7 +59,7 @@ The newer implementation commit `7120ae8fceb96ec27c94c96bd2fafd6423484af3` was a
 
 At candidate `de654ccae73e61576ae2f56b90a0b6f014ca134e`, push CI run 37681272231 and PR CI run 37681295142 passed all native, browser and container jobs. The container was built, bootstrapped, started as three healthy services, checked for unauthenticated denial and UID/revision, and scanned: Trivy reported zero HIGH/CRITICAL OS or application findings. Image SBOM artifact: 11508789494. Local Docker remains unavailable.
 
-Security runs 37681272125 and 37681295057 passed dependency/regression and secret scans but failed CodeQL with ten findings. The subsequent source fixes pin forwarding to the configured authority origin, validate/project persisted public trust keys, read verifier files through one bounded descriptor, atomically reserve private recovery output before credential changes, and isolate exact public routes from authenticated handlers. They also correct package URL sanitization. Focused regressions and full local validation pass; hosted rescanning of these changes is pending. No scanner rule, severity threshold or finding was suppressed.
+Security runs 37681272125 and 37681295057 passed dependency/regression and secret scans but failed CodeQL with ten findings. The subsequent source fixes pin forwarding to the configured authority origin, validate/project persisted public trust keys, read verifier files through one bounded descriptor, atomically reserve private recovery output before credential changes, and isolate exact public routes from authenticated handlers. They also correct package URL sanitization. At `afababc191bb4ad3120798af0d7c9992c640a629`, CI run 37682841538 passed native, browser and container jobs; Security run 37682841460 passed dependency/regression and secret scans. CodeQL cleared all ten earlier findings and reported one new dynamic-dispatch finding. The next change replaces callback lookup with explicit fixed public-handler calls while preserving unconditional authentication for protected routes. [PR #2](https://github.com/richardrich999888-rgb/SIEMPU/pull/2) records the final exact-head checks and retained artifacts. No scanner rule, severity threshold or finding was suppressed.
 
 Unresolved research inconsistencies: Keycloak and Zeek are PROTOTYPE in narrative but DEFER in the registry; independent connector is P1 in the plan and P3 in the backlog; all backlog items are labeled P0 without individual owners/acceptance metrics. Submitted annexures were not available to that research run. These are planning inconsistencies, not instructions to add every dependency now.
 
