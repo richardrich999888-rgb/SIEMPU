@@ -1,0 +1,163 @@
+{
+  "status": "FAIL",
+  "reports": [
+    {
+      "file": "javascript.sarif",
+      "policy": "CodeQL severity >=7, any error-level finding, or unrated security finding blocks; no suppression waiver",
+      "status": "FAIL",
+      "findings": 10,
+      "blocked": [
+        {
+          "ruleId": "js/request-forgery",
+          "toolComponent": "codeql/javascript-queries",
+          "path": "services/web/server.mjs",
+          "line": 137,
+          "locations": [
+            {
+              "path": "services/web/server.mjs",
+              "line": 137
+            }
+          ],
+          "securitySeverity": 9.1,
+          "level": "error",
+          "reason": "HIGH_OR_CRITICAL_SECURITY"
+        },
+        {
+          "ruleId": "js/incomplete-sanitization",
+          "toolComponent": "codeql/javascript-queries",
+          "path": "scripts/sbom.mjs",
+          "line": 17,
+          "locations": [
+            {
+              "path": "scripts/sbom.mjs",
+              "line": 17
+            }
+          ],
+          "securitySeverity": 7.8,
+          "level": "warning",
+          "reason": "HIGH_OR_CRITICAL_SECURITY"
+        },
+        {
+          "ruleId": "js/clear-text-storage-of-sensitive-data",
+          "toolComponent": "codeql/javascript-queries",
+          "path": "apps/unit-client/app.mjs",
+          "line": 346,
+          "locations": [
+            {
+              "path": "apps/unit-client/app.mjs",
+              "line": 346
+            }
+          ],
+          "securitySeverity": 7.5,
+          "level": "error",
+          "reason": "HIGH_OR_CRITICAL_SECURITY"
+        },
+        {
+          "ruleId": "js/clear-text-storage-of-sensitive-data",
+          "toolComponent": "codeql/javascript-queries",
+          "path": "apps/unit-client/app.mjs",
+          "line": 426,
+          "locations": [
+            {
+              "path": "apps/unit-client/app.mjs",
+              "line": 426
+            }
+          ],
+          "securitySeverity": 7.5,
+          "level": "error",
+          "reason": "HIGH_OR_CRITICAL_SECURITY"
+        },
+        {
+          "ruleId": "js/file-system-race",
+          "toolComponent": "codeql/javascript-queries",
+          "path": "apps/verifier/verify.mjs",
+          "line": 220,
+          "locations": [
+            {
+              "path": "apps/verifier/verify.mjs",
+              "line": 220
+            }
+          ],
+          "securitySeverity": 7.7,
+          "level": "warning",
+          "reason": "HIGH_OR_CRITICAL_SECURITY"
+        },
+        {
+          "ruleId": "js/file-system-race",
+          "toolComponent": "codeql/javascript-queries",
+          "path": "scripts/recover-identity.mjs",
+          "line": 36,
+          "locations": [
+            {
+              "path": "scripts/recover-identity.mjs",
+              "line": 36
+            }
+          ],
+          "securitySeverity": 7.7,
+          "level": "warning",
+          "reason": "HIGH_OR_CRITICAL_SECURITY"
+        },
+        {
+          "ruleId": "js/file-system-race",
+          "toolComponent": "codeql/javascript-queries",
+          "path": "tests/additional-boundaries.test.mjs",
+          "line": 69,
+          "locations": [
+            {
+              "path": "tests/additional-boundaries.test.mjs",
+              "line": 69
+            }
+          ],
+          "securitySeverity": 7.7,
+          "level": "warning",
+          "reason": "HIGH_OR_CRITICAL_SECURITY"
+        },
+        {
+          "ruleId": "js/user-controlled-bypass",
+          "toolComponent": "codeql/javascript-queries",
+          "path": "services/relay/server.mjs",
+          "line": 39,
+          "locations": [
+            {
+              "path": "services/relay/server.mjs",
+              "line": 39
+            }
+          ],
+          "securitySeverity": 7.8,
+          "level": "error",
+          "reason": "HIGH_OR_CRITICAL_SECURITY"
+        },
+        {
+          "ruleId": "js/user-controlled-bypass",
+          "toolComponent": "codeql/javascript-queries",
+          "path": "services/relay/server.mjs",
+          "line": 43,
+          "locations": [
+            {
+              "path": "services/relay/server.mjs",
+              "line": 43
+            }
+          ],
+          "securitySeverity": 7.8,
+          "level": "error",
+          "reason": "HIGH_OR_CRITICAL_SECURITY"
+        },
+        {
+          "ruleId": "js/user-controlled-bypass",
+          "toolComponent": "codeql/javascript-queries",
+          "path": "services/control/core.mjs",
+          "line": 775,
+          "locations": [
+            {
+              "path": "services/control/core.mjs",
+              "line": 775
+            }
+          ],
+          "securitySeverity": 7.8,
+          "level": "error",
+          "reason": "HIGH_OR_CRITICAL_SECURITY"
+        }
+      ]
+    }
+  ]
+}

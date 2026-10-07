@@ -15,26 +15,28 @@ Source is organized under `apps/`, `services/`, `packages/`, `database/`, `scrip
 
 ## Actual validation record
 
-`npm run validate -- --benchmark` passed all eleven command gates: syntax, lint, typecheck, formatting, coverage tests, narrow local security rules, npm dependency audit, package build, SBOM, HTTP demonstration and benchmark.
+The archived `2026-10-07T19:54:20.976Z` run of `npm run validate -- --benchmark` passed all eleven command gates: syntax, lint, typecheck, formatting, coverage tests, narrow local security rules, npm dependency audit, package build, SBOM, HTTP demonstration and benchmark.
 
 - **72 tests passed; zero failures, cancellations or skips.** Includes independent native/WebCrypto interoperability, real HTTP services, negative authorization tests, two-process policy races, process exits around commit, 100 retries, schema upgrades and restored encrypted backups.
 - **Nine HTTP demonstration stages passed.** Revoked-recipient backlog is held while eligible content is released.
 - **14 claims passed the fresh execution-evidence gate.** Source digest checks reject stale results. Local records are not independent attestation.
-- **Real Chromium browser run passed 14 high-level assertions**, covering MFA, fresh enrollment/approval, key/challenge substitution rejection, text and exact-byte file download, unsafe filename handling, cooperative two-tab locking, policy HOLD/release, real offline reload and reconnect authentication.
+- **Real Chromium browser record contains 15 passing checks**, covering MFA, fresh enrollment/approval, key/challenge substitution rejection, text and exact-byte file download, unsafe filename handling, cooperative two-tab locking, policy HOLD/release, real offline reload and reconnect authentication.
 - **Benchmark: 9.86 objects/s**, 30 sequential synthetic 4 KiB objects on loopback. This is not a WAN, concurrency, capacity or field result. [Full measurements](performance.md).
 - Local npm audit reported no known npm dependency vulnerabilities. This is not a statement about all runtime, OS or application vulnerabilities.
 
 The [native record](testing/native-validation.json), [browser record](testing/browser-results.json) and [test snapshot](hpsc/node-test-snapshot.json) carry dates, scopes and limitations. Coverage gates measure an explicit set of authority/network/crypto/verifier modules; the typecheck currently covers relay authentication/client modules.
 
-After adding SARIF compatibility regressions and the container acceptance runner, a fresh [CI-fixes native validation](testing/native-ci-fixes-validation.json) passed all ten non-benchmark gates with **78 tests, zero failures/skips/cancellations**, nine HTTP demo stages and 14 evidence-backed claims. Scoped coverage was 94.24% lines, 84.05% branches and 96.28% functions. The earlier benchmark and browser records retain their original execution scope.
+After adding SARIF compatibility regressions and the container acceptance runner, the archived `2026-10-07T20:20:42.347Z` [CI-fixes native validation](testing/native-ci-fixes-validation.json) passed all ten non-benchmark gates with **78 tests, zero failures/skips/cancellations**, nine HTTP demo stages and 14 evidence-backed claims. The recorded coverage gate passed. The earlier benchmark and browser records retain their original execution scope; later source changes require a new run and do not inherit these outcomes.
 
 ## Hosted and release evidence
+
+Following the application scan review, [native scan-fix validation](testing/native-scan-fixes-validation.json) passed all ten non-benchmark gates with **87 tests, zero failures/skips/cancellations**, nine HTTP demo stages and 14 evidence-backed claims. Scoped coverage was 94.95% lines, 85.10% branches and 96.06% functions. This is the recorded local execution of the fixes; hosted container, browser and scanner results remain separate gates.
 
 The first GitHub run built the container and brought all three services to healthy status, then exposed a host-network probe failure. It also found a browser label problem, formatting mismatch and one prose-only secret-scan false positive. Fixes and narrowly scoped regressions are committed in the subsequent change.
 
 A subsequent run passed native validation, real-browser acceptance and Gitleaks. Its blocking image scan exposed inherited Debian and bundled npm vulnerabilities; the final runtime now uses a pinned official Alpine Node image with unused package managers removed. The SARIF gate also needed standards-based support for CodeQL query-pack rule references. Its severity threshold remains unchanged. CI now exercises encrypted file exchange, revocation and evidence verification against the actual built containers, and retains the full SARIF report for review. These corrections require the current hosted run to pass; a source change alone is not a clean scan result.
 
-The current hosted result is the authoritative status at [GitHub Actions](https://github.com/richardrich999888-rgb/SIEMPU/actions). Quality jobs execute native validation, actual browser tests, container build/start/probes, Gitleaks, blocking CodeQL SARIF evaluation and Trivy. Only after those jobs pass does the package-candidate job execute release packaging, verify checksums and upload the source/runtime archives, SBOMs and evidence. No production deployment or GitHub Release publication is automatic. Checksums are unsigned; they are not an attestation or certificate.
+The [hosted scan review](security/HOSTED_SCAN_REVIEW.md) records observed findings and their dispositions; a finding disposition is not a passing rerun. The current hosted result is the authoritative status at [GitHub Actions](https://github.com/richardrich999888-rgb/SIEMPU/actions). Quality jobs execute native validation, actual browser tests, container build/start/probes, Gitleaks, blocking CodeQL SARIF evaluation and Trivy. Only after those jobs pass does the package-candidate job execute release packaging, verify checksums and upload the source/runtime archives, SBOMs and evidence. No production deployment or GitHub Release publication is automatic. Checksums are unsigned; they are not an attestation or certificate.
 
 ## Security boundary and remaining work
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /** Offline verification: no service, credentials, or authority database required. */
 import { createHash, createPublicKey, verify as nativeVerify } from 'node:crypto';
-import { readFile, stat } from 'node:fs/promises';
+import { open } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { canonical } from '../../packages/protocol/canonical.mjs';
@@ -216,8 +216,28 @@ export async function verifyEvidence(
 }
 
 async function readJSON(path) {
-  assert((await stat(path)).size <= 64 * 1024 * 1024, 'Verifier input file exceeds 64 MiB');
-  return JSON.parse(await readFile(path, 'utf8'));
+  const limit = 64 * 1024 * 1024;
+  const file = await open(path, 'r');
+  try {
+    const metadata = await file.stat();
+    assert(metadata.isFile(), 'Verifier input must be a regular file');
+    assert(metadata.size <= limit, 'Verifier input file exceeds 64 MiB');
+    const chunks = [];
+    let total = 0;
+    // Read the opened descriptor, not a path that can be replaced after the
+    // metadata check. Bound actual bytes as well: an opened file can still grow.
+    for (;;) {
+      const chunk = Buffer.alloc(Math.min(64 * 1024, limit - total + 1));
+      const { bytesRead } = await file.read(chunk, 0, chunk.length, null);
+      if (!bytesRead) break;
+      total += bytesRead;
+      assert(total <= limit, 'Verifier input file exceeds 64 MiB');
+      chunks.push(chunk.subarray(0, bytesRead));
+    }
+    return JSON.parse(Buffer.concat(chunks, total).toString('utf8'));
+  } finally {
+    await file.close();
+  }
 }
 async function main(args) {
   const usage =

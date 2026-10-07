@@ -9,7 +9,7 @@ Current status is **PROTOTYPE with measured engineering tests**, not production-
 - Released keys/plaintext cannot be recalled. Revocation protects subsequent issuance/redisclosure; it does not make disconnected endpoints instantly aware.
 - Identity/routing metadata remain visible; the directory exposes active users/devices to bound users. Traffic-analysis resistance is not implemented.
 - No production IdP/PKI adapter, endpoint key rotation/escrow, self-service recovery, approved military duty-role matrix or multi-admin approval ceremony. Offline administrator password/MFA recovery is implemented and tested.
-- File validation is not malware scanning/sanitisation. The browser file-download journey remains outside the recorded run; a subsequent actual browser run exercised fresh enrollment/approval, substituted enrollment-key rejection and stale-tab concurrency.
+- File validation is not malware scanning/sanitisation. The recorded Chromium run exercised exact-byte file download, unsafe filename rejection and MIME coercion, plus fresh enrollment/approval, substituted enrollment-key rejection and stale-tab concurrency. This does not establish safe handling of every file format or all browser engines.
 - No offline peer delivery, air-gap media transfer, cross-domain guard, tactical cloud, AI detector, PQC suite or Kafka dependency.
 - Restore is tested on synthetic local state; whole-database anti-rollback needs independent checkpoints and authority revalidation. Historic storage retention/compaction and disaster recovery require an operator policy.
 - Type checking currently covers relay authentication/client modules; full JavaScript source is syntax/lint checked but not all statically typed.

@@ -1,4 +1,5 @@
-import { createServer } from 'node:http';
+import { createServer, request as requestHttp } from 'node:http';
+import { request as requestHttps } from 'node:https';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -26,6 +27,8 @@ export function createWebServer({
   controlUrl = process.env.SIEPMU_CONTROL_URL || 'http://127.0.0.1:8081',
   publicOrigin = process.env.SIEPMU_PUBLIC_ORIGIN,
   maxBytes = 6 * 1024 * 1024,
+  maxResponseBytes = 8 * 1024 * 1024,
+  upstreamTimeoutMs = 20_000,
 } = {}) {
   const upstream = new URL(controlUrl);
   if (
@@ -43,6 +46,58 @@ export function createWebServer({
     process.env.SIEPMU_ALLOW_REMOTE_HTTP !== '1'
   )
     throw new Error('Remote authority connection requires TLS or internal override');
+  // Destination identity is selected only at startup. A request target never enters URL resolution.
+  const destination = Object.freeze({
+    protocol: upstream.protocol,
+    hostname: upstream.hostname.replace(/^\[|\]$/g, ''),
+    port: upstream.port || (upstream.protocol === 'https:' ? 443 : 80),
+  });
+  const requestTransport = upstream.protocol === 'https:' ? requestHttps : requestHttp;
+  const forward = (method, requestPath, headers, body, signal) =>
+    new Promise((fulfill, reject) => {
+      let settled = false;
+      let timer;
+      const finish = (error, response) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        if (error) reject(error);
+        else fulfill(response);
+      };
+      const outgoing = requestTransport(
+        { ...destination, method, path: requestPath, headers, signal },
+        (incoming) => {
+          incoming.once('error', (error) => finish(error));
+          incoming.once('aborted', () => finish(new Error('Authority response aborted')));
+          const status = incoming.statusCode || 502;
+          if (status >= 300 && status < 400) {
+            incoming.destroy(new Error('Authority redirects are forbidden'));
+            return;
+          }
+          if (Number(incoming.headers['content-length'] || 0) > maxResponseBytes) {
+            incoming.destroy(new Error('Authority response exceeds limit'));
+            return;
+          }
+          const chunks = [];
+          let bytes = 0;
+          incoming.on('data', (chunk) => {
+            bytes += chunk.length;
+            if (bytes > maxResponseBytes)
+              incoming.destroy(new Error('Authority response exceeds limit'));
+            else chunks.push(chunk);
+          });
+          incoming.once('end', () =>
+            finish(null, { status, headers: incoming.headers, body: Buffer.concat(chunks) }),
+          );
+        },
+      );
+      outgoing.once('error', (error) => finish(error));
+      timer = setTimeout(
+        () => outgoing.destroy(new Error('Authority request timed out')),
+        upstreamTimeoutMs,
+      );
+      outgoing.end(body);
+    });
   const configuredOrigin = publicOrigin ? new URL(publicOrigin).origin : undefined;
   const expectedHost = publicOrigin ? new URL(publicOrigin).host : undefined;
   const server = createServer(async (req, res) => {
@@ -77,6 +132,14 @@ export function createWebServer({
         return;
       }
       if (path.startsWith('/api/')) {
+        // The API currently has no query parameters or encoded path segments. Preserve one unambiguous path.
+        if (
+          req.url.length > 2048 ||
+          !/^\/api\/[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/.test(req.url)
+        ) {
+          send(400, { error: 'INVALID_API_PATH' });
+          return;
+        }
         if (!['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
           send(405, { error: 'METHOD_NOT_ALLOWED' });
           return;
@@ -134,22 +197,31 @@ export function createWebServer({
         if (req.headers.authorization) headers.authorization = req.headers.authorization;
         if (mutation) headers['content-type'] = 'application/json';
         // The gateway has validated the browser Origin. Do not forward caller-controlled proxy headers.
-        const response = await fetch(new URL(req.url, upstream), {
-          method: req.method,
-          headers,
-          ...(mutation ? { body: Buffer.concat(chunks) } : {}),
-          signal: AbortSignal.timeout(20_000),
-          redirect: 'error',
-        });
-        const payload = await response.arrayBuffer();
+        const abort = new AbortController();
+        const clientClosed = () => {
+          if (!res.writableEnded) abort.abort();
+        };
+        res.once('close', clientClosed);
+        let response;
+        try {
+          response = await forward(
+            req.method,
+            req.url,
+            headers,
+            mutation ? Buffer.concat(chunks) : undefined,
+            abort.signal,
+          );
+        } finally {
+          res.removeListener('close', clientClosed);
+        }
         res.writeHead(response.status, {
           ...securityHeaders,
           'content-type': 'application/json',
-          ...(response.headers.get('retry-after')
-            ? { 'retry-after': response.headers.get('retry-after') }
+          ...(typeof response.headers['retry-after'] === 'string'
+            ? { 'retry-after': response.headers['retry-after'] }
             : {}),
         });
-        res.end(Buffer.from(payload));
+        res.end(response.body);
         return;
       }
       if (req.method !== 'GET' && req.method !== 'HEAD') {

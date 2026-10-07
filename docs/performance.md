@@ -1,6 +1,6 @@
 # Measured performance
 
-Latest source: [machine-readable result](hpsc/performance-results.json), recorded at `2026-10-07T19:54:20.774Z` during the final native validation. Node v24.19.0, Linux x64, Intel Xeon Platinum 8573C; 9 logical CPUs visible. Workload: **30 sequential 4 KiB synthetic objects**, one sender, two sessions, loopback HTTP and three server processes.
+Archived benchmark source: [machine-readable result](hpsc/performance-results.json), recorded at `2026-10-07T19:54:20.774Z` during the [benchmark-bearing native validation](testing/native-validation.json). The later [CI-fixes validation](testing/native-ci-fixes-validation.json) did not rerun the benchmark. Node v24.19.0, Linux x64, Intel Xeon Platinum 8573C; 9 logical CPUs visible. Workload: **30 sequential 4 KiB synthetic objects**, one sender, two sessions, loopback HTTP and three server processes.
 
 | Operation | Samples | p50 ms | p95 ms |
 | --------- | ------: | -----: | -----: |

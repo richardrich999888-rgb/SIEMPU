@@ -35,19 +35,6 @@ export function createRelayServer({
         json(res, 200, { status: 'ok', service: 'blind-ciphertext-relay' });
         return;
       }
-      const match = /^\/blobs\/([a-f0-9]{64})$/.exec(req.url || '');
-      if (!match || !['GET', 'PUT'].includes(req.method)) {
-        json(res, 404, { error: 'NOT_FOUND' });
-        return;
-      }
-      if (req.headers.origin) {
-        json(res, 403, { error: 'WORKLOAD_ONLY' });
-        return;
-      }
-      if (req.method === 'PUT' && req.headers['content-type'] !== 'application/octet-stream') {
-        json(res, 415, { error: 'CONTENT_TYPE' });
-        return;
-      }
       if (Number(req.headers['content-length'] || 0) > maxBytes) {
         json(res, 413, { error: 'BODY_LIMIT' });
         req.resume();
@@ -78,6 +65,22 @@ export function createRelayServer({
       );
       if (!auth) {
         json(res, 401, { error: 'WORKLOAD_AUTHENTICATION' });
+        return;
+      }
+      // Every non-health request reaches the cryptographic workload gate before
+      // route/content/origin policy. Client-controlled routing never grants trust.
+      // Authentication binds the original method, URL and complete bounded body.
+      const match = /^\/blobs\/([a-f0-9]{64})$/.exec(req.url || '');
+      if (!match || !['GET', 'PUT'].includes(req.method)) {
+        json(res, 404, { error: 'NOT_FOUND' });
+        return;
+      }
+      if (req.headers.origin) {
+        json(res, 403, { error: 'WORKLOAD_ONLY' });
+        return;
+      }
+      if (req.method === 'PUT' && req.headers['content-type'] !== 'application/octet-stream') {
+        json(res, 415, { error: 'CONTENT_TYPE' });
         return;
       }
       if (req.method === 'PUT' && (body.length < 16 || sha256(body) !== match[1])) {

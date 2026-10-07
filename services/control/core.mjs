@@ -41,6 +41,36 @@ const uuid = (v) =>
   typeof v === 'string' &&
   /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(v);
 const parse = (v) => JSON.parse(v);
+
+// Public capabilities are explicitly registered and cannot select protected
+// handlers. Login itself always checks password and MFA before issuing a session.
+const publicHealth = (authority) => {
+  authority.get('SELECT 1');
+  return { status: 200, body: { status: 'ok', service: 'control', version: '0.1.0' } };
+};
+const publicMetadata = (authority) => ({
+  status: 200,
+  body: {
+    version: '0.1.0',
+    build: buildInfo(),
+    serverPublicKey: authority.publicKey,
+    serverKeyId: keyId(authority.publicKey),
+    limits: { objectBytes: 1048576, sessionSeconds: 900, grantSeconds: 3600 },
+    securityProfile: 'PROTOTYPE / software device keys / no SAG approval',
+  },
+});
+const publicLogin = (authority, body, context) => ({
+  status: 200,
+  body: authority.login(body, context.ip ?? 'local'),
+});
+const PUBLIC_CONTROL_ROUTES = new Map([
+  ['GET /health', publicHealth],
+  ['GET /live', publicHealth],
+  ['GET /ready', publicHealth],
+  ['GET /api/meta', publicMetadata],
+  ['POST /api/auth/login', publicLogin],
+]);
+
 export class Authority {
   constructor({ dbPath, signingKey, masterKey, hooks = {}, relay }) {
     this.key = signingKey;
@@ -756,24 +786,13 @@ export class Authority {
     };
   }
   async dispatch(method, path, b = {}, token, context = { ip: 'local' }) {
-    if (method === 'GET' && ['/health', '/live', '/ready'].includes(path)) {
-      this.get('SELECT 1');
-      return { status: 200, body: { status: 'ok', service: 'control', version: '0.1.0' } };
-    }
-    if (method === 'GET' && path === '/api/meta')
-      return {
-        status: 200,
-        body: {
-          version: '0.1.0',
-          build: buildInfo(),
-          serverPublicKey: this.publicKey,
-          serverKeyId: keyId(this.publicKey),
-          limits: { objectBytes: 1048576, sessionSeconds: 900, grantSeconds: 3600 },
-          securityProfile: 'PROTOTYPE / software device keys / no SAG approval',
-        },
-      };
-    if (method === 'POST' && path === '/api/auth/login')
-      return { status: 200, body: this.login(b, context.ip ?? 'local') };
+    const publicHandler = PUBLIC_CONTROL_ROUTES.get(`${method} ${path}`);
+    if (publicHandler) return publicHandler(this, b, context);
+    return this.#authenticatedDispatch(method, path, b, token);
+  }
+  async #authenticatedDispatch(method, path, b, token) {
+    // This is the only entry into protected route dispatch. Authentication is
+    // unconditional here and cannot be skipped by a method or path supplied by a client.
     let s = this.authenticate(token);
     this.rate('session:' + s.id, 500);
     let value;

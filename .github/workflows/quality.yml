@@ -101,6 +101,7 @@ jobs:
           curl --ipv4 --fail --silent --show-error http://localhost:8080/api/meta | node -e 'let s="";process.stdin.on("data",b=>s+=b);process.stdin.on("end",()=>{const m=JSON.parse(s);if(m.build?.revision!==process.env.GITHUB_SHA||!m.build?.builtAt)process.exit(1);});'
       - name: Verify cryptography and policy in actual containers
         run: |
+          docker compose exec -T control node -e 'const v=process.config.variables; console.log(JSON.stringify({node:process.version,openssl:process.versions.openssl,sharedOpenSSL:v.node_shared_openssl,quic:v.node_use_quic})); if(v.node_use_quic) process.exit(1);'
           docker compose cp control:/var/lib/siepmu/control/demo-profiles.json "$RUNNER_TEMP/siepmu-container-profiles.json"
           SIEPMU_URL=http://localhost:8080 SIEPMU_CONTAINER_PROFILES="$RUNNER_TEMP/siepmu-container-profiles.json" node scripts/container-acceptance.mjs
       - name: Scan image vulnerabilities

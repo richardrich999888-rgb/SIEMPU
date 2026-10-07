@@ -2,6 +2,8 @@
 
 A working, synthetic-data prototype for secure inter-unit information exchange over an untrusted network. The repository slug is `SIEMPU`; the official challenge acronym is **SIEPMU**.
 
+Start with the [delivery report](docs/DELIVERY_REPORT.md), [both-brief execution checklist](docs/EXECUTION_CHECKLIST.md), [source map](#repository-map) and [tests](tests/). The checklist maps all 90 numbered sections from the two implementation briefs to files, evidence and remaining work.
+
 **Status: PROTOTYPE with measured engineering tests.** This is not IAF approved, SAG graded, operationally accredited, externally penetration tested, or a patentability claim. See [implementation status](docs/IMPLEMENTATION_STATUS.md), [limitations](docs/limitations.md) and [claims](docs/claims.md).
 
 The central experiment is **policy-epoch-bound release**: ciphertext can be queued or relayed, but recipient-wrapped key material stays behind an authority check. A transaction revalidates current users, devices, roles, mission membership, destination policy, grant expiry and epoch, then commits one signed issuance and its evidence. Revocation committed first blocks release. An issuance committed first may already be usable and cannot be recalled.
@@ -13,7 +15,6 @@ Requires Node **24.19.0**, npm and a current browser with WebCrypto. Runtime ser
 ```sh
 git clone https://github.com/richardrich999888-rgb/SIEMPU.git
 cd SIEMPU
-git switch codex/siepmu-hpsc
 npm ci --ignore-scripts
 npm run bootstrap
 npm start
