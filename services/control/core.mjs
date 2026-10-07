@@ -626,8 +626,7 @@ export class Authority {
     // Priority-sensitive metadata is not revealed through object-ID probe routes.
     if (s.user.dutyRole) {
       const e = parse(r.envelope);
-      const checkDuty =
-        r.sender_id === s.user_id ? senderDutyAllowed : recipientDutyAllowed;
+      const checkDuty = r.sender_id === s.user_id ? senderDutyAllowed : recipientDutyAllowed;
       assert(
         e.schemaVersion === 2 &&
           checkDuty(s.user.role, s.user.dutyRole, e.messagePriority, e.messageDomain),
