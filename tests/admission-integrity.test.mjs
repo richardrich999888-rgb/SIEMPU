@@ -173,6 +173,75 @@ test('unreadable and schema-corrupt persisted envelopes fail closed with signed 
   }
 });
 
+test('corrupt envelope evidence fields cannot prevent durable signed HOLD decisions', async (t) => {
+  const f = await submitted(t);
+  const cases = [
+    ['senderUnitId', ['policyReference.fromUnitId']],
+    ['recipientUnitId', ['destinationUnitId', 'policyReference.toUnitId']],
+    ['missionId', ['missionId', 'policyReference.missionId']],
+    ['action', ['action']],
+    ['creationGrant.payload.grantId', ['creationGrantId']],
+    ['creationGrant.payload.creationEpoch', ['creationEpoch']],
+    ['creationGrant.payload.policyDigest', ['creationPolicyDigest']],
+  ];
+  for (const [field, evidenceFields] of cases) {
+    await t.test(field, async () => {
+      for (const value of [
+        0.5,
+        0,
+        -1,
+        Number.MAX_SAFE_INTEGER + 1,
+        [],
+        { corrupt: 0.5 },
+        'invalid value',
+        null,
+      ]) {
+        const envelope = structuredClone(f.object.envelope);
+        const path = field.split('.');
+        const target = path.slice(0, -1).reduce((object, key) => object[key], envelope);
+        target[path.at(-1)] = value;
+        // Deliberately bypass canonical serialization, as corrupted storage can.
+        const raw = JSON.stringify(envelope);
+        f.authority.run(
+          'UPDATE objects SET envelope=?,state=?,reason=NULL WHERE id=?',
+          raw,
+          'PENDING',
+          f.id,
+        );
+        const prepared = await f.clients.alice.prepare(f.id);
+        assert.equal(prepared.status, 200, JSON.stringify(prepared));
+        const claimed = await f.clients.bob.claim(f.id, f.epoch);
+        assert.equal(claimed.status, 409, JSON.stringify(claimed));
+        for (const result of [prepared, claimed]) {
+          noDisclosure(result);
+          const receipt = result.body.receipt;
+          assert.equal(receipt.payload.decision, 'HELD');
+          assert.equal(receipt.payload.releaseState, 'HELD');
+          assert.equal(receipt.payload.details.envelopeDigest, hash(raw));
+          for (const evidenceField of evidenceFields) {
+            const copied = evidenceField
+              .split('.')
+              .reduce((object, key) => object[key], receipt.payload.details);
+            assert.equal(copied, null, `${field} must not enter ${evidenceField}`);
+          }
+          assert.ok(verify(receipt.payload, receipt.signature, f.provisioned.serverPublicKey));
+          assert.deepEqual(
+            JSON.parse(
+              f.authority.get(
+                'SELECT record FROM evidence WHERE sequence=?',
+                receipt.payload.sequence,
+              ).record,
+            ),
+            receipt,
+          );
+        }
+        assert.equal(f.authority.get('SELECT state FROM objects WHERE id=?', f.id).state, 'HELD');
+        noIssuance(f);
+      }
+    });
+  }
+});
+
 test('valid signatures do not authorize unsupported actions, invalid crypto material or malformed time bounds', async (t) => {
   const f = await submitted(t);
   const replacements = [
