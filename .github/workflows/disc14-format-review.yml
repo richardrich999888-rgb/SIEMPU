@@ -1,0 +1,23 @@
+name: DISC-14 formatting diagnostic
+on:
+  push:
+    branches:
+      - feature/disc14-ps69-filed-application-alignment
+permissions:
+  contents: read
+jobs:
+  diff:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24.19.0
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Show exact Prettier corrections
+        run: |
+          npx --no-install prettier --write apps/unit-client/app.mjs docs/application/DELIVERY_TRACKER.md docs/application/DISC14_PS69_FILED_BASELINE.md packages/mission/policy.mjs services/control/core.mjs tests/filed-mission-policy.test.mjs
+          git diff --color=never -- apps/unit-client/app.mjs docs/application/DELIVERY_TRACKER.md docs/application/DISC14_PS69_FILED_BASELINE.md packages/mission/policy.mjs services/control/core.mjs tests/filed-mission-policy.test.mjs
