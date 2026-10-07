@@ -7,7 +7,7 @@ deploys an operational service, publishes an image or creates a release.
 
 | Workflow / check context               | Actual operation                                                                                                                                                                                                           | Evidence and practical boundary                                                                                                                          |
 | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CI / `native`                          | Locked install, syntax/JSON, Prettier, ESLint, strict scoped checkJs, full Node suite with coverage, named HTTP acceptance, synthetic demo, build, application SBOM                                                        | Test output, runtime manifest and SBOM. Floors remain 85% lines, 75% branches, 85% functions; scope is in `package.json`.                                |
+| CI / `native`                          | Locked install, source-bound `validate` (syntax/JSON, Prettier, ESLint, scoped checkJs, coverage, security rules, dependency audit, demo, build, SBOM and claims audit), named HTTP acceptance                             | Source-bound validation report/logs, runtime manifest and SBOM. Floors remain 85% lines, 75% branches, 85% functions; scope is in `package.json`.        |
 | CI / `container`                       | After native passes: Compose validation, digest-pinned Docker build, explicit bootstrap, three healthy containers, public metadata, denied login, UID and commit identity assertions, Trivy HIGH/CRITICAL gate, image SBOM | Actual Docker execution and scan on the hosted runner; local manifests alone do not prove this.                                                          |
 | CI / `browser`                         | Pinned Playwright/Chromium, isolated fresh stack, actual browser acceptance, cleanup                                                                                                                                       | Selected synthetic screenshots and result text; no user profiles, credential files or browser storage directories.                                       |
 | Security / `dependency-and-regression` | Locked dependency audit, local security rules and security regression tests                                                                                                                                                | Registry advisories and regression behavior; HIGH/CRITICAL dependency findings block.                                                                    |
@@ -15,7 +15,7 @@ deploys an operational service, publishes an image or creates a release.
 | Security / `codeql`                    | JavaScript/TypeScript security-extended analysis and executable SARIF gate                                                                                                                                                 | Gate blocks severity >=7, error-level findings and ungraded security results; missing/malformed output fails closed. Lower severities still need review. |
 
 Actions are pinned to full reviewed commit SHAs. The application runtime is pinned to Node
-24.19.0; Docker also pins the base manifest digest. Pins provide reproducibility, not an
+24.21.0 in hosted jobs and containers; the local 24.19.0 compatibility run is separately identified. Docker also pins the base manifest digest. Pins provide reproducibility, not an
 absence of vulnerabilities. Do not waive scanner findings or weaken tests to obtain green CI.
 
 Native artifacts are required after successful checks. If an earlier check fails, the final
@@ -70,3 +70,18 @@ GitHub's active workflow directory. There is no CD workflow. Staging deployment 
 until CI is reliable and its target environment is agreed. Release automation follows that
 work; neither is invented in this phase. The inactive recipe is reference material requiring
 review before reactivation, including all artifact paths and security dependencies.
+
+## Latest inherited run and remediation
+
+[Run 37678323924](https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/37678323924),
+for inherited commit `f6d75cf`, passed native, browser and secret-scan jobs. The container
+built, started and passed its probes, then failed Trivy on OS and bundled npm dependencies.
+CodeQL analysis completed, but the custom gate could not resolve a finding's rule metadata.
+These results do not establish success for the foundation branch.
+
+The SARIF parser now resolves query-pack component references and rejects conflicting or
+ambiguous indices/identifiers; severity and suppression policies remain unchanged. Parser
+errors produce blocking evidence, and the workflow retains scoped SARIF alongside the gate
+report for diagnosis. The exact failing SARIF was not retained by the inherited run, so the
+updated hosted job must verify compatibility with its real output. The container remediation
+and verified upstream pin are documented in [security](../security/README.md#container-remediation-evidence).

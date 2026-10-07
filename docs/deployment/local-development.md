@@ -1,6 +1,7 @@
 # Local development
 
-Use synthetic data only. The runnable stack is Node.js 24.19.0 with npm and Git. GNU Make
+Use synthetic data only. CI and containers pin Node.js 24.21.0; local compatibility was
+exercised on 24.19.0 (the package engine allows >=24.19.0 <25). Use npm and Git. GNU Make
 is optional: every Make target delegates to the npm command listed below. Docker with the
 Compose plugin is optional for container validation; it is not needed for native development.
 There is no separate database daemon or frontend dependency installation.

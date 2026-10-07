@@ -20,7 +20,7 @@ approved cryptographic suites and deployment accreditation remain separate decis
 
 | Concern       | Selected implementation                                                    | Reason and practical limit                                                                     |
 | ------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Runtime       | Node.js 24.19.0, native ESM JavaScript                                     | Preserve existing code and pin the tested runtime; maintain its security updates               |
+| Runtime       | Node.js 24.21.0 CI/container; >=24.19.0 <25 engine; native ESM JavaScript  | Preserve existing code and pin the tested runtime; maintain its security updates               |
 | HTTP services | Native `node:http`, gateway / control authority / ciphertext relay         | Small inspectable surface; application owns validation and HTTP hardening                      |
 | Browser UI    | Existing HTML/CSS/JavaScript and service worker                            | Supports the required workflow without introducing framework migration                         |
 | State         | Native `node:sqlite`, migrations, WAL, one authority writer                | Atomic policy/decision/evidence transactions; not a claim of horizontal HA                     |
@@ -49,3 +49,14 @@ suites. No SAG grading is asserted.
 The branch may merge only after actual build, tests, lint, type checks, security gates and
 Docker verification pass. Staging and release automation are deferred until those gates are
 reliable; the old artifact recipe is retained outside active workflow discovery.
+
+## Container security update
+
+The inherited Debian 12 image failed the actual Trivy gate with 60 OS HIGH/CRITICAL
+findings and 12 bundled npm dependency findings in run 37678323924. The candidate switches
+both image stages to official Node 24.21.0 on Alpine 3.24, pinned by manifest digest, and
+removes unused runtime npm/Yarn. The application has no runtime npm dependencies or native
+addon artifacts to copy across libc boundaries. This changes the container libc to musl,
+so an in-image SQLite/crypto smoke check plus hosted startup and scan remain required.
+Local 24.19.0 test results establish compatibility only, not the updated image's success.
+See [verified source and security gate](../../security/README.md#container-remediation-evidence).

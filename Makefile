@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 .PHONY: help setup dev check lint format-check typecheck test security e2e browser build sbom ci verify bootstrap start docker-build
 help:
-	@echo "SIEPMU synthetic demonstrator — Node 24.19.0"
+	@echo "SIEPMU synthetic demonstrator — Node 24.21.0 CI; 24.19.0 local compatibility"
 	@echo "make setup        Install locked developer dependencies (no provisioning)"
 	@echo "make bootstrap    Create fresh synthetic identities; refuses existing database"
 	@echo "make dev          Start relay, authority and web; bootstrap required first"

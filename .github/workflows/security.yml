@@ -20,7 +20,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
-          node-version: 24.19.0
+          node-version: 24.21.0
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Scan locked dependencies
         run: npm audit --audit-level=high
@@ -62,13 +62,15 @@ jobs:
           output: artifacts/codeql
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
-          node-version: 24.19.0
+          node-version: 24.21.0
       - name: Block high or critical SAST findings
         run: node scripts/sarif-gate.mjs artifacts/codeql
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: always()
         with:
           name: codeql-gate
-          path: artifacts/codeql/gate.json
+          path: |
+            artifacts/codeql/gate.json
+            artifacts/codeql/*.sarif
           if-no-files-found: warn
           retention-days: 14

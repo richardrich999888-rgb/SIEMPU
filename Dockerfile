@@ -1,5 +1,5 @@
-# Manifest-list digest resolved from the official Docker registry. Update with review and image scans.
-FROM node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df AS build
+# Official Docker image manifest index verified against docker-library/repo-info; see security/README.md.
+FROM node:24.21.0-alpine3.24@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 AS build
 ARG SIEPMU_BUILD_REVISION=unknown
 ARG SIEPMU_BUILD_TIMESTAMP=unknown
 WORKDIR /build
@@ -11,7 +11,7 @@ RUN npm ci --ignore-scripts --no-audit --no-fund \
  && npm run security \
  && npm run build
 
-FROM node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df
+FROM node:24.21.0-alpine3.24@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1
 ARG SIEPMU_BUILD_REVISION=unknown
 ARG SIEPMU_BUILD_TIMESTAMP=unknown
 LABEL org.opencontainers.image.revision=$SIEPMU_BUILD_REVISION \
@@ -22,7 +22,11 @@ LABEL org.opencontainers.image.revision=$SIEPMU_BUILD_REVISION \
 WORKDIR /app
 COPY --from=build --chown=1000:1000 /build/dist/ ./
 COPY --chown=1000:1000 deployment/ ./deployment/
-RUN mkdir -p /var/lib/siepmu/control /var/lib/siepmu/relay /var/lib/siepmu/relay-auth \
+# The runtime has no npm dependencies; remove bundled package managers and their attack surface.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-* \
+ && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/yarn /usr/local/bin/yarnpkg /usr/local/bin/corepack \
+ && node --input-type=module -e "import { DatabaseSync } from 'node:sqlite'; import { randomBytes } from 'node:crypto'; const db = new DatabaseSync(':memory:'); db.exec('CREATE TABLE smoke (id INTEGER)'); db.close(); if (randomBytes(32).length !== 32) process.exit(1);" \
+ && mkdir -p /var/lib/siepmu/control /var/lib/siepmu/relay /var/lib/siepmu/relay-auth \
  && chown -R 1000:1000 /var/lib/siepmu \
  && chmod 700 /var/lib/siepmu/control /var/lib/siepmu/relay /var/lib/siepmu/relay-auth
 USER 1000:1000

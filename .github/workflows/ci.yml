@@ -20,30 +20,21 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6, resolved 2026-10-07
         with:
-          node-version: 24.19.0
+          node-version: 24.21.0
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - run: npm run check
-      - run: npm run format:check
-      - run: npm run lint
-      - run: npm run typecheck
-      - name: Test with native coverage
-        run: |
-          mkdir -p artifacts
-          set -o pipefail
-          npm run test:coverage 2>&1 | tee artifacts/test-coverage.txt
+      - name: Validate source-bound claims and implementation
+        run: npm run validate
       - name: Required vertical slice acceptance tests
         run: npm run test:e2e
-      - name: Synthetic acceptance demo
-        run: node scripts/demo.mjs
-      - run: npm run build && npm run sbom
       - name: Require native evidence after successful checks
-        run: test -s artifacts/test-coverage.txt && test -s artifacts/application.cdx.json && test -s dist/manifest.json
+        run: test -s artifacts/validation/report.json && test -s artifacts/application.cdx.json && test -s dist/manifest.json
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6, resolved 2026-10-07
         if: always()
         with:
           name: native-evidence
           path: |
-            artifacts/test-coverage.txt
+            artifacts/validation/report.json
+            artifacts/validation/*.log
             artifacts/application.cdx.json
             dist/manifest.json
           if-no-files-found: warn
@@ -111,7 +102,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
-          node-version: 24.19.0
+          node-version: 24.21.0
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npx --no-install playwright install --with-deps chromium
       - name: Isolated real browser acceptance

@@ -8,7 +8,7 @@ The central experiment is **policy-epoch-bound release**: ciphertext can be queu
 
 ## Run locally
 
-Requires Node **24.19.0**, npm and a current browser with WebCrypto. Runtime services use Node built-ins; npm dependencies are development tools only.
+Requires Node **24.x (>=24.19.0)**, npm and a current browser with WebCrypto. Hosted CI and the container use **24.21.0**; local compatibility has also been tested on **24.19.0**. Runtime services use Node built-ins; npm dependencies are development tools only.
 
 ```sh
 git clone https://github.com/richardrich999888-rgb/SIEMPU.git
