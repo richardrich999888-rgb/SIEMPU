@@ -320,11 +320,17 @@ export async function enrollUser(
   };
   const client = new ApiClient(admin.transport, profile);
   await client.login();
-  const challenge = await client.ok('POST', '/api/auth/challenge', { purpose: 'enroll' });
-  const enrolled = await client.ok('POST', '/api/devices/enroll', {
+  const enrollment = {
     label: username + '-synthetic-device',
     signingPublicKey: profile.keys.signing.publicKey,
     encryptionPublicKey: profile.keys.encryption.publicKey,
+  };
+  const challenge = await client.ok('POST', '/api/auth/challenge', {
+    purpose: 'enroll',
+    requestHash: hash(canonical(enrollment)),
+  });
+  const enrolled = await client.ok('POST', '/api/devices/enroll', {
+    ...enrollment,
     challengeId: challenge.challengeId,
     signature: sign(challenge.challenge, profile.keys.signing.privateKey),
   });

@@ -22,26 +22,15 @@ jobs:
         with:
           node-version: 24.19.0
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - run: npm run check
-      - run: npm run lint
-      - run: npm run format:check
-      - run: npm run typecheck
-      - run: npm run security
-      - run: npm audit --audit-level=high
-      - name: Test with native coverage
-        run: |
-          mkdir -p artifacts
-          set -o pipefail
-          npm run test:coverage 2>&1 | tee artifacts/test-coverage.txt
-      - name: Synthetic acceptance demo
-        run: node scripts/demo.mjs
-      - run: npm run build && npm run sbom
+      - name: Validate source-bound claims and implementation
+        run: npm run validate
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6, resolved 2026-10-07
         if: always()
         with:
           name: native-evidence
           path: |
-            artifacts/test-coverage.txt
+            artifacts/validation/report.json
+            artifacts/validation/*.log
             artifacts/application.cdx.json
             dist/manifest.json
           if-no-files-found: error
@@ -75,6 +64,17 @@ jobs:
           build-mode: none
           queries: security-extended
       - uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4, resolved 2026-10-07
+        with:
+          output: artifacts/codeql
+      - name: Block high or critical SAST findings
+        run: node scripts/sarif-gate.mjs artifacts/codeql
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        if: always()
+        with:
+          name: codeql-gate
+          path: artifacts/codeql/gate.json
+          if-no-files-found: warn
+          retention-days: 14
   container:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
@@ -83,15 +83,17 @@ jobs:
         with:
           persist-credentials: false
       - run: docker compose config --quiet
-      - run: docker build --pull -t syntriass-siepmu:local .
+      - name: Build commit-identified image
+        run: docker build --pull --build-arg SIEPMU_BUILD_REVISION="$GITHUB_SHA" --build-arg SIEPMU_BUILD_TIMESTAMP="$(date -u +%Y-%m-%dT%H:%M:%SZ)" -t syntriass-siepmu:local .
       - name: Run three-service synthetic deployment
         run: |
           docker compose run --rm bootstrap >/dev/null
           docker compose up -d --wait --wait-timeout 90
-          curl --fail --silent http://localhost:8080/api/meta >/dev/null
-          response=$(curl --silent --output /dev/null --write-out '%{http_code}' -H 'Origin: http://localhost:8080' -H 'Content-Type: application/json' --data '{"username":"synthetic-nonexistent","password":"not-a-credential","otp":"000000"}' http://localhost:8080/api/auth/login)
+          curl --ipv4 --fail --silent --show-error --retry 3 --retry-connrefused http://localhost:8080/api/meta >/dev/null
+          response=$(curl --ipv4 --silent --show-error --output /dev/null --write-out '%{http_code}' -H 'Origin: http://localhost:8080' -H 'Content-Type: application/json' --data '{"username":"synthetic-nonexistent","password":"not-a-credential","otp":"000000"}' http://localhost:8080/api/auth/login)
           test "$response" = "401"
           test "$(docker compose exec -T web id -u)" = "1000"
+          curl --ipv4 --fail --silent --show-error http://localhost:8080/api/meta | node -e 'let s="";process.stdin.on("data",b=>s+=b);process.stdin.on("end",()=>{const m=JSON.parse(s);if(m.build?.revision!==process.env.GITHUB_SHA||!m.build?.builtAt)process.exit(1);});'
       - name: Scan image vulnerabilities
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
         with:
@@ -118,6 +120,11 @@ jobs:
           path: image.cdx.json
           if-no-files-found: error
           retention-days: 14
+      - name: Diagnose failed container startup or scan
+        if: failure()
+        run: |
+          docker compose ps
+          docker compose logs --no-color --tail 100 relay control web
       - if: always()
         run: docker compose down --volumes --remove-orphans
 
@@ -163,3 +170,44 @@ jobs:
         run: |
           if test -f /tmp/siepmu-browser-services.pid; then kill "$(cat /tmp/siepmu-browser-services.pid)" || true; fi
           rm -rf .data
+
+  package-candidate:
+    needs: [native, secret-scan, codeql, container, browser]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24.19.0
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build && npm run sbom
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: image-sbom
+          path: artifacts/release
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: native-evidence
+          path: artifacts/release/evidence/native
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: browser-evidence
+          path: artifacts/release/evidence/browser
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: codeql-gate
+          path: artifacts/release/evidence/codeql
+      - name: Exercise the actual release packager
+        run: node scripts/release.mjs
+      - name: Verify all generated checksums
+        working-directory: artifacts/release
+        run: sha256sum --check SHA256SUMS
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: release-candidate-${{ github.sha }}
+          path: artifacts/release
+          if-no-files-found: error
+          retention-days: 30

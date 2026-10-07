@@ -1,0 +1,95 @@
+{
+  "status": "MEASURED",
+  "timestamp": "2026-10-07T19:54:20.774Z",
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "logicalCpus": 9,
+    "hostMemoryBytes": 10451460096
+  },
+  "workload": {
+    "mode": "sequential loopback HTTP, three separate server processes, synthetic 4 KiB payloads",
+    "objects": 30,
+    "concurrentSenders": 1,
+    "simultaneousSessions": 2
+  },
+  "measurements": {
+    "loginAndDeviceBind": {
+      "samples": 2,
+      "percentileMethod": "nearest-rank",
+      "minMs": 111.15202899999986,
+      "p50Ms": 111.15202899999986,
+      "p95Ms": 318.0754699999999,
+      "maxMs": 318.0754699999999
+    },
+    "encrypt": {
+      "samples": 30,
+      "percentileMethod": "nearest-rank",
+      "minMs": 0.7750760000003538,
+      "p50Ms": 1.2185989999998128,
+      "p95Ms": 5.709173999999621,
+      "maxMs": 10.227281000000403
+    },
+    "submit": {
+      "samples": 30,
+      "percentileMethod": "nearest-rank",
+      "minMs": 18.365499,
+      "p50Ms": 31.686345999999958,
+      "p95Ms": 127.99874699999964,
+      "maxMs": 172.1227689999996
+    },
+    "prepare": {
+      "samples": 30,
+      "percentileMethod": "nearest-rank",
+      "minMs": 9.716958999999406,
+      "p50Ms": 17.10662000000002,
+      "p95Ms": 50.60448499999984,
+      "maxMs": 149.48969699999998
+    },
+    "claim": {
+      "samples": 30,
+      "percentileMethod": "nearest-rank",
+      "minMs": 13.449965999999677,
+      "p50Ms": 22.030557999999928,
+      "p95Ms": 31.719763000000057,
+      "maxMs": 37.41766800000005
+    },
+    "decrypt": {
+      "samples": 30,
+      "percentileMethod": "nearest-rank",
+      "minMs": 0.7818059999999605,
+      "p50Ms": 1.0969569999997475,
+      "p95Ms": 4.287524999999732,
+      "maxMs": 8.593415999999934
+    }
+  },
+  "elapsedMs": 3041.8629060000003,
+  "achievedObjectsPerSecond": 9.86237740722165,
+  "clientCpuMicroseconds": {
+    "user": 737390,
+    "system": 89442
+  },
+  "clientMemory": {
+    "rss": 126423040,
+    "heapTotal": 31236096,
+    "heapUsed": 17057192,
+    "external": 5192832,
+    "arrayBuffers": 1199830
+  },
+  "notMeasured": [
+    "Server CPU/RAM separately",
+    "WAN delay or loss",
+    "Large fanout",
+    "Maximum capacity",
+    "High availability",
+    "Hardware-backed cryptography",
+    "Field or military network performance"
+  ],
+  "limitations": [
+    "Per-operation timings include proof challenge round trips where the helper requests them.",
+    "Authentication samples=2; not a statistically robust authentication benchmark.",
+    "CPU/RAM measurements belong to the benchmark client process, not aggregate services."
+  ]
+}

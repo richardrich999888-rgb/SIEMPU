@@ -7,6 +7,9 @@ const excludedScripts = new Set([
   'scripts/demo.mjs',
   'scripts/benchmark.mjs',
   'scripts/release.mjs',
+  'scripts/sarif-gate.mjs',
+  'scripts/audit-claims.mjs',
+  'scripts/validate.mjs',
   'apps/unit-client/browser-check.mjs',
 ]);
 const files = ['package.json', 'package-lock.json', 'LICENSE', 'README.md'];

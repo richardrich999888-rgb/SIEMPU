@@ -27,7 +27,11 @@ import {
   validatePayload,
 } from '../packages/crypto/crypto.mjs';
 import { verifyEvidence } from '../apps/verifier/verify.mjs';
-import { decode as serverDecode, validateKey as serverValidateKey, packet as serverPacket } from '../services/control/primitives.mjs';
+import {
+  decode as serverDecode,
+  validateKey as serverValidateKey,
+  packet as serverPacket,
+} from '../services/control/primitives.mjs';
 
 const alice = await generateDeviceKeys();
 const bob = await generateDeviceKeys();
@@ -122,7 +126,8 @@ test('base64url accepts exact encodings and rejects alternate encodings', () => 
 });
 test('server base64url decoder rejects alternate encodings with unused-bit changes', () => {
   assert.deepEqual(serverDecode('_w'), Buffer.from([255]));
-  for (const value of ['_x', '_y', '_z', 'AA=', 'A', 'AA\n']) assert.throws(() => serverDecode(value));
+  for (const value of ['_x', '_y', '_z', 'AA=', 'A', 'AA\n'])
+    assert.throws(() => serverDecode(value));
 });
 test('server public key validation rejects private members even when empty', () => {
   assert.deepEqual(serverValidateKey(alice.signing.publicKey), alice.signing.publicKey);
@@ -130,20 +135,36 @@ test('server public key validation rejects private members even when empty', () 
   assert.throws(() => serverValidateKey({ ...alice.signing.publicKey, d: null }));
   assert.throws(() => serverValidateKey(alice.signing.privateKey));
 });
-test('native signed packet and body-hash operation helper interoperate with WebCrypto', async t => {
+test('native signed packet and body-hash operation helper interoperate with WebCrypto', async (t) => {
   const { coreFixture } = await import('./helpers/fixture.mjs');
   const f = await coreFixture(t);
   await f.clients.admin.authenticate();
-  const body = { fromUnit: f.provisioned.units.A, toUnit: f.provisioned.units.B, missionId: 'DEMO-MISSION', allow: false };
+  const body = {
+    fromUnit: f.provisioned.units.A,
+    toUnit: f.provisioned.units.B,
+    missionId: 'DEMO-MISSION',
+    allow: false,
+  };
   const proof = await f.clients.admin.proof('admin:PUT:/api/admin/policies', body);
-  const challenge = JSON.parse(f.authority.get('SELECT payload FROM challenges WHERE id=?', proof.challengeId).payload);
+  const challenge = JSON.parse(
+    f.authority.get('SELECT payload FROM challenges WHERE id=?', proof.challengeId).payload,
+  );
   assert.equal(challenge.requestHash, await sha256(canonical(body)));
-  assert.equal(await verify(f.profiles.admin.keys.signing.publicKey, challenge, proof.signature), true);
+  assert.equal(
+    await verify(f.profiles.admin.keys.signing.publicKey, challenge, proof.signature),
+    true,
+  );
   const changed = { ...challenge, requestHash: await sha256(canonical({ ...body, allow: true })) };
-  assert.equal(await verify(f.profiles.admin.keys.signing.publicKey, changed, proof.signature), false);
+  assert.equal(
+    await verify(f.profiles.admin.keys.signing.publicKey, changed, proof.signature),
+    false,
+  );
   const nativePacket = serverPacket(f.authority.key, challenge);
   assert.equal(await verifyPacket(f.provisioned.serverPublicKey, nativePacket), true);
-  assert.equal(await verifyPacket(f.provisioned.serverPublicKey, { ...nativePacket, payload: changed }), false);
+  assert.equal(
+    await verifyPacket(f.provisioned.serverPublicKey, { ...nativePacket, payload: changed }),
+    false,
+  );
 });
 test('browser signatures interoperate with native Node P1363 signatures', async () => {
   const value = { challenge: 'one-use', epoch: 1 };
@@ -421,30 +442,82 @@ test('saved checkpoint rejects alternate correctly signed chain at same sequence
 });
 
 async function releaseReceipt() {
-  return signPacket(authority.signing.privateKey, { sequence: 1, previousHash: '0'.repeat(64), eventId: crypto.randomUUID(), eventType: 'RELEASE_ISSUED', timestamp: 1000, epoch, actorId: 'bob', objectId: crypto.randomUUID(), decision: 'RELEASED', details: { authorityEpoch: epoch, objectDigest: 'a'.repeat(64) } });
+  return signPacket(authority.signing.privateKey, {
+    sequence: 1,
+    previousHash: '0'.repeat(64),
+    eventId: crypto.randomUUID(),
+    eventType: 'RELEASE_ISSUED',
+    timestamp: 1000,
+    epoch,
+    actorId: 'bob',
+    objectId: crypto.randomUUID(),
+    decision: 'RELEASED',
+    details: { authorityEpoch: epoch, objectDigest: 'a'.repeat(64) },
+  });
 }
 test('detached receipt verification compares independent expected digest, epoch and object ID', async () => {
   const receipt = await releaseReceipt();
-  const options = { objectDigest: receipt.payload.details.objectDigest, epoch, objectId: receipt.payload.objectId };
+  const options = {
+    objectDigest: receipt.payload.details.objectDigest,
+    epoch,
+    objectId: receipt.payload.objectId,
+  };
   const result = await verifyEvidence(receipt, authority.signing.publicKey, options);
   assert.equal(result.bindingVerified, true);
-  assert.deepEqual(result.expectedBindings, { objectDigest: options.objectDigest, authorityEpoch: epoch, objectId: options.objectId });
-  await assert.rejects(verifyEvidence(receipt, authority.signing.publicKey, { ...options, objectDigest: 'b'.repeat(64) }), /Expected object digest mismatch/);
-  await assert.rejects(verifyEvidence(receipt, authority.signing.publicKey, { ...options, epoch: epoch + 1 }), /Expected authority epoch mismatch/);
-  await assert.rejects(verifyEvidence(receipt, authority.signing.publicKey, { ...options, objectId: crypto.randomUUID() }), /Expected object ID mismatch/);
+  assert.deepEqual(result.expectedBindings, {
+    objectDigest: options.objectDigest,
+    authorityEpoch: epoch,
+    objectId: options.objectId,
+  });
+  await assert.rejects(
+    verifyEvidence(receipt, authority.signing.publicKey, {
+      ...options,
+      objectDigest: 'b'.repeat(64),
+    }),
+    /Expected object digest mismatch/,
+  );
+  await assert.rejects(
+    verifyEvidence(receipt, authority.signing.publicKey, { ...options, epoch: epoch + 1 }),
+    /Expected authority epoch mismatch/,
+  );
+  await assert.rejects(
+    verifyEvidence(receipt, authority.signing.publicKey, {
+      ...options,
+      objectId: crypto.randomUUID(),
+    }),
+    /Expected object ID mismatch/,
+  );
   assert.equal((await verifyEvidence(receipt, authority.signing.publicKey)).bindingVerified, false);
 });
 test('expected-binding mode rejects contradictory signed epochs, non-release packets and ambiguous chain selection', async () => {
   const receipt = await releaseReceipt();
-  const contradictory = await signPacket(authority.signing.privateKey, { ...receipt.payload, details: { ...receipt.payload.details, authorityEpoch: epoch + 1 } });
+  const contradictory = await signPacket(authority.signing.privateKey, {
+    ...receipt.payload,
+    details: { ...receipt.payload.details, authorityEpoch: epoch + 1 },
+  });
   assert.equal(await verifyPacket(authority.signing.publicKey, contradictory), true);
-  await assert.rejects(verifyEvidence(contradictory, authority.signing.publicKey, { epoch }), /inconsistent/);
-  await assert.rejects(verifyEvidence(grant, authority.signing.publicKey, { epoch }), /release issuance/);
-  await assert.rejects(verifyEvidence(await evidence(), authority.signing.publicKey, { epoch }), /single release receipt/);
-  await assert.rejects(verifyEvidence(receipt, authority.signing.publicKey, { objectDigest: 'NOT-A-DIGEST' }), /lowercase SHA-256/);
-  await assert.rejects(verifyEvidence(receipt, authority.signing.publicKey, { epoch: '5' }), /positive safe integer/);
+  await assert.rejects(
+    verifyEvidence(contradictory, authority.signing.publicKey, { epoch }),
+    /inconsistent/,
+  );
+  await assert.rejects(
+    verifyEvidence(grant, authority.signing.publicKey, { epoch }),
+    /release issuance/,
+  );
+  await assert.rejects(
+    verifyEvidence(await evidence(), authority.signing.publicKey, { epoch }),
+    /single release receipt/,
+  );
+  await assert.rejects(
+    verifyEvidence(receipt, authority.signing.publicKey, { objectDigest: 'NOT-A-DIGEST' }),
+    /lowercase SHA-256/,
+  );
+  await assert.rejects(
+    verifyEvidence(receipt, authority.signing.publicKey, { epoch: '5' }),
+    /positive safe integer/,
+  );
 });
-test('detached verifier CLI rejects validly signed receipts for the wrong expected digest or epoch', async t => {
+test('detached verifier CLI rejects validly signed receipts for the wrong expected digest or epoch', async (t) => {
   const { mkdtemp, writeFile, rm } = await import('node:fs/promises');
   const { tmpdir } = await import('node:os');
   const { join } = await import('node:path');
@@ -454,17 +527,35 @@ test('detached verifier CLI rejects validly signed receipts for the wrong expect
   const dir = await mkdtemp(join(tmpdir(), 'siepmu-verifier-'));
   t.after(() => rm(dir, { recursive: true, force: true }));
   const receipt = await releaseReceipt();
-  const receiptPath = join(dir, 'receipt.json'), keyPath = join(dir, 'public-key.json');
-  await Promise.all([writeFile(receiptPath, JSON.stringify(receipt)), writeFile(keyPath, JSON.stringify(authority.signing.publicKey))]);
+  const receiptPath = join(dir, 'receipt.json'),
+    keyPath = join(dir, 'public-key.json');
+  await Promise.all([
+    writeFile(receiptPath, JSON.stringify(receipt)),
+    writeFile(keyPath, JSON.stringify(authority.signing.publicKey)),
+  ]);
   const cli = fileURLToPath(new URL('../apps/verifier/verify.mjs', import.meta.url));
-  const run = (...args) => promisify(execFile)(process.execPath, [cli, receiptPath, keyPath, ...args]);
-  const success = await run('--object-digest', receipt.payload.details.objectDigest, '--epoch', String(epoch), '--object-id', receipt.payload.objectId);
+  const run = (...args) =>
+    promisify(execFile)(process.execPath, [cli, receiptPath, keyPath, ...args]);
+  const success = await run(
+    '--object-digest',
+    receipt.payload.details.objectDigest,
+    '--epoch',
+    String(epoch),
+    '--object-id',
+    receipt.payload.objectId,
+  );
   assert.equal(JSON.parse(success.stdout).bindingVerified, true);
-  for (const [flag, value, message] of [['--object-digest', 'b'.repeat(64), 'Expected object digest mismatch'], ['--epoch', String(epoch + 1), 'Expected authority epoch mismatch']]) {
-    await assert.rejects(run(flag, value), error => error.code === 1 && JSON.parse(error.stderr).error === message);
+  for (const [flag, value, message] of [
+    ['--object-digest', 'b'.repeat(64), 'Expected object digest mismatch'],
+    ['--epoch', String(epoch + 1), 'Expected authority epoch mismatch'],
+  ]) {
+    await assert.rejects(
+      run(flag, value),
+      (error) => error.code === 1 && JSON.parse(error.stderr).error === message,
+    );
   }
-  await assert.rejects(run('--epoch', '1e3'), error => error.code === 1);
-  await assert.rejects(run('--epoch', '5', '--epoch', '5'), error => error.code === 1);
+  await assert.rejects(run('--epoch', '1e3'), (error) => error.code === 1);
+  await assert.rejects(run('--epoch', '5', '--epoch', '5'), (error) => error.code === 1);
 });
 
 test('WebCrypto endpoint interoperates with production authority and independent native peer', async (t) => {

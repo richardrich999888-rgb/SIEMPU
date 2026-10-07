@@ -1,0 +1,24 @@
+# Requirement → implementation → evidence
+
+The official requirement meaning and source pages are in [requirements](requirements/README.md). Explicit requirements remain separate from prototype additions. These mappings identify real files; passing scope comes from the [recorded evidence](hpsc/evidence-index.md). External approval requirements are not converted into software passes.
+
+| ID                                     | Implementation                                          | Verification                                                | Remaining boundary                                           |
+| -------------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------ |
+| R1 Public-internet inter-unit exchange | unit client; web/control/relay services                 | `tests/http.test.mjs`, `scripts/demo.mjs`, real browser run | Local environment; approved internet/TLS deployment needed   |
+| R2 Reliability/CIA/authenticity        | object crypto, durable state, signed origin/receipts    | crypto + authority + recovery tests                         | No guaranteed delivery or compromised-endpoint protection    |
+| R3 Real-time collaboration             | polling browser text/file exchange and receipt states   | browser text exchange; HTTP/crypto file cases; benchmark    | No voice/video, collaborative editor or official latency SLA |
+| R4 Cloud microservices                 | three actual processes, separate relay storage, Compose | running HTTP stack; inspect exact-head container job        | Single-host authority, no HA/scaling qualification           |
+| R5 E2EE/MFA                            | `packages/crypto/crypto.mjs`; control login/TOTP        | native/WebCrypto negatives, auth and browser tests          | Not SAG approved; TOTP not phishing resistant                |
+| R6 Secure protocols/monitoring         | gateway controls, workload auth, alerts/metrics         | HTTP/web/relay tests; admin browser view                    | TLS externally provisioned; no full SIEM/tracing             |
+| R7 Granular RBAC                       | current users/roles/units/missions, final claim         | authority wrong-role/object/unit/device/session tests       | Generic roles; filed IAF role mapping unresolved             |
+| R8 Integration                         | `/api/integration/validate` synthetic adapter           | authenticated schema checks in authority tests              | Live military interface NOT IMPLEMENTED                      |
+| R9 SAG-graded algorithm                | versioned crypto boundary                               | Standard-library crypto tests only                          | NOT APPROVED; sponsor/agency gate                            |
+| R10 Secure storage                     | endpoint vault, ciphertext relay, encrypted TOTP/backup | vault/relay/recovery tests, browser storage checks          | Metadata/master keys require OS/operational protection       |
+| R11 Scalability/flexibility            | bounded requests/objects, explicit limits               | 30-object sequential measured profile                       | Fleet concurrency and capacity NOT MEASURED                  |
+| R12 QA/certification                   | test suites, reproducible commands, evidence records    | local validation plus exact-head CI                         | Independent/sponsor certification NOT PERFORMED              |
+| I2 Device trust                        | enrollment, signed one-use proof, revoke                | device/auth regression suite                                | Software possession, no hardware attestation                 |
+| I3 Offline reliability                 | encrypted queue, cached shell/grant, revision checks    | real Chromium offline/reload; vault tests                   | No disconnected peer delivery; endpoint clock assumption     |
+| I4 Epoch-fenced release                | `Authority.claim` + transactional policy change         | separate-process race, crash/retry tests                    | Issuance commit boundary; no post-commit recall              |
+| I4 Evidence linkage                    | event/issuance/state same transaction                   | failure injection and detached verifier negatives           | External checkpoint needed for suffix truncation             |
+
+Source entry points: [control](../services/control/core.mjs), [protocol](protocols/IMPLEMENTATION_CONTRACT.md), [crypto](../packages/crypto/crypto.mjs), [client](../apps/unit-client/app.mjs), [tests](testing.md), [build/release](ci-cd.md). Preserve full commit/configuration in release evidence; this matrix does not assert a historic test ran against a later amended commit.

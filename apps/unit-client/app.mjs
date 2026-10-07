@@ -15,7 +15,8 @@ import {
 import { canonical } from '/packages/protocol/canonical.mjs';
 import { element as el, field, button, badge, hint, panel, download, safeName } from './dom.mjs';
 import { renderAdmin } from '/apps/admin-console/admin.mjs';
-import { commitEncryptedVault } from './vault-store.mjs';
+import { commitEncryptedVaultLocked } from './vault-store.mjs';
+import { validateDeviceChallenge, validateReleaseScope } from './challenge.mjs';
 
 const VAULT_PREFIX = 'siepmu.vault.v1.';
 const PIN_KEY = 'siepmu.authority.pin.v1';
@@ -127,22 +128,32 @@ async function persist() {
     .then(async () => {
       const previous = state.vaultStored;
       const packet = await sealVault(snapshot, secret);
-      state.vaultStored = commitEncryptedVault(localStorage, key, previous, packet);
+      state.vaultStored = await commitEncryptedVaultLocked(
+        localStorage,
+        navigator.locks,
+        key,
+        previous,
+        packet,
+      );
     });
   return state.save;
 }
 async function proof(operation, body = {}) {
   if (!state.device || !state.vault)
     throw new Error('Bind an approved device before this operation.');
-  const challenge = await api('/api/auth/challenge', 'POST', {
+  const expected = {
     purpose: 'operation',
     deviceId: state.device.id,
     operation,
     requestHash: await sha256(canonical(body)),
-  });
+  };
+  const challenge = await api('/api/auth/challenge', 'POST', expected);
   return {
     challengeId: challenge.challengeId,
-    signature: await sign(state.vault.keys.signing.privateKey, challenge.challenge),
+    signature: await sign(
+      state.vault.keys.signing.privateKey,
+      validateDeviceChallenge(challenge, expected),
+    ),
   };
 }
 async function adminMutation(path, method, body = {}) {
@@ -161,7 +172,10 @@ async function bindDevice() {
   const result = await api('/api/auth/bind', 'POST', {
     deviceId: state.vault.deviceId,
     challengeId: challenge.challengeId,
-    signature: await sign(state.vault.keys.signing.privateKey, challenge.challenge),
+    signature: await sign(
+      state.vault.keys.signing.privateKey,
+      validateDeviceChallenge(challenge, { purpose: 'bind', deviceId: state.vault.deviceId }),
+    ),
   });
   state.device = result.device;
   await refreshAuthority();
@@ -625,13 +639,23 @@ function renderVault() {
             action(async () => {
               if (v.deviceId) await bindDevice();
               else {
-                const challenge = await api('/api/auth/challenge', 'POST', { purpose: 'enroll' });
-                const result = await api('/api/devices/enroll', 'POST', {
+                const enrollment = {
                   label: label.value,
                   signingPublicKey: v.keys.signing.publicKey,
                   encryptionPublicKey: v.keys.encryption.publicKey,
+                };
+                const expected = {
+                  purpose: 'enroll',
+                  requestHash: await sha256(canonical(enrollment)),
+                };
+                const challenge = await api('/api/auth/challenge', 'POST', expected);
+                const result = await api('/api/devices/enroll', 'POST', {
+                  ...enrollment,
                   challengeId: challenge.challengeId,
-                  signature: await sign(v.keys.signing.privateKey, challenge.challenge),
+                  signature: await sign(
+                    v.keys.signing.privateKey,
+                    validateDeviceChallenge(challenge, expected),
+                  ),
                 });
                 v.deviceId = result.device.id;
                 await persist();
@@ -1120,6 +1144,7 @@ async function receive(object) {
     throw error;
   }
   const receipt = await verified(result.receipt, 'Release receipt');
+  validateReleaseScope(receipt, { userId: state.user.id, deviceId: state.device.id, objectId: id });
   if (
     receipt.objectId !== id ||
     receipt.details?.objectDigest !== result.envelope.ciphertextHash ||

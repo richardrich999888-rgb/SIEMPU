@@ -1,5 +1,7 @@
 # Manifest-list digest resolved from the official Docker registry. Update with review and image scans.
 FROM node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df AS build
+ARG SIEPMU_BUILD_REVISION=unknown
+ARG SIEPMU_BUILD_TIMESTAMP=unknown
 WORKDIR /build
 COPY . .
 RUN npm ci --ignore-scripts --no-audit --no-fund \
@@ -10,7 +12,11 @@ RUN npm ci --ignore-scripts --no-audit --no-fund \
  && npm run build
 
 FROM node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df
-LABEL org.opencontainers.image.title="SYNTRIASS SIEPMU synthetic-data demonstrator" \
+ARG SIEPMU_BUILD_REVISION=unknown
+ARG SIEPMU_BUILD_TIMESTAMP=unknown
+LABEL org.opencontainers.image.revision=$SIEPMU_BUILD_REVISION \
+      org.opencontainers.image.created=$SIEPMU_BUILD_TIMESTAMP \
+      org.opencontainers.image.title="SYNTRIASS SIEPMU synthetic-data demonstrator" \
       org.opencontainers.image.licenses="Apache-2.0" \
       org.opencontainers.image.source="https://github.com/richardrich999888-rgb/SIEMPU"
 WORKDIR /app
@@ -20,7 +26,9 @@ RUN mkdir -p /var/lib/siepmu/control /var/lib/siepmu/relay /var/lib/siepmu/relay
  && chown -R 1000:1000 /var/lib/siepmu \
  && chmod 700 /var/lib/siepmu/control /var/lib/siepmu/relay /var/lib/siepmu/relay-auth
 USER 1000:1000
-ENV NODE_ENV=production SIEPMU_DATA_DIR=/var/lib/siepmu/control
+ENV NODE_ENV=production SIEPMU_DATA_DIR=/var/lib/siepmu/control \
+    SIEPMU_BUILD_REVISION=$SIEPMU_BUILD_REVISION \
+    SIEPMU_BUILD_TIMESTAMP=$SIEPMU_BUILD_TIMESTAMP
 EXPOSE 8080
 HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 CMD ["node", "deployment/healthcheck.mjs"]
 CMD ["node", "services/web/server.mjs"]

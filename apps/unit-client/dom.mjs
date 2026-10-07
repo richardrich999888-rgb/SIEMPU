@@ -15,7 +15,11 @@ export function element(tag, properties = {}, ...children) {
   }
   return node;
 }
-export const field = (text, input) => element('label', {}, text, input);
+export function field(text, input) {
+  const id = input.id || `field-${crypto.randomUUID()}`;
+  input.id = id;
+  return element('div', { className: 'field' }, element('label', { htmlFor: id }, text), input);
+}
 export const button = (text, onClick, className = '') =>
   element('button', { type: 'button', className, onClick }, text);
 export const badge = (text) =>

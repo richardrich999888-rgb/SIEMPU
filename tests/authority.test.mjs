@@ -6,10 +6,12 @@ import { join } from 'node:path';
 import { coreFixture, openAuthority } from './helpers/fixture.mjs';
 import {
   ApiClient,
+  canonical,
   coreTransport,
   createObject,
   decryptObject,
   deviceKeys,
+  hash,
   sign,
   totp,
   verify,
@@ -335,12 +337,18 @@ test('newly enrolled device requires approval; a revoked key cannot be reapprove
     { alice, admin } = f.clients;
   await alice.authenticate();
   await admin.authenticate();
-  const keys = deviceKeys(),
-    challenge = await alice.ok('POST', '/api/auth/challenge', { purpose: 'enroll' });
-  const enrolled = await alice.ok('POST', '/api/devices/enroll', {
+  const keys = deviceKeys();
+  const enrollment = {
     label: 'Unapproved synthetic key',
     signingPublicKey: keys.signing.publicKey,
     encryptionPublicKey: keys.encryption.publicKey,
+  };
+  const challenge = await alice.ok('POST', '/api/auth/challenge', {
+    purpose: 'enroll',
+    requestHash: hash(canonical(enrollment)),
+  });
+  const enrolled = await alice.ok('POST', '/api/devices/enroll', {
+    ...enrollment,
     challengeId: challenge.challengeId,
     signature: sign(challenge.challenge, keys.signing.privateKey),
   });
@@ -363,6 +371,39 @@ test('newly enrolled device requires approval; a revoked key cannot be reapprove
     (await admin.admin('POST', `/api/admin/devices/${enrolled.device.id}/approve`)).status,
     409,
   );
+});
+
+test('enrollment transcript rejects encryption-key or label substitution after device proof', async (t) => {
+  const f = await coreFixture(t),
+    alice = f.clients.alice;
+  await alice.authenticate();
+  const keys = deviceKeys();
+  const enrollment = {
+    label: 'Bound enrollment transcript',
+    signingPublicKey: keys.signing.publicKey,
+    encryptionPublicKey: keys.encryption.publicKey,
+  };
+  const challenge = await alice.ok('POST', '/api/auth/challenge', {
+    purpose: 'enroll',
+    requestHash: hash(canonical(enrollment)),
+  });
+  const proof = {
+    challengeId: challenge.challengeId,
+    signature: sign(challenge.challenge, keys.signing.privateKey),
+  };
+  const before = Number(f.authority.db.prepare('SELECT COUNT(*) AS n FROM devices').get().n);
+  for (const replacement of [
+    { encryptionPublicKey: deviceKeys().encryption.publicKey },
+    { label: 'Substituted label' },
+  ]) {
+    const result = await alice.request('POST', '/api/devices/enroll', {
+      ...enrollment,
+      ...replacement,
+      ...proof,
+    });
+    assert.equal(result.status, 403, JSON.stringify(result));
+  }
+  assert.equal(Number(f.authority.db.prepare('SELECT COUNT(*) AS n FROM devices').get().n), before);
 });
 
 test('expired but correctly signed creation grant cannot admit a new object', async (t) => {
