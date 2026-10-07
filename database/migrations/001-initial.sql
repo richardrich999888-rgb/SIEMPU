@@ -1,0 +1,18 @@
+CREATE TABLE authority(id INTEGER PRIMARY KEY CHECK(id=1), epoch INTEGER NOT NULL CHECK(epoch>0), revocation_version INTEGER NOT NULL DEFAULT 0);
+INSERT INTO authority VALUES(1,1,0);
+CREATE TABLE units(id TEXT PRIMARY KEY, name TEXT NOT NULL UNIQUE);
+CREATE TABLE users(id TEXT PRIMARY KEY, username TEXT NOT NULL UNIQUE, password TEXT NOT NULL, totp TEXT NOT NULL, totp_floor INTEGER NOT NULL DEFAULT -1, unit_id TEXT NOT NULL REFERENCES units(id), role TEXT NOT NULL CHECK(role IN ('admin','operator','viewer','auditor')), missions TEXT NOT NULL, active INTEGER NOT NULL DEFAULT 1 CHECK(active IN(0,1)));
+CREATE TABLE devices(id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id), label TEXT NOT NULL, signing_key TEXT NOT NULL, encryption_key TEXT NOT NULL, status TEXT NOT NULL CHECK(status IN('pending','approved','revoked')), created_at INTEGER NOT NULL);
+CREATE TABLE sessions(id TEXT PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, user_id TEXT NOT NULL REFERENCES users(id), device_id TEXT REFERENCES devices(id), expires_at INTEGER NOT NULL, revoked INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE challenges(id TEXT PRIMARY KEY, session_id TEXT NOT NULL REFERENCES sessions(id), payload TEXT NOT NULL, used INTEGER NOT NULL DEFAULT 0, expires_at INTEGER NOT NULL);
+CREATE TABLE policies(from_unit TEXT NOT NULL REFERENCES units(id), to_unit TEXT NOT NULL REFERENCES units(id), mission_id TEXT NOT NULL, allow INTEGER NOT NULL CHECK(allow IN(0,1)), PRIMARY KEY(from_unit,to_unit,mission_id));
+CREATE TABLE objects(id TEXT PRIMARY KEY, sender_id TEXT NOT NULL REFERENCES users(id), recipient_id TEXT NOT NULL REFERENCES users(id), sender_device TEXT NOT NULL REFERENCES devices(id), recipient_device TEXT NOT NULL REFERENCES devices(id), envelope TEXT NOT NULL, signature TEXT NOT NULL, digest TEXT NOT NULL, state TEXT NOT NULL CHECK(state IN('PENDING','HELD','READY','RELEASED','DELIVERED','REJECTED')), reason TEXT, prepared_epoch INTEGER, created_at INTEGER NOT NULL);
+CREATE TABLE evidence(sequence INTEGER PRIMARY KEY, record TEXT NOT NULL, hash TEXT NOT NULL UNIQUE);
+CREATE TABLE issuances(object_id TEXT PRIMARY KEY REFERENCES objects(id), receipt TEXT NOT NULL, epoch INTEGER NOT NULL, issued_at INTEGER NOT NULL);
+CREATE TABLE alerts(id TEXT PRIMARY KEY, kind TEXT NOT NULL, actor_id TEXT, timestamp INTEGER NOT NULL, reason TEXT NOT NULL);
+CREATE TABLE rate_limits(bucket TEXT PRIMARY KEY, window INTEGER NOT NULL, count INTEGER NOT NULL);
+CREATE INDEX sessions_expiry ON sessions(expires_at);
+CREATE INDEX objects_sender ON objects(sender_id,created_at);
+CREATE INDEX objects_recipient ON objects(recipient_id,created_at);
+CREATE INDEX alerts_time ON alerts(timestamp);
+CREATE INDEX challenges_expiry ON challenges(expires_at);

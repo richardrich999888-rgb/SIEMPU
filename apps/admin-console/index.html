@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>SYNTRIASS · Secure Unit Exchange</title>
+    <link rel="stylesheet" href="/apps/unit-client/styles.css" />
+    <script type="module" src="/apps/unit-client/app.mjs"></script>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="rail">
+        <a class="brand" href="/" aria-label="SYNTRIASS home"
+          ><span class="brand-mark">S</span
+          ><span>SYNTRIASS<small>SECURE UNIT EXCHANGE</small></span></a
+        >
+        <div class="rail-label">MISSION WORKSPACE</div>
+        <nav id="navigation" aria-label="Workspace"></nav>
+        <div class="rail-bottom">
+          <span class="status-dot"></span> SIEPMU-69<br /><small
+            >Synthetic-data demonstrator<br />Software device keys · single authority</small
+          >
+        </div>
+      </aside>
+      <div class="workspace">
+        <header class="topbar">
+          <div>
+            <span class="eyebrow">SOVEREIGN INFORMATION EXCHANGE</span>
+            <h1 id="page-title">Unit workspace</h1>
+          </div>
+          <div class="session-controls">
+            <span id="identity" class="muted">No active session</span
+            ><button id="lock-button" class="quiet" hidden>Lock &amp; sign out</button>
+          </div>
+        </header>
+        <section class="statusbar" aria-label="Connection and authority">
+          <span id="connection" class="status-pill">Connecting</span
+          ><span id="epoch">Authority epoch —</span><span id="device-status">Device unbound</span
+          ><button id="transport-toggle" class="quiet" disabled>Simulate disconnect</button
+          ><button id="refresh-button" class="quiet" disabled>Refresh authority</button>
+        </section>
+        <div id="notice" role="status" aria-live="polite" hidden></div>
+        <main id="main"></main>
+        <footer>
+          PROTOTYPE · Synthetic content only. No IAF approval, SAG grading or production assurance
+          is claimed. Revocation cannot recall content already released.
+        </footer>
+      </div>
+    </div>
+  </body>
+</html>

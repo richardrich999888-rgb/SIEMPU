@@ -1,0 +1,14 @@
+.git
+.data
+.env
+.env.*
+node_modules
+dist
+artifacts
+coverage
+*.log
+**/*.sqlite*
+**/*.db
+**/*.key
+**/demo-profiles.json
+**/server-key.json

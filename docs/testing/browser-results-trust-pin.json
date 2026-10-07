@@ -1,0 +1,140 @@
+{
+  "status": "PASS",
+  "recordedAt": "2026-10-07T20:30:19.037892+00:00",
+  "scope": "Local synthetic three-process deployment; real browser UI, not mocked API",
+  "node": "v24.19.0",
+  "playwright": "1.62.1",
+  "chromium": "153.0.8010.0",
+  "binaryPackage": {
+    "name": "@sparticuz/chromium",
+    "version": "153.0.0",
+    "installation": "Scratch-only test tooling; not a product runtime dependency"
+  },
+  "runner": "apps/unit-client/browser-check.mjs",
+  "uncaughtBrowserErrors": 0,
+  "assertions": [
+    {
+      "name": "MFA, provisioned encrypted vault and approved device binding",
+      "status": "PASS"
+    },
+    {
+      "name": "Endpoint encrypted text, policy-gated release, verified decryption and acknowledgement",
+      "status": "PASS"
+    },
+    {
+      "name": "Hostile HTML-shaped message displayed as text without script execution",
+      "status": "PASS"
+    },
+    {
+      "name": "Simulated disconnect, encrypted queue, policy denial and reconnection HOLD",
+      "status": "PASS"
+    },
+    {
+      "name": "Explicit policy allow and subsequent controlled release",
+      "status": "PASS"
+    },
+    {
+      "name": "Browser storage excludes plaintext message, private signing key and bootstrap credentials",
+      "status": "PASS"
+    },
+    {
+      "name": "Real browser offline network toggle, cached-shell reload, encrypted vault unlock and local creation",
+      "status": "PASS"
+    },
+    {
+      "name": "Fresh MFA required before reconnecting after reload",
+      "status": "PASS"
+    },
+    {
+      "name": "Modified device signing challenge rejected before an enrollment proof is sent",
+      "status": "PASS"
+    },
+    {
+      "name": "Encryption-key substitution after enrollment signing rejected by server body-binding check",
+      "status": "PASS"
+    },
+    {
+      "name": "Fresh browser key generation, enrollment, approval gate and successful binding",
+      "status": "PASS"
+    },
+    {
+      "name": "Two actual browser tabs serialize vault writes through Web Locks; one commits and stale peer is rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "Actual file-input encrypted exchange and browser attachment download preserve exact multilingual UTF-8 bytes and filename",
+      "status": "PASS"
+    },
+    {
+      "name": "Unsafe dot-dot filename rejected in browser before any object submission",
+      "status": "PASS"
+    },
+    {
+      "name": "Untrusted text/html MIME hint replaced by application/octet-stream on downloaded attachment",
+      "status": "PASS"
+    }
+  ],
+  "initialFailures": [
+    {
+      "finding": "Standard Playwright Chromium archive download returned invalid or truncated ZIP",
+      "resolution": "Installed a separate npm-packaged Chromium test binary; no runtime dependency was added"
+    },
+    {
+      "finding": "Archive extraction attempted unsupported ownership changes",
+      "resolution": "Extracted test archives with tar --no-same-owner into scratch tooling directory"
+    },
+    {
+      "finding": "Separate execution cells isolated loopback listeners",
+      "resolution": "Spawned services and browser runner from one test orchestrator"
+    },
+    {
+      "finding": "Policy select labels included option text and failed exact accessibility lookup",
+      "resolution": "Used explicit input IDs with separate label elements; reran complete browser scenario successfully"
+    }
+  ],
+  "visualReview": {
+    "screenshots": ["artifacts/browser/recipient.png", "artifacts/browser/authority.png"],
+    "status": "Inspected; no clipping, overlap or material layout problem observed at 1440px viewport"
+  },
+  "notEstablished": [
+    "Hosted CI browser job result",
+    "All browser engines and devices",
+    "External penetration testing",
+    "Production operational assurance"
+  ],
+  "securityReviewFixes": [
+    {
+      "finding": "Device signing accepted arbitrary server challenge content",
+      "fix": "Exact schema, domain, purpose, operation, device, request hash and expiry validation before signing",
+      "validation": "Focused negative unit cases and actual browser altered-challenge rejection before proof POST"
+    },
+    {
+      "finding": "A signed non-release receipt with matching digests could pass partial receipt checks",
+      "fix": "Require RELEASE_ISSUED/RELEASED and matching actor, recipient, device, object and action",
+      "validation": "Focused negative unit cases and successful actual browser delivery"
+    },
+    {
+      "finding": "localStorage compare-before-write alone was not atomic across tabs",
+      "fix": "Exclusive cooperative Web Lock around comparison and synchronous encrypted write; unsupported browsers fail closed",
+      "validation": "Focused unit cases and actual simultaneous two-tab browser test"
+    },
+    {
+      "finding": "Hosted scanner classified authority public-key pin persistence as clear-text sensitive storage; source accepted arbitrary key-shaped objects before explicit validation",
+      "fix": "Persist SHA-256 fingerprint as pin; accept exact public-only P-256 key schema; reject private/extra fields; WebCrypto validates curve point; cache only allowlisted public metadata; migrate legacy public pins to digests",
+      "validation": "Two focused trust-storage tests plus complete real-browser acceptance rerun including first-use trust, profile import and offline reload",
+      "hostedRescan": "Pending; no suppression added"
+    }
+  ],
+  "frontendUnitRegressionTests": {
+    "passed": 9,
+    "failed": 0,
+    "command": "node --test apps/unit-client/trust.test.mjs apps/unit-client/challenge.test.mjs apps/unit-client/vault-store.test.mjs"
+  },
+  "fileExchangeEvidence": {
+    "filename": "synthetic-evidence.txt",
+    "input": "Synthetic multilingual UTF-8 bytes through the real file input",
+    "downloadValidation": "Exact suggested filename and byte-for-byte comparison of real browser download stream",
+    "unsafeFilename": "Dot-dot rejected before /api/objects request",
+    "mimeHandling": "Untrusted HTML MIME hint coerced to application/octet-stream; no malware scanning claim"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "scope": "Native validation on source digest, not external assurance",
+  "completedAt": "2026-10-07T19:54:20.976Z",
+  "baseCommit": "596b74c4a31091b7312760ef4360bba7eb21dcac",
+  "sourceDigest": "33f380b76e86566594e2279e72a6c2f6c1e4216ea3b9cf4998548726b9d30492",
+  "tests": {
+    "total": 72,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "demo": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "synthetic": true
+  },
+  "claimsAudit": {
+    "valid": true,
+    "mode": "EXECUTION_EVIDENCE_CHECKED",
+    "claims": 14,
+    "errors": [],
+    "trustBoundary": "Local records are not independent attestation; reviewer must trust the runner and inspect logs."
+  },
+  "command": "npm run validate -- --benchmark",
+  "record": "docs/testing/native-validation.json"
+}

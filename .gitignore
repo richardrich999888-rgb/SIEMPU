@@ -1,0 +1,16 @@
+node_modules/
+.data/
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite-*
+*.db
+*.key
+demo-profiles.json
+server-key.json
+coverage/
+artifacts/
+dist/
+*.log
+.DS_Store
