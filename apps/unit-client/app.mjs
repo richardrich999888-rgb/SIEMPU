@@ -827,9 +827,7 @@ function renderExchange() {
   const priority = el(
     'select',
     { 'aria-label': 'Message priority' },
-    ['ROUTINE', 'PRIORITY', 'IMMEDIATE', 'FLASH'].map((p) =>
-      el('option', { value: p }, p),
-    ),
+    ['ROUTINE', 'PRIORITY', 'IMMEDIATE', 'FLASH'].map((p) => el('option', { value: p }, p)),
   );
   const domain = el(
     'select',

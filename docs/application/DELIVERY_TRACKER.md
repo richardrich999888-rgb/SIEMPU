@@ -2,15 +2,15 @@
 
 This tracker maps the exact named seven deliverables of Annexure 1 and six components of Annexure 2. Treat named modules as **filed architecture**, not proof of completion.
 
-| Filed deliverable | Implementation workstream | Owner | Exit evidence | State at baseline |
-|---|---|---|---|---|
-| 1. SIEPMU Core Platform (six components) | integrated versioned service/client, dual crypto, auth, audit, threat monitor | product architect | end-to-end integration + independent review | PARTIAL |
-| 2. SAG-1.0 Crypto Library | sponsor-approved provider adapter, KAT, custody | crypto + sponsor | approved module/configuration decision | BLOCKED BY EXTERNAL APPROVAL |
-| 3. PQ-SIE Protocol Module | policy-bound provider interface and NIST standard suite trials | cryptography | interoperability and accepted key-management vectors | NOT IMPLEMENTED |
-| 4. MFA-Gate + Military RBAC | TOTP, six role and four priority policy | identity/security | wrong-role, spoof, priority downgrade, revocation tests | TOTP PASS; duty policy IN PROGRESS |
-| 5. Stealth-Dashboard | role-bound operator UI + threat view | frontend/security | real browser trials, accessibility, signed data | PARTIAL; not filed React technology |
-| 6. ChronoLattice Audit Ledger | signed audit receipts and detached checkpoint | backend/V&V | chain tamper and independent checkpoint validation | PARTIAL |
-| 7. SDLC Package | exact-source SBOM, threat model, security report, handover, approved licence | DevSecOps/legal | independent assessment and signed release | PARTIAL |
+| Filed deliverable                        | Implementation workstream                                                     | Owner             | Exit evidence                                           | State at baseline                   |
+| ---------------------------------------- | ----------------------------------------------------------------------------- | ----------------- | ------------------------------------------------------- | ----------------------------------- |
+| 1. SIEPMU Core Platform (six components) | integrated versioned service/client, dual crypto, auth, audit, threat monitor | product architect | end-to-end integration + independent review             | PARTIAL                             |
+| 2. SAG-1.0 Crypto Library                | sponsor-approved provider adapter, KAT, custody                               | crypto + sponsor  | approved module/configuration decision                  | BLOCKED BY EXTERNAL APPROVAL        |
+| 3. PQ-SIE Protocol Module                | policy-bound provider interface and NIST standard suite trials                | cryptography      | interoperability and accepted key-management vectors    | NOT IMPLEMENTED                     |
+| 4. MFA-Gate + Military RBAC              | TOTP, six role and four priority policy                                       | identity/security | wrong-role, spoof, priority downgrade, revocation tests | TOTP PASS; duty policy IN PROGRESS  |
+| 5. Stealth-Dashboard                     | role-bound operator UI + threat view                                          | frontend/security | real browser trials, accessibility, signed data         | PARTIAL; not filed React technology |
+| 6. ChronoLattice Audit Ledger            | signed audit receipts and detached checkpoint                                 | backend/V&V       | chain tamper and independent checkpoint validation      | PARTIAL                             |
+| 7. SDLC Package                          | exact-source SBOM, threat model, security report, handover, approved licence  | DevSecOps/legal   | independent assessment and signed release               | PARTIAL                             |
 
 ## Original 12-month phases (not an official or approved trial calendar)
 

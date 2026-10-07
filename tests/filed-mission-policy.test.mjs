@@ -20,12 +20,7 @@ test('filed annexure has exactly six duty roles and four priority tiers', () => 
     'AUDIT_OFFICER',
     'SYSTEM_ADMIN',
   ]);
-  assert.deepEqual(MESSAGE_PRIORITIES, [
-    'FLASH',
-    'IMMEDIATE',
-    'PRIORITY',
-    'ROUTINE',
-  ]);
+  assert.deepEqual(MESSAGE_PRIORITIES, ['FLASH', 'IMMEDIATE', 'PRIORITY', 'ROUTINE']);
   assert.deepEqual(MESSAGE_DOMAINS, ['GENERAL', 'INTEL']);
 });
 

@@ -513,12 +513,7 @@ export class Authority {
     if (s.user.dutyRole) {
       assert(e.schemaVersion === 2, 'DUTY_PROFILE_REQUIRES_V2', 403);
       assert(
-        senderDutyAllowed(
-          s.user.role,
-          s.user.dutyRole,
-          e.messagePriority,
-          e.messageDomain,
-        ),
+        senderDutyAllowed(s.user.role, s.user.dutyRole, e.messagePriority, e.messageDomain),
         'ROLE_PRIORITY_DENIED',
         403,
       );
@@ -946,12 +941,7 @@ export class Authority {
             const e = parse(x.envelope);
             if (e.schemaVersion !== 2) return false;
             return x.sender_id === s.user_id
-              ? senderDutyAllowed(
-                  s.user.role,
-                  s.user.dutyRole,
-                  e.messagePriority,
-                  e.messageDomain,
-                )
+              ? senderDutyAllowed(s.user.role, s.user.dutyRole, e.messagePriority, e.messageDomain)
               : recipientDutyAllowed(
                   s.user.role,
                   s.user.dutyRole,

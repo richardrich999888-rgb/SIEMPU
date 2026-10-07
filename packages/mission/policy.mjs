@@ -1,11 +1,6 @@
 // DISC-14 PS-69 filed role/priority vocabulary. Synthetic laboratory policy only.
 // A duty role is an additional restriction, not a source of new generic privileges.
-export const MESSAGE_PRIORITIES = Object.freeze([
-  'FLASH',
-  'IMMEDIATE',
-  'PRIORITY',
-  'ROUTINE',
-]);
+export const MESSAGE_PRIORITIES = Object.freeze(['FLASH', 'IMMEDIATE', 'PRIORITY', 'ROUTINE']);
 export const MESSAGE_DOMAINS = Object.freeze(['GENERAL', 'INTEL']);
 export const DUTY_ROLES = Object.freeze([
   'UNIT_COMMANDER',
@@ -40,8 +35,7 @@ export function compatibleDutyRole(genericRole, dutyRole) {
 // Both sender and recipient are checked again at transactional key issuance.
 // The generic role gate remains mandatory; this function never grants access.
 export function dutyMessageAllowed(dutyRole, priority, domain) {
-  if (!DUTY_ROLES.includes(dutyRole) || !validMissionProfile(priority, domain))
-    return false;
+  if (!DUTY_ROLES.includes(dutyRole) || !validMissionProfile(priority, domain)) return false;
   if (!priorityMatrix[dutyRole].includes(priority)) return false;
   if (dutyRole === 'INTELLIGENCE_ANALYST') return domain === 'INTEL';
   if (dutyRole === 'FIELD_OPERATOR') return domain === 'GENERAL';
