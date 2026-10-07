@@ -12,30 +12,33 @@ Observed output: `LICENSE`, `README.md`. README contained only the repository ti
 
 The research report and implementation brief informed the new design. No private portfolio code was imported. The repository slug is `SIEMPU`; the official requirement and product acronym is `SIEPMU`.
 
-## Initial implementation ledger
+## Implemented engineering checkpoint
 
-Snapshot: design accepted, before implementation evidence is recorded. Every planned row must be revised only after source inspection and execution.
+Status: **PROTOTYPE with measured engineering tests**. The initial empty baseline above remains the historical starting point. Source and execution evidence now exist; this replaces the earlier planned-only table. It does not imply operational acceptance.
 
-| Component                          | Current status | Build status   | Test status    | Security status              | Missing work                                                | Priority |
-| ---------------------------------- | -------------- | -------------- | -------------- | ---------------------------- | ----------------------------------------------------------- | -------- |
-| Runtime / three services           | PLANNED        | NOT RUN        | NOT RUN        | NOT ASSESSED                 | Node processes, authenticated boundaries, deployment        | P0       |
-| Identity / mandatory MFA           | PLANNED        | NOT RUN        | NOT RUN        | NOT ASSESSED                 | Password/TOTP, sessions, revocation, recovery boundary      | P0       |
-| User/unit/role authorisation       | PLANNED        | NOT RUN        | NOT RUN        | NOT ASSESSED                 | Current-state action/object checks and direct-API negatives | P0       |
-| Device binding                     | PLANNED        | NOT RUN        | NOT RUN        | NOT ASSESSED                 | Enrolment approval, proof challenges, revocation            | P0       |
-| Endpoint E2EE / vault              | PLANNED        | NOT RUN        | NOT RUN        | NOT ASSESSED                 | Crypto interoperability, persistence and negative vectors   | P0       |
-| Ciphertext relay                   | PLANNED        | NOT RUN        | NOT RUN        | NOT ASSESSED                 | Immutable bounded store, workload auth, no key exposure     | P0       |
-| Policy / reconnection / release    | PLANNED        | NOT RUN        | NOT RUN        | NOT ASSESSED                 | Transactions, independent-connection races, retries         | P0       |
-| Evidence / detached verifier       | PLANNED        | NOT RUN        | NOT RUN        | NOT ASSESSED                 | Atomic signed chain and external checkpoint tests           | P0       |
-| Database / migrations / recovery   | PLANNED        | NOT RUN        | NOT RUN        | NOT ASSESSED                 | Fresh/upgrade/restart/restore evidence                      | P0       |
-| Unit client / administration       | PLANNED        | NOT RUN        | NOT RUN        | NOT ASSESSED                 | Real UI workflows and browser security checks               | P0       |
-| Monitoring / alerts / metrics      | PLANNED        | NOT RUN        | NOT RUN        | NOT ASSESSED                 | Redacted events, operational view, service health           | P1       |
-| Synthetic integration adapter      | PLANNED        | NOT RUN        | NOT RUN        | NOT ASSESSED                 | Schema/authorisation tests; no live IAF integration         | P1       |
-| Quality/security/CI/release        | PLANNED        | NOT RUN        | NOT RUN        | NOT ASSESSED                 | Executable gates, SBOM, artifacts, workflow validation      | P1       |
-| Docker / TLS deployment            | PLANNED        | NOT RUN        | NOT RUN        | NOT ASSESSED                 | Build/run/scan and non-loopback TLS evidence                | P1       |
-| Requirements / threat model / ADRs | AUTHORED       | NOT APPLICABLE | REVIEW PENDING | Design boundaries documented | Link actual paths, tests and results                        | P0       |
-| HPSC scenario                      | PLANNED        | NOT RUN        | NOT RUN        | NOT ASSESSED                 | Execute full flow and retain evidence                       | P0       |
-| Performance                        | PLANNED        | NOT RUN        | NOT MEASURED   | NOT APPLICABLE               | Actual workload/host/commit measurements                    | P1       |
-| SAG / IAF / independent assurance  | EXTERNAL GATE  | NOT APPLICABLE | NOT PERFORMED  | NOT APPROVED                 | Sponsor and independent acceptance evidence                 | External |
+Recorded local Node test output: **57 tests passed, 0 failed**, in `artifacts/test-coverage.txt` at documentation capture. Core authority coverage: 93.77% lines, 89.27% branches. Whole-run coverage scope is different: use the exact report and package filters; do not compare unqualified percentages. Additional changes require rerunning the gates. Actual Chromium validation and the measured benchmark have committed evidence records linked below.
+
+| Component                         | Current implementation / test status                                                              | Security scope / missing work                                                                          | Priority              |
+| --------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------- |
+| Runtime / services                | Three real Node processes; HTTP integration exercised                                             | Single-host; no HA                                                                                     | P1 pilot              |
+| Identity / MFA                    | Password, mandatory TOTP, durable replay/session revoke and offline administrator recovery tested | External IdP, self-service recovery and phishing-resistant MFA absent                                  | P1                    |
+| Roles / object authority          | Current state checked at API and release; negative tests passed                                   | Generic roles, not approved IAF duty matrix                                                            | P1                    |
+| Devices                           | Enrollment/approval/possession/revoke tested                                                      | Software keys only                                                                                     | P1                    |
+| E2EE / vault                      | Native/WebCrypto interoperability and browser text passed                                         | No forward secrecy/hardware custody; file browser path untested                                        | P1                    |
+| Relay                             | Ciphertext-only separate store; workload auth/replay tests                                        | Host and control authority remain trusted                                                              | P1                    |
+| Epoch release                     | Independent-process races, crash/restart/retry tests passed                                       | Commit issuance guarantee, no recall or global revoke                                                  | P0 retained invariant |
+| Evidence                          | Detached verifier and anchored negative tests passed                                              | Independent checkpoint custody required                                                                | P1                    |
+| Database / recovery               | v1/v2 migrations and encrypted restore tests passed                                               | No automatic full-snapshot anti-rollback                                                               | P1                    |
+| Browser / admin                   | Real Chromium MFA/exchange/hold/release/offline-reload passed                                     | Other engines and browser download journey untested; subsequent enrollment/approval run passed         | P1                    |
+| Monitoring                        | Structured logs, alerts, metrics and admin view                                                   | No distributed traces/SIEM; retention work                                                             | P1                    |
+| Integration                       | Authenticated synthetic schema adapter                                                            | Live IAF integration not implemented                                                                   | External              |
+| Quality/security                  | Local syntax/lint/format/scoped types/tests/build/SBOM run                                        | Type checking partial; hosted scans are separate evidence                                              | P1                    |
+| Docker / CI                       | Definitions and actual hosted build/start attempted; three services reached healthy               | Exact-head end-to-end probe/scanner results must pass; earlier probe failed and fix under verification | P0 release gate       |
+| HPSC                              | HTTP scenario executed; real browser scenario separately passed                                   | Combine rehearsed live story and approved programme material                                           | P1                    |
+| Performance                       | 30 sequential 4 KiB loopback objects: 12.21/s measured                                            | WAN, maximum capacity and server resources not measured                                                | P1                    |
+| SAG / IAF / independent assurance | NOT APPROVED / NOT PERFORMED                                                                      | Sponsor and independent acceptance required                                                            | External              |
+
+Use [execution checklist](EXECUTION_CHECKLIST.md) for every section of both implementation briefs, [traceability](TRACEABILITY_MATRIX.md) for PS-69, [testing](testing.md), [browser evidence](testing/browser-validation.md), [performance](performance.md) and [limitations](limitations.md). An actual container build is distinct from a fully passed deployment, scan or release pipeline.
 
 ## Evidence update rule
 

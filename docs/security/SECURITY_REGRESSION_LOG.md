@@ -1,0 +1,32 @@
+# Security regression log
+
+These are internal engineering findings, not an independent penetration-test report. No real operational data was used.
+
+| Finding                                                            | Effect before correction                                                                         | Correction                                                                                      | Regression evidence                                                                                                              |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Operation proof did not cover request body                         | Device possession alone did not bind an administrator's exact policy mutation                    | Challenge carries SHA256 of canonical request body; mutation compares it before consuming proof | `tests/authority.test.mjs`: changed administrative body rejected; `tests/crypto.test.mjs`: browser/native proof interoperability |
+| Noncanonical base64url aliases accepted by server primitive        | Multiple textual representations of the same signature bytes differed from browser validation    | Decode/re-encode equality required                                                              | `tests/crypto.test.mjs`: native encoding regression                                                                              |
+| Empty private-key field passed public-key truthiness check         | Public input shape could contain `d: ''` or `d: null`                                            | Reject presence of any private `d` member                                                       | `tests/crypto.test.mjs`: private-field regression                                                                                |
+| Role not rechecked after asynchronous relay upload                 | A concurrent role downgrade could still insert a PENDING object; final release already denied it | Recheck current sender role inside submission transaction                                       | `tests/authority.test.mjs`: current sender authority checks; release remains fenced                                              |
+| Multi-query signed exports could observe different database states | A separate writer could make evidence list/checkpoint or policy snapshot inconsistent            | One transaction for signed evidence/directory/control/grant snapshot                            | Separate-process authority race tests; detached export verification                                                              |
+| Stale browser tabs could overwrite an encrypted queue              | A tab could replace a newer local vault revision                                                 | Revision check refuses stale writes and requires re-unlock                                      | `apps/unit-client/vault-store.test.mjs`                                                                                          |
+| Ambiguous labels in browser policy editor                          | Browser acceptance could not target exact fields reliably                                        | Unique control ID and associated label                                                          | Actual Chromium UI runner passes policy deny/allow journey                                                                       |
+
+## Final client and enrollment review
+
+| Finding                                                   | Correction                                                                                               | Regression                                                                                                            |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Enrollment proof omitted encryption key and label         | Bind canonical label and both keys in enrollment requestHash; compare before device creation             | API regression reproduced 200 before the fix, then 403/no device after; real browser substituted-key rejection passed |
+| Client signed an unchecked authority-supplied challenge   | Validate exact protocol domain, purpose, device, operation, body digest and expiry before signing        | `apps/unit-client/challenge.test.mjs`; browser substitution rejected before enrollment POST                           |
+| Receipt validation lacked release-event/recipient scope   | Require RELEASE_ISSUED, RELEASED and exact recipient/object/digest scope                                 | Client regression and real browser decryption journey                                                                 |
+| localStorage compare/write lacked cross-tab serialization | Cooperative Web Locks around vault revision check and encrypted write; unsupported lock API fails closed | Two real tabs: one write succeeds, stale peer rejected; unit regressions                                              |
+
+## Remaining risks
+
+- Compromised endpoint/client distribution can expose plaintext and private keys.
+- Software keys are not attested hardware. Recipient static keys do not provide forward secrecy.
+- The trusted authority can release wrapped keys maliciously; root-key compromise can forge evidence.
+- All bound users can currently see the active identity/device directory; metadata minimization is a pilot gate.
+- SQL database snapshot rollback is not prevented without independent checkpoint/recovery controls.
+- TLS ingress, independent security assessment, hardware-backed keys, approved algorithms, external identity integration and operational accreditation remain deployment work.
+- Local source-pattern checks are narrow. Hosted CodeQL/Gitleaks/Trivy results must be read separately; a configured scanner is not a completed scan.

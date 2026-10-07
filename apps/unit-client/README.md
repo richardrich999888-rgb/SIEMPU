@@ -20,16 +20,16 @@ The local outbox is saved before upload. A failed request leaves the item queued
 
 The worker is part of the trusted client-distribution boundary. Old app-shell cache versions are removed on activation; deployment operators must version the cache when changing its asset set. Cache deletion, browser storage eviction, private-mode limits and an unprimed shell can prevent offline reload. This is not an air-gap delivery implementation.
 
-The demonstrator caps browser file attachments at 512 KiB to fit encrypted browser storage. Files use `application/octet-stream` and attachment downloads; no content is executed or automatically opened. Plaintext malware scanning is **not implemented**. Browser-storage capacity and simultaneous-tab use limit scale. A compare-before-write check rejects stale tabs instead of silently replacing a newer encrypted vault; export pending local work before reconciling such a conflict.
+The demonstrator caps browser file attachments at 512 KiB to fit encrypted browser storage. Files use `application/octet-stream` and attachment downloads; no content is executed or automatically opened. Plaintext malware scanning is **not implemented**. Browser-storage capacity and simultaneous-tab use limit scale. An exclusive Web Lock coordinates cooperating application tabs, and a compare-before-write check rejects stale snapshots instead of replacing a newer encrypted vault. Browsers without Web Locks fail closed on persistence; export pending local work before reconciling such a conflict.
 
 ## Authority and receipt verification
 
-An explicit first-use decision or a trusted provisioning file pins the authority key. The client verifies signed control, directory, grant and receipt packets, compares unsigned directory views to their signed contents, checks receipt object/envelope digests, and uses the sender key from the verified directory. A valid receipt is not proof of factual truth or human reading. A later revocation cannot recall an already released key or plaintext.
+An explicit first-use decision or a trusted provisioning file pins the authority key. Before signing, the client verifies each challenge’s exact schema, domain, purpose, device, operation, body digest and expiry. Enrollment proofs bind the label and both public keys. The client verifies signed control, directory, grant and receipt packets, compares unsigned directory views to their signed contents, checks receipt object/envelope digests and release event/recipient scope, and uses the sender key from the verified directory. A valid receipt is not proof of factual truth or human reading. A later revocation cannot recall an already released key or plaintext.
 
 ## Validation status
 
 - JavaScript syntax checks: executed.
-- Stale-tab overwrite and blocked-storage regression tests: executed with `node --test apps/unit-client/vault-store.test.mjs`.
+- Challenge scope, receipt scope, stale-tab overwrite, cooperative locking and blocked-storage regression tests: seven executed with `node --test apps/unit-client/challenge.test.mjs apps/unit-client/vault-store.test.mjs`.
 - Real-browser end-to-end run: see repository execution evidence. Browser availability must be established before claiming this layer passed; static checks and API tests do not establish browser behavior.
 
 `browser-check.mjs` is a real-browser acceptance runner for an already running **fresh synthetic** deployment. Install Playwright and its Chromium binary in a separate test environment, then set `SIEPMU_PLAYWRIGHT_MODULE` to that environment's Playwright module (or install it where Node can resolve it). The runner performs genuine browser UI operations and fails if the executable is unavailable.

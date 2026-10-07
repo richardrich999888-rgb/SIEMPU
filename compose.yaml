@@ -1,7 +1,11 @@
 name: syntriass-siepmu
 x-service: &service
   image: syntriass-siepmu:local
-  build: .
+  build:
+    context: .
+    args:
+      SIEPMU_BUILD_REVISION: ${SIEPMU_BUILD_REVISION:-unknown}
+      SIEPMU_BUILD_TIMESTAMP: ${SIEPMU_BUILD_TIMESTAMP:-unknown}
   restart: unless-stopped
   init: true
   user: '1000:1000'
@@ -61,7 +65,7 @@ services:
       SIEPMU_PUBLIC_ORIGIN: ${SIEPMU_PUBLIC_ORIGIN:-http://localhost:8080}
       SIEPMU_HEALTH_PORT: '8080'
     ports: ['127.0.0.1:8080:8080']
-    networks: [authority]
+    networks: [edge, authority]
     depends_on:
       control: { condition: service_healthy }
 volumes:
@@ -69,5 +73,6 @@ volumes:
   relay-data:
   relay-auth:
 networks:
+  edge: {}
   authority: { internal: true }
   ciphertext: { internal: true }

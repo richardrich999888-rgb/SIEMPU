@@ -1,18 +1,19 @@
 # Hostile evaluator record
 
-This is an evidence collection template, not a completed independent evaluation. Fill it from a frozen run. A build author filling this record is not an independent assessor.
+This is an **internal builder-side review**, not an independent IAF evaluation. It uses source inspection, the recorded local test output, real-browser result and measured synthetic benchmark. It does not assign an IAF selection probability.
 
-## Run identity
+## Review basis
 
-| Field                                      | Value        |
-| ------------------------------------------ | ------------ |
-| Date / evaluator                           | NOT RECORDED |
-| Full commit / dirty-tree status            | NOT RECORDED |
-| Deployment, OS, CPU and dependency lock    | NOT RECORDED |
-| Commands and evidence bundle               | NOT RECORDED |
-| Trusted verification key/checkpoint source | NOT RECORDED |
-| Fault injection and simulated features     | NOT RECORDED |
-| Observed failures                          | NOT RECORDED |
+| Field               | Observed basis                                                                                                                        |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Date / evaluator    | 8 October 2026 IST; internal engineering review                                                                                       |
+| Source state        | Working branch under active fixes; final release must pin full commit and rerun                                                       |
+| Runtime             | Node 24.19.0; local Linux synthetic three-process deployment; real Chromium 153                                                       |
+| Evidence            | Node coverage output; browser JSON; benchmark JSON; recovery and authority tests                                                      |
+| Verification roots  | Synthetic independently provided keys/checkpoints in detached tests; production custody unresolved                                    |
+| Faults exercised    | Two policy/issuance commit orders, before/after commit crashes, restart, relay/evidence failure, real browser offline/reload          |
+| Defects corrected   | Body binding, encoding/public-key shape, signed snapshot consistency, stale vault writes and browser label issues; see regression log |
+| Open delivery gates | Exact-head hosted checks/scans and release packaging; external operational assurance                                                  |
 
 ## Decision rubric
 
@@ -24,14 +25,16 @@ This is an evidence collection template, not a completed independent evaluation.
 
 Do not derive an overall score from missing results. Mark each dimension 0–5 only after inspecting the evidence: 0 absent; 1 narrative; 2 code only; 3 repeatable lab evidence; 4 independently witnessed intended-environment evidence; 5 sponsor-accepted operational evidence. These are review levels, not TRL numbers.
 
-| Dimension                                 | Weight | Score        | Evidence / limitation |
-| ----------------------------------------- | -----: | ------------ | --------------------- |
-| Explicit PS-69 workflow                   |    25% | NOT ASSESSED |                       |
-| Access control and E2EE boundary          |    25% | NOT ASSESSED |                       |
-| Authority race and restart safety         |    20% | NOT ASSESSED |                       |
-| Evidence independence and reproducibility |    10% | NOT ASSESSED |                       |
-| Integration, usability and operation      |    10% | NOT ASSESSED |                       |
-| Qualification and programme credibility   |    10% | NOT ASSESSED |                       |
+| Dimension                                 | Weight | Internal score (0–5) | Evidence / limitation                                                                         |
+| ----------------------------------------- | -----: | -------------------: | --------------------------------------------------------------------------------------------- |
+| Explicit PS-69 workflow                   |    25% |                    3 | Repeatable lab text/file/API evidence; external crypto/integration gates remain               |
+| Access control and E2EE boundary          |    25% |                    3 | Negative API and native/browser crypto tests; trusted endpoint/authority limits               |
+| Authority race and restart safety         |    20% |                    3 | Separate-process race/crash/recovery evidence; no exhaustive formal proof                     |
+| Evidence independence and reproducibility |    10% |                    3 | Detached verifier and anchored negatives; signer trust remains                                |
+| Integration, usability and operation      |    10% |                    2 | Working UI and synthetic adapter; no approved live integration or full operational envelope   |
+| Qualification and programme credibility   |    10% |                    1 | Requirements/assurance plan; sponsor acceptance and approved programme budget not established |
+
+Weighted internal **assurance-maturity score: 54/100** under this rubric. Lab evidence has a ceiling of 3/5; this is deliberately not a product-quality, TRL or committee score. Verdict: **MAYBE for funded development, REJECT for operational deployment today**. The strongest improvement is independent intended-environment evidence and sponsor resolution of crypto/integration requirements, not additional architecture features.
 
 ## Questions the demonstration must withstand
 
@@ -52,17 +55,17 @@ Do not derive an overall score from missing results. Mark each dimension 0–5 o
 
 ## Ten plausible rejection reasons and response
 
-| Risk                                                   | Highest-impact response                                                         | Evidence status                       |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------- | ------------------------------------- |
-| Baseline secure exchange does not work reliably        | Demonstrate MFA, roles, file/text and receipt end to end                        | Check current run                     |
-| Gate can be bypassed via a direct API/store path       | Trace every usable-payload/key path; test forbidden direct access               | Check current run                     |
-| Race safety fails                                      | Serialize final release with policy changes; inject every supported race window | Check current run                     |
-| Restart forgets revocation or duplicates delivery      | Durable transactions, recovery and unique effect keys                           | Check current run                     |
-| “E2EE” actually decrypts at the service                | Show client key custody and controlled storage inspection                       | Check current run                     |
-| Evidence verifier trusts keys supplied by the attacker | Pin independent root/checkpoint; corrupt/reorder/truncate cases                 | Check current run                     |
-| Device trust is a cosmetic indicator                   | Show proof of possession; label hardware/posture unverified                     | Software boundary only until measured |
-| No differentiation from mature products                | Compare a competent baseline on identical failures/cost                         | Comparative experiment required       |
-| SAG/integration/QA route is unclear                    | Secure sponsor decisions and an acceptance plan                                 | External decision required            |
-| Scope, financial claims or readiness are overstated    | Freeze claims with exact evidence; founder-approved programme plan              | Audit before external use             |
+| Risk                                                   | Highest-impact response                                                         | Evidence status                                                      |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Baseline secure exchange does not work reliably        | Demonstrate MFA, roles, file/text and receipt end to end                        | Local automated evidence present; retain final commit-specific rerun |
+| Gate can be bypassed via a direct API/store path       | Trace every usable-payload/key path; test forbidden direct access               | Local automated evidence present; retain final commit-specific rerun |
+| Race safety fails                                      | Serialize final release with policy changes; inject every supported race window | Local automated evidence present; retain final commit-specific rerun |
+| Restart forgets revocation or duplicates delivery      | Durable transactions, recovery and unique effect keys                           | Local automated evidence present; retain final commit-specific rerun |
+| “E2EE” actually decrypts at the service                | Show client key custody and controlled storage inspection                       | Local automated evidence present; retain final commit-specific rerun |
+| Evidence verifier trusts keys supplied by the attacker | Pin independent root/checkpoint; corrupt/reorder/truncate cases                 | Local automated evidence present; retain final commit-specific rerun |
+| Device trust is a cosmetic indicator                   | Show proof of possession; label hardware/posture unverified                     | Software proof measured; hardware trust remains unverified           |
+| No differentiation from mature products                | Compare a competent baseline on identical failures/cost                         | Comparative experiment required                                      |
+| SAG/integration/QA route is unclear                    | Secure sponsor decisions and an acceptance plan                                 | External decision required                                           |
+| Scope, financial claims or readiness are overstated    | Freeze claims with exact evidence; founder-approved programme plan              | Audit before external use                                            |
 
 For each reproduced defect append: attack, preconditions, expected result, actual result, evidence path, severity, fix commit, regression command/result, remaining limitation. Do not write “fixed” from source inspection alone.

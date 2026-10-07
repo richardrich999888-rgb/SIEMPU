@@ -35,7 +35,7 @@ docker compose down
 
 The optional `bootstrap` profile is enabled implicitly by `compose run bootstrap`. Provisioning writes a control volume and a separate volume containing only the relay workload key. The relay cannot mount the identity database, master encryption key, signing private key, or user profiles. Its separate volume contains ciphertext and HMAC replay nonces only. This is a logical workload separation; the host administrator and Docker daemon remain trusted.
 
-Each container runs UID/GID 1000, a read-only application filesystem, dropped Linux capabilities, no new privileges, restricted temporary storage and PID/memory limits. The only published port is gateway port 8080 on host loopback. Two internal networks restrict ordinary service reachability; Docker host administrators can still cross these boundaries. Internal HTTP is explicitly enabled only for this synthetic local configuration. TLS is not implied by Docker networking.
+Each container runs UID/GID 1000, a read-only application filesystem, dropped Linux capabilities, no new privileges, restricted temporary storage and PID/memory limits. The only published port is gateway port 8080 on host loopback. Two internal networks restrict ordinary service reachability; only the gateway also joins an edge bridge for its loopback-published ingress. The gateway therefore has an outbound network path that requires operator egress policy in any managed deployment; Docker host administrators can still cross these boundaries. Internal HTTP is explicitly enabled only for this synthetic local configuration. TLS is not implied by Docker networking.
 
 The image is pinned to `node:24.19.0-bookworm-slim` by registry manifest digest in Dockerfile. Pinning provides reproducibility, not freedom from vulnerabilities. Review security scans and update the pin when required.
 
@@ -54,3 +54,11 @@ Stop writers before making a complete demonstrator backup, or use a validated SQ
 `docker compose down --volumes` destroys all provisioned identities, keys, relay blobs and evidence. It appears only in disposable CI cleanup and should not be used on retained demonstrations.
 
 Before any operational pilot: approved identity enrollment, endpoint hardening, TLS deployment, secure key custody, backup/restore exercise, image vulnerability review, penetration test, log retention/access controls, IAF interface definitions and SAG/assurance decisions remain required. These are deployment boundaries, not claims that the prototype has passed approval.
+
+## Public build metadata
+
+`GET /api/meta` returns optional `build.revision` and `build.builtAt`. Docker CI supplies the checked-out commit SHA and UTC build timestamp through build arguments; local unconfigured values are `null`. The fields are operator declarations, not remote attestation or evidence of IAF approval. They do not establish that a dirty local checkout equals a commit. The image revision/timestamp labels carry the same supplied values.
+
+## Controlled identity recovery
+
+The prototype has an offline maintenance workflow for password/TOTP recovery: stop services, retain current protected state, and invoke `scripts/recover-identity.mjs` with explicit maintenance acknowledgement and a new private output path. The recovery transaction replaces the password/MFA material, revokes every existing session for that identity, increments authority/revocation versions and writes evidence/alert records. It preserves device approval state; a stolen or untrusted device must be revoked separately. Delivery of new MFA material and identity proofing remain controlled operator responsibilities. This is a tested synthetic recovery mechanism, not an accredited recovery ceremony or a substitute for independent identity verification.

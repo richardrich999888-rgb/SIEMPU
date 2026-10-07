@@ -42,6 +42,10 @@ jobs:
         with:
           name: browser-evidence
           path: artifacts/release/evidence/browser
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: codeql-gate
+          path: artifacts/release/evidence/codeql
       - run: node scripts/release.mjs "$RELEASE_VERSION"
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:

@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "record": "Existing local artifacts/test-coverage.txt inspected during documentation update",
+  "tests": 57,
+  "passed": 57,
+  "failed": 0,
+  "authorityCoverage": {
+    "linesPercent": 93.77,
+    "branchesPercent": 89.27,
+    "functionsPercent": 92.59
+  },
+  "outputSha256": "03ff3390ea169d061fa56ca286952b6cc5dec1cbfa8a2e273750719eb8ea8bf5",
+  "source": "npm run test:coverage / tests and package filters",
+  "limitation": "Historical local output, not proof that a later amended commit or hosted CI passed. Exact execution commit was not recorded in this output."
+}

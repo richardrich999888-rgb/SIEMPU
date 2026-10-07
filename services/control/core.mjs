@@ -1,3 +1,4 @@
+import { buildInfo } from './build-info.mjs';
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync, readdirSync } from 'node:fs';
 import { randomUUID, randomBytes } from 'node:crypto';
@@ -35,6 +36,7 @@ const assert = (v, code = 'INVALID_INPUT', status = 400) => {
 };
 const str = (v, max = 150) => typeof v === 'string' && v.length > 0 && v.length <= max;
 const roles = ['admin', 'operator', 'viewer', 'auditor'];
+const mission = (v) => typeof v === 'string' && /^[A-Za-z0-9._:-]{1,80}$/.test(v);
 const uuid = (v) =>
   typeof v === 'string' &&
   /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(v);
@@ -284,6 +286,8 @@ export class Authority {
           /^[a-f0-9]{64}$/.test(b.requestHash),
       );
     }
+    if (b.purpose === 'enroll')
+      assert(typeof b.requestHash === 'string' && /^[a-f0-9]{64}$/.test(b.requestHash));
     if (b.purpose === 'bind') {
       assert(uuid(b.deviceId));
       const d = this.get('SELECT * FROM devices WHERE id=?', b.deviceId);
@@ -298,6 +302,7 @@ export class Authority {
         expiresAt: Date.now() + 60000,
       };
     if (b.deviceId) challenge.deviceId = b.deviceId;
+    if (b.purpose === 'enroll') challenge.requestHash = b.requestHash;
     if (b.purpose === 'operation') {
       challenge.deviceId = s.device_id;
       challenge.operation = b.operation;
@@ -451,7 +456,7 @@ export class Authority {
       uuid(e.recipientUserId) &&
         uuid(e.recipientDeviceId) &&
         uuid(e.recipientUnitId) &&
-        str(e.missionId, 80),
+        mission(e.missionId),
     );
     assert(
       e.classification === 'DEMO' &&
@@ -760,6 +765,7 @@ export class Authority {
         status: 200,
         body: {
           version: '0.1.0',
+          build: buildInfo(),
           serverPublicKey: this.publicKey,
           serverKeyId: keyId(this.publicKey),
           limits: { objectBytes: 1048576, sessionSeconds: 900, grantSeconds: 3600 },
@@ -789,6 +795,23 @@ export class Authority {
       validateKey(b.signingPublicKey);
       validateKey(b.encryptionPublicKey);
       value = this.tx(() => {
+        const challenge = this.get(
+          'SELECT payload FROM challenges WHERE id=?',
+          b.challengeId ?? '',
+        );
+        assert(
+          challenge &&
+            parse(challenge.payload).requestHash ===
+              hash(
+                canonical({
+                  label: b.label,
+                  signingPublicKey: b.signingPublicKey,
+                  encryptionPublicKey: b.encryptionPublicKey,
+                }),
+              ),
+          'PROOF_BODY_MISMATCH',
+          403,
+        );
         this.proof(s, b, 'enroll', null, b.signingPublicKey);
         assert(
           !this.get(
@@ -951,7 +974,7 @@ export class Authority {
           roles.includes(b.role) &&
           Array.isArray(b.missionIds) &&
           b.missionIds.length <= 32 &&
-          b.missionIds.every((x) => str(x, 80)),
+          b.missionIds.every(mission),
       );
       assert(this.get('SELECT id FROM units WHERE id=?', b.unitId));
       const secret = base32(randomBytes(20));
@@ -993,9 +1016,7 @@ export class Authority {
       if ('role' in b) assert(roles.includes(b.role));
       if ('missionIds' in b)
         assert(
-          Array.isArray(b.missionIds) &&
-            b.missionIds.length <= 32 &&
-            b.missionIds.every((x) => str(x, 80)),
+          Array.isArray(b.missionIds) && b.missionIds.length <= 32 && b.missionIds.every(mission),
         );
       return this.change(
         s,
@@ -1054,7 +1075,7 @@ export class Authority {
         'SESSION_REVOKED',
       );
     if (method === 'PUT' && path === '/api/admin/policies') {
-      assert(typeof b.allow === 'boolean' && str(b.missionId, 80));
+      assert(typeof b.allow === 'boolean' && mission(b.missionId));
       assert(
         this.get('SELECT id FROM units WHERE id=?', b.fromUnit) &&
           this.get('SELECT id FROM units WHERE id=?', b.toUnit),
@@ -1087,7 +1108,7 @@ export class Authority {
           str(b.externalId, 80) &&
           uuid(b.objectId) &&
           uuid(b.destinationUnitId) &&
-          str(b.missionId, 80),
+          mission(b.missionId),
       );
       return this.tx(() => ({
         receipt: this.event('INTEGRATION_SCHEMA_VALIDATED', s.user_id, {

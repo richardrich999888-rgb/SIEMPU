@@ -13,7 +13,7 @@
     "start": "node scripts/start.mjs",
     "check": "node scripts/check.mjs",
     "test": "node --test --test-concurrency=1",
-    "test:coverage": "node --experimental-test-coverage --test --test-concurrency=1",
+    "test:coverage": "node --experimental-test-coverage --test-coverage-include='services/**/*.mjs' --test-coverage-include='packages/**/*.mjs' --test-coverage-include='apps/verifier/**/*.mjs' --test-coverage-include='scripts/sarif-gate.mjs' --test-coverage-exclude='**/*.test.mjs' --test-coverage-exclude='tests/**' --test-coverage-lines=85 --test-coverage-branches=75 --test-coverage-functions=85 --test --test-concurrency=1",
     "security": "node scripts/security.mjs",
     "sbom": "node scripts/sbom.mjs",
     "build": "node scripts/build.mjs",
@@ -25,7 +25,10 @@
     "release:package": "node scripts/release.mjs",
     "test:browser": "node apps/unit-client/browser-check.mjs",
     "demo": "node scripts/demo.mjs",
-    "benchmark": "node scripts/benchmark.mjs"
+    "benchmark": "node scripts/benchmark.mjs",
+    "audit:claims": "node scripts/audit-claims.mjs",
+    "validate": "node scripts/validate.mjs",
+    "hpsc": "node scripts/validate.mjs && node scripts/audit-claims.mjs --require-evidence"
   },
   "devDependencies": {
     "@types/node": "24.10.0",

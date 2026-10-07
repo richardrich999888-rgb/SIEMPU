@@ -1,0 +1,1470 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SYNTRIASS SIEPMU demonstration API",
+    "version": "0.1.0",
+    "description": "Prototype contract. TLS required beyond loopback. Bearer session plus approved device possession required for bound routes; admin mutation proofs bind exact method/path/body. Input schema coverage is partial; protocol contract is authoritative for cryptographic fields."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8080",
+      "description": "Local demo gateway"
+    }
+  ],
+  "security": [
+    {
+      "BearerSession": []
+    }
+  ],
+  "paths": {
+    "/api/meta": {
+      "get": {
+        "summary": "Public build metadata and authority public key",
+        "operationId": "get_api_meta",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Authenticate password and mandatory TOTP",
+        "operationId": "post_api_auth_login",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Login"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "summary": "Current user and bound device",
+        "operationId": "get_api_auth_me",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "summary": "Revoke this session",
+        "operationId": "post_api_auth_logout",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "See exact fields and signed proof requirements in docs/protocols/IMPLEMENTATION_CONTRACT.md"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/challenge": {
+      "post": {
+        "summary": "One-use session/device proof challenge",
+        "operationId": "post_api_auth_challenge",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Challenge"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/bind": {
+      "post": {
+        "summary": "Bind approved device using signed challenge",
+        "operationId": "post_api_auth_bind",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "See exact fields and signed proof requirements in docs/protocols/IMPLEMENTATION_CONTRACT.md"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/enroll": {
+      "post": {
+        "summary": "Enroll keys pending admin approval; body-bound proof",
+        "operationId": "post_api_devices_enroll",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "See exact fields and signed proof requirements in docs/protocols/IMPLEMENTATION_CONTRACT.md"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/control": {
+      "get": {
+        "summary": "Signed coherent current authority snapshot",
+        "operationId": "get_api_control",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        }
+      }
+    },
+    "/api/directory": {
+      "get": {
+        "summary": "Signed active device directory; metadata visibility limitation",
+        "operationId": "get_api_directory",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        }
+      }
+    },
+    "/api/grants": {
+      "post": {
+        "summary": "Issue bounded local creation grant",
+        "operationId": "post_api_grants",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Mutation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/objects": {
+      "get": {
+        "summary": "List own sender/recipient metadata; no wrapped keys",
+        "operationId": "get_api_objects",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        }
+      },
+      "post": {
+        "summary": "Admit signed ciphertext submission",
+        "operationId": "post_api_objects",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Submission"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/objects/{id}/prepare": {
+      "post": {
+        "summary": "Reevaluate current authority; no key release",
+        "operationId": "post_api_objects_id_prepare",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Mutation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/objects/{id}/claim": {
+      "post": {
+        "summary": "Atomic recipient capability issuance or HOLD",
+        "operationId": "post_api_objects_id_claim",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Claim"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/objects/{id}/ack": {
+      "post": {
+        "summary": "Idempotent client delivery acknowledgement",
+        "operationId": "post_api_objects_id_ack",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "See exact fields and signed proof requirements in docs/protocols/IMPLEMENTATION_CONTRACT.md"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/overview": {
+      "get": {
+        "summary": "Admin/auditor redacted operational overview",
+        "operationId": "get_api_admin_overview",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        }
+      }
+    },
+    "/api/admin/units": {
+      "post": {
+        "summary": "Create unit; approved admin device required",
+        "operationId": "post_api_admin_units",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "See exact fields and signed proof requirements in docs/protocols/IMPLEMENTATION_CONTRACT.md"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/users": {
+      "post": {
+        "summary": "Create user and return one-time MFA enrollment secret",
+        "operationId": "post_api_admin_users",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "See exact fields and signed proof requirements in docs/protocols/IMPLEMENTATION_CONTRACT.md"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/users/{id}": {
+      "patch": {
+        "summary": "Change active state, role or mission membership",
+        "operationId": "patch_api_admin_users_id",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "See exact fields and signed proof requirements in docs/protocols/IMPLEMENTATION_CONTRACT.md"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/devices/{id}/approve": {
+      "post": {
+        "summary": "Approve pending device",
+        "operationId": "post_api_admin_devices_id_approve",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Mutation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/devices/{id}/revoke": {
+      "post": {
+        "summary": "Revoke device and bound sessions",
+        "operationId": "post_api_admin_devices_id_revoke",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Mutation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/sessions/{id}/revoke": {
+      "post": {
+        "summary": "Revoke session",
+        "operationId": "post_api_admin_sessions_id_revoke",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Mutation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/policies": {
+      "put": {
+        "summary": "Update edge and advance authority epoch",
+        "operationId": "put_api_admin_policies",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Policy"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evidence/export": {
+      "get": {
+        "summary": "Admin/auditor coherent signed chain export",
+        "operationId": "get_api_evidence_export",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        }
+      }
+    },
+    "/api/evidence/checkpoint": {
+      "get": {
+        "summary": "Admin/auditor signed checkpoint",
+        "operationId": "get_api_evidence_checkpoint",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        }
+      }
+    },
+    "/api/metrics": {
+      "get": {
+        "summary": "Admin/auditor counters and queue state",
+        "operationId": "get_api_metrics",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        }
+      }
+    },
+    "/api/integration/validate": {
+      "post": {
+        "summary": "Synthetic schema validation only; no live connection",
+        "operationId": "post_api_integration_validate",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication rejected"
+          },
+          "403": {
+            "description": "Role, device, proof or origin rejected"
+          },
+          "409": {
+            "description": "Conflict or admission HOLD; no wrapped key"
+          },
+          "413": {
+            "description": "Body/object too large"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          },
+          "500": {
+            "description": "Service failure; fail closed"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "See exact fields and signed proof requirements in docs/protocols/IMPLEMENTATION_CONTRACT.md"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Local service health (no dependency or HA assurance)",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Available"
+          }
+        }
+      }
+    },
+    "/live": {
+      "get": {
+        "summary": "Local service health (no dependency or HA assurance)",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Available"
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "summary": "Local service health (no dependency or HA assurance)",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Available"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerSession": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Opaque 15-minute session, memory-only client; possession alone does not authorize device-bound mutations."
+      }
+    },
+    "schemas": {
+      "Proof": {
+        "type": "object",
+        "required": ["challengeId", "signature"],
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "signature": {
+            "type": "string",
+            "description": "Base64url P1363 ECDSA signature"
+          }
+        }
+      },
+      "Packet": {
+        "type": "object",
+        "required": ["payload", "signature", "keyId"],
+        "properties": {
+          "payload": {
+            "type": "object"
+          },
+          "signature": {
+            "type": "string"
+          },
+          "keyId": {
+            "type": "string"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["error", "code"],
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          }
+        }
+      },
+      "Login": {
+        "type": "object",
+        "required": ["username", "password", "otp"],
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 256,
+            "writeOnly": true
+          },
+          "otp": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "writeOnly": true
+          }
+        }
+      },
+      "Challenge": {
+        "type": "object",
+        "required": ["purpose"],
+        "properties": {
+          "purpose": {
+            "enum": ["enroll", "bind", "operation"]
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "operation": {
+            "type": "string"
+          },
+          "requestHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "description": "Required for enroll and operation. SHA256 of canonical exact body excluding proof fields."
+          }
+        }
+      },
+      "Mutation": {
+        "type": "object",
+        "required": ["proof"],
+        "properties": {
+          "proof": {
+            "$ref": "#/components/schemas/Proof"
+          }
+        }
+      },
+      "Claim": {
+        "type": "object",
+        "required": ["proof", "expectedEpoch"],
+        "properties": {
+          "proof": {
+            "$ref": "#/components/schemas/Proof"
+          },
+          "expectedEpoch": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "Policy": {
+        "type": "object",
+        "required": ["proof", "fromUnit", "toUnit", "missionId", "allow"],
+        "properties": {
+          "proof": {
+            "$ref": "#/components/schemas/Proof"
+          },
+          "fromUnit": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "toUnit": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "missionId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:-]{1,80}$"
+          },
+          "allow": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Submission": {
+        "type": "object",
+        "required": ["proof", "envelope", "signature", "ciphertext"],
+        "properties": {
+          "proof": {
+            "$ref": "#/components/schemas/Proof"
+          },
+          "envelope": {
+            "type": "object",
+            "description": "Exact signed envelope in docs/protocols/IMPLEMENTATION_CONTRACT.md; includes wrapped key, never returned by listing endpoints."
+          },
+          "signature": {
+            "type": "string"
+          },
+          "ciphertext": {
+            "type": "string",
+            "description": "Base64url AES-GCM payload; maximum 1MiB plus tag"
+          }
+        }
+      }
+    }
+  }
+}
