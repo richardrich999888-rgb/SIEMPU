@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { randomUUID } from 'node:crypto';
 
 const mime = {
   '.html': 'text/html; charset=utf-8',
@@ -46,9 +47,12 @@ export function createWebServer({
   const configuredOrigin = publicOrigin ? new URL(publicOrigin).origin : undefined;
   const expectedHost = publicOrigin ? new URL(publicOrigin).host : undefined;
   const server = createServer(async (req, res) => {
+    const requestId = randomUUID();
+    res.setHeader('X-Request-Id', requestId);
     const send = (status, value) => {
       res.writeHead(status, { ...securityHeaders, 'content-type': 'application/json' });
-      res.end(JSON.stringify(value));
+      const code = value.code ?? value.error ?? 'REQUEST_FAILED';
+      res.end(JSON.stringify(status >= 400 ? { ...value, error: code, code, requestId } : value));
     };
     try {
       if (
@@ -145,6 +149,7 @@ export function createWebServer({
         res.writeHead(response.status, {
           ...securityHeaders,
           'content-type': 'application/json',
+          'x-request-id': response.headers.get('x-request-id') || requestId,
           ...(response.headers.get('retry-after')
             ? { 'retry-after': response.headers.get('retry-after') }
             : {}),

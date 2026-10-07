@@ -50,7 +50,7 @@ export function createControlServer({ authority, allowedOrigin }) {
       status = result.status;
       code = status < 400 ? 'OK' : result.body.code;
       res.writeHead(status);
-      res.end(JSON.stringify(result.body));
+      res.end(JSON.stringify(status >= 400 ? { ...result.body, requestId } : result.body));
     } catch (e) {
       status =
         e instanceof AppError ? e.status : e.code?.startsWith('SQLITE_CONSTRAINT') ? 409 : 500;
@@ -67,7 +67,7 @@ export function createControlServer({ authority, allowedOrigin }) {
         );
       res.writeHead(status);
       res.end(
-        JSON.stringify({ error: code, code, requestId, ...(e instanceof AppError ? e.extra : {}) }),
+        JSON.stringify({ error: code, code, ...(e instanceof AppError ? e.extra : {}), requestId }),
       );
     } finally {
       try {

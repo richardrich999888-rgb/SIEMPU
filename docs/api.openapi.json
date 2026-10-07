@@ -3,7 +3,7 @@
   "info": {
     "title": "SYNTRIASS SIEPMU demonstration API",
     "version": "0.1.0",
-    "description": "Prototype contract. TLS required beyond loopback. Bearer session plus approved device possession required for bound routes; admin mutation proofs bind exact method/path/body. Input schema coverage is partial; protocol contract is authoritative for cryptographic fields."
+    "description": "Synthetic demonstrator contract; TLS required beyond loopback. Auth/device proof, grant, object submit/prepare/claim/ACK, current control and admin policy have explicit request/response schemas exercised over real HTTP. Remaining routes are marked inventory/auth-guard only. Device binding and operation proof are additional authorization requirements, not additional HTTP credential headers. Cryptographic verification, policy eligibility and cross-field time/hash relationships are runtime checks, not proved by JSON Schema."
   },
   "servers": [
     {
@@ -24,30 +24,42 @@
         "security": [],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Success; JSON response shape in docs/api.md and protocol contract",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
-        }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard"
       }
     },
     "/api/auth/login": {
@@ -57,28 +69,46 @@
         "security": [],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Successful JSON response.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
         },
         "requestBody": {
@@ -90,7 +120,8 @@
               }
             }
           }
-        }
+        },
+        "x-contract-coverage": "http-request-response-tested"
       }
     },
     "/api/auth/me": {
@@ -104,30 +135,49 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Successful JSON response.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
-        }
+        },
+        "x-contract-coverage": "http-request-response-tested"
       }
     },
     "/api/auth/logout": {
@@ -141,28 +191,46 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Successful JSON response.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ok"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
         },
         "requestBody": {
@@ -170,12 +238,12 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "description": "See exact fields and signed proof requirements in docs/protocols/IMPLEMENTATION_CONTRACT.md"
+                "$ref": "#/components/schemas/EmptyRequest"
               }
             }
           }
-        }
+        },
+        "x-contract-coverage": "http-request-response-tested"
       }
     },
     "/api/auth/challenge": {
@@ -189,28 +257,46 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Successful JSON response.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChallengeResponse"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
         },
         "requestBody": {
@@ -222,7 +308,8 @@
               }
             }
           }
-        }
+        },
+        "x-contract-coverage": "http-request-response-tested"
       }
     },
     "/api/auth/bind": {
@@ -236,28 +323,46 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Successful JSON response.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceResponse"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
         },
         "requestBody": {
@@ -265,12 +370,12 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "description": "See exact fields and signed proof requirements in docs/protocols/IMPLEMENTATION_CONTRACT.md"
+                "$ref": "#/components/schemas/Bind"
               }
             }
           }
-        }
+        },
+        "x-contract-coverage": "http-request-response-tested"
       }
     },
     "/api/devices/enroll": {
@@ -284,28 +389,46 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Successful JSON response.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceResponse"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
         },
         "requestBody": {
@@ -313,12 +436,12 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "description": "See exact fields and signed proof requirements in docs/protocols/IMPLEMENTATION_CONTRACT.md"
+                "$ref": "#/components/schemas/Enrollment"
               }
             }
           }
-        }
+        },
+        "x-contract-coverage": "http-request-response-tested"
       }
     },
     "/api/control": {
@@ -332,30 +455,50 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Successful JSON response.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ControlPacket"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
-        }
+        },
+        "x-contract-coverage": "http-request-response-tested",
+        "x-device-binding-required": true
       }
     },
     "/api/directory": {
@@ -369,30 +512,43 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Success; JSON response shape in docs/api.md and protocol contract",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
-        }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard",
+        "x-device-binding-required": true
       }
     },
     "/api/grants": {
@@ -406,28 +562,46 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Successful JSON response.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreationGrant"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
         },
         "requestBody": {
@@ -439,7 +613,16 @@
               }
             }
           }
-        }
+        },
+        "x-contract-coverage": "http-request-response-tested",
+        "x-device-binding-required": true,
+        "x-operation-proof": {
+          "operation": "grant",
+          "bodyField": "proof",
+          "bodyDigest": "SHA256(canonical(request body excluding proof))",
+          "challengeEndpoint": "/api/auth/challenge"
+        },
+        "x-roles": ["operator"]
       }
     },
     "/api/objects": {
@@ -453,30 +636,50 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Successful JSON response.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectList"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
-        }
+        },
+        "x-contract-coverage": "http-request-response-tested",
+        "x-device-binding-required": true
       },
       "post": {
         "summary": "Admit signed ciphertext submission",
@@ -488,28 +691,46 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Successful JSON response.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectReceipt"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
         },
         "requestBody": {
@@ -521,7 +742,16 @@
               }
             }
           }
-        }
+        },
+        "x-contract-coverage": "http-request-response-tested",
+        "x-device-binding-required": true,
+        "x-operation-proof": {
+          "operation": "submit",
+          "bodyField": "proof",
+          "bodyDigest": "SHA256(canonical(request body excluding proof))",
+          "challengeEndpoint": "/api/auth/challenge"
+        },
+        "x-roles": ["operator"]
       }
     },
     "/api/objects/{id}/prepare": {
@@ -535,28 +765,46 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Successful JSON response.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparedResponse"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
         },
         "parameters": [
@@ -565,8 +813,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "$ref": "#/components/schemas/Uuid"
             }
           }
         ],
@@ -579,6 +826,14 @@
               }
             }
           }
+        },
+        "x-contract-coverage": "http-request-response-tested",
+        "x-device-binding-required": true,
+        "x-operation-proof": {
+          "operation": "prepare:{id}",
+          "bodyField": "proof",
+          "bodyDigest": "SHA256(canonical(request body excluding proof))",
+          "challengeEndpoint": "/api/auth/challenge"
         }
       }
     },
@@ -593,28 +848,65 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Successful JSON response.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaimResponse"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "description": "Admission HOLD with signed receipt and metadata, or ordinary conflict. Neither response contains a wrapped key or ciphertext.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/HeldResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            }
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
         },
         "parameters": [
@@ -623,8 +915,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "$ref": "#/components/schemas/Uuid"
             }
           }
         ],
@@ -637,7 +928,16 @@
               }
             }
           }
-        }
+        },
+        "x-contract-coverage": "http-request-response-tested",
+        "x-device-binding-required": true,
+        "x-operation-proof": {
+          "operation": "claim:{id}",
+          "bodyField": "proof",
+          "bodyDigest": "SHA256(canonical(request body excluding proof))",
+          "challengeEndpoint": "/api/auth/challenge"
+        },
+        "x-resource-access": "Session must be bound to the object recipient device."
       }
     },
     "/api/objects/{id}/ack": {
@@ -651,28 +951,46 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Successful JSON response.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectReceipt"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
         },
         "parameters": [
@@ -681,8 +999,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "$ref": "#/components/schemas/Uuid"
             }
           }
         ],
@@ -691,12 +1008,20 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "description": "See exact fields and signed proof requirements in docs/protocols/IMPLEMENTATION_CONTRACT.md"
+                "$ref": "#/components/schemas/Ack"
               }
             }
           }
-        }
+        },
+        "x-contract-coverage": "http-request-response-tested",
+        "x-device-binding-required": true,
+        "x-operation-proof": {
+          "operation": "ack:{id}",
+          "bodyField": "proof",
+          "bodyDigest": "SHA256(canonical(request body excluding proof))",
+          "challengeEndpoint": "/api/auth/challenge"
+        },
+        "x-resource-access": "Session must be bound to the object recipient device."
       }
     },
     "/api/admin/overview": {
@@ -710,30 +1035,43 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Success; JSON response shape in docs/api.md and protocol contract",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
-        }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard",
+        "x-device-binding-required": true
       }
     },
     "/api/admin/units": {
@@ -747,28 +1085,39 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Success; JSON response shape in docs/api.md and protocol contract",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
         },
         "requestBody": {
@@ -781,7 +1130,9 @@
               }
             }
           }
-        }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard",
+        "x-device-binding-required": true
       }
     },
     "/api/admin/users": {
@@ -795,28 +1146,39 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Success; JSON response shape in docs/api.md and protocol contract",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
         },
         "requestBody": {
@@ -829,7 +1191,9 @@
               }
             }
           }
-        }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard",
+        "x-device-binding-required": true
       }
     },
     "/api/admin/users/{id}": {
@@ -843,28 +1207,39 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Success; JSON response shape in docs/api.md and protocol contract",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
         },
         "parameters": [
@@ -873,8 +1248,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "$ref": "#/components/schemas/Uuid"
             }
           }
         ],
@@ -888,7 +1262,9 @@
               }
             }
           }
-        }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard",
+        "x-device-binding-required": true
       }
     },
     "/api/admin/devices/{id}/approve": {
@@ -902,28 +1278,39 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Success; JSON response shape in docs/api.md and protocol contract",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
         },
         "parameters": [
@@ -932,8 +1319,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "$ref": "#/components/schemas/Uuid"
             }
           }
         ],
@@ -946,7 +1332,9 @@
               }
             }
           }
-        }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard",
+        "x-device-binding-required": true
       }
     },
     "/api/admin/devices/{id}/revoke": {
@@ -960,28 +1348,39 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Success; JSON response shape in docs/api.md and protocol contract",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
         },
         "parameters": [
@@ -990,8 +1389,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "$ref": "#/components/schemas/Uuid"
             }
           }
         ],
@@ -1004,7 +1402,9 @@
               }
             }
           }
-        }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard",
+        "x-device-binding-required": true
       }
     },
     "/api/admin/sessions/{id}/revoke": {
@@ -1018,28 +1418,39 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Success; JSON response shape in docs/api.md and protocol contract",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
         },
         "parameters": [
@@ -1048,8 +1459,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "$ref": "#/components/schemas/Uuid"
             }
           }
         ],
@@ -1062,7 +1472,9 @@
               }
             }
           }
-        }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard",
+        "x-device-binding-required": true
       }
     },
     "/api/admin/policies": {
@@ -1076,28 +1488,46 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Successful JSON response.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PolicyResponse"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
         },
         "requestBody": {
@@ -1109,7 +1539,16 @@
               }
             }
           }
-        }
+        },
+        "x-contract-coverage": "http-request-response-tested",
+        "x-device-binding-required": true,
+        "x-operation-proof": {
+          "operation": "admin:PUT:/api/admin/policies",
+          "bodyField": "proof",
+          "bodyDigest": "SHA256(canonical(request body excluding proof))",
+          "challengeEndpoint": "/api/auth/challenge"
+        },
+        "x-roles": ["admin"]
       }
     },
     "/api/evidence/export": {
@@ -1123,30 +1562,43 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Success; JSON response shape in docs/api.md and protocol contract",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
-        }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard",
+        "x-device-binding-required": true
       }
     },
     "/api/evidence/checkpoint": {
@@ -1160,30 +1612,43 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Success; JSON response shape in docs/api.md and protocol contract",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
-        }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard",
+        "x-device-binding-required": true
       }
     },
     "/api/metrics": {
@@ -1197,30 +1662,43 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Success; JSON response shape in docs/api.md and protocol contract",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
-        }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard",
+        "x-device-binding-required": true
       }
     },
     "/api/integration/validate": {
@@ -1234,28 +1712,39 @@
         ],
         "responses": {
           "200": {
-            "description": "Success; JSON response shape in docs/api.md and protocol contract"
+            "description": "Success; JSON response shape in docs/api.md and protocol contract",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "$ref": "#/components/responses/Error"
           },
           "401": {
-            "description": "Authentication rejected"
+            "$ref": "#/components/responses/Error"
           },
           "403": {
-            "description": "Role, device, proof or origin rejected"
+            "$ref": "#/components/responses/Error"
           },
           "409": {
-            "description": "Conflict or admission HOLD; no wrapped key"
+            "$ref": "#/components/responses/Error"
           },
           "413": {
-            "description": "Body/object too large"
+            "$ref": "#/components/responses/Error"
           },
           "429": {
-            "description": "Rate limit reached"
+            "$ref": "#/components/responses/Error"
           },
           "500": {
-            "description": "Service failure; fail closed"
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
           }
         },
         "requestBody": {
@@ -1268,7 +1757,9 @@
               }
             }
           }
-        }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard",
+        "x-device-binding-required": true
       }
     },
     "/health": {
@@ -1277,9 +1768,15 @@
         "security": [],
         "responses": {
           "200": {
-            "description": "Available"
+            "description": "Available",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
           }
-        }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard"
       }
     },
     "/live": {
@@ -1288,9 +1785,15 @@
         "security": [],
         "responses": {
           "200": {
-            "description": "Available"
+            "description": "Available",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
           }
-        }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard"
       }
     },
     "/ready": {
@@ -1299,9 +1802,15 @@
         "security": [],
         "responses": {
           "200": {
-            "description": "Available"
+            "description": "Available",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
           }
-        }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard"
       }
     }
   },
@@ -1314,19 +1823,65 @@
       }
     },
     "schemas": {
+      "Uuid": {
+        "type": "string",
+        "format": "uuid",
+        "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$"
+      },
+      "Digest": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      },
+      "Timestamp": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Unix epoch milliseconds; safe integer."
+      },
+      "Signature": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_-]+$",
+        "minLength": 86,
+        "maxLength": 86,
+        "description": "Unpadded base64url, 64-byte IEEE P1363 ECDSA P-256/SHA-256 signature."
+      },
+      "PublicP256Jwk": {
+        "type": "object",
+        "required": ["kty", "crv", "x", "y"],
+        "properties": {
+          "kty": {
+            "const": "EC"
+          },
+          "crv": {
+            "const": "P-256"
+          },
+          "x": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "minLength": 43,
+            "maxLength": 43
+          },
+          "y": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "minLength": 43,
+            "maxLength": 43
+          }
+        },
+        "additionalProperties": false
+      },
       "Proof": {
         "type": "object",
         "required": ["challengeId", "signature"],
         "properties": {
           "challengeId": {
-            "type": "string",
-            "format": "uuid"
+            "$ref": "#/components/schemas/Uuid"
           },
           "signature": {
-            "type": "string",
-            "description": "Base64url P1363 ECDSA signature"
+            "$ref": "#/components/schemas/Signature"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "Packet": {
         "type": "object",
@@ -1336,27 +1891,32 @@
             "type": "object"
           },
           "signature": {
-            "type": "string"
+            "$ref": "#/components/schemas/Signature"
           },
           "keyId": {
-            "type": "string"
+            "$ref": "#/components/schemas/Digest"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "Error": {
         "type": "object",
-        "required": ["error", "code"],
+        "required": ["error", "code", "requestId"],
         "properties": {
           "error": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           },
           "code": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Z][A-Z0-9_]*$"
           },
           "requestId": {
-            "type": "string"
+            "$ref": "#/components/schemas/Uuid"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "Login": {
         "type": "object",
@@ -1364,10 +1924,12 @@
         "properties": {
           "username": {
             "type": "string",
+            "minLength": 1,
             "maxLength": 80
           },
           "password": {
             "type": "string",
+            "minLength": 1,
             "maxLength": 256,
             "writeOnly": true
           },
@@ -1378,26 +1940,358 @@
           }
         }
       },
-      "Challenge": {
+      "User": {
         "type": "object",
-        "required": ["purpose"],
+        "required": ["id", "username", "unitId", "role", "missionIds", "active"],
         "properties": {
-          "purpose": {
-            "enum": ["enroll", "bind", "operation"]
+          "id": {
+            "$ref": "#/components/schemas/Uuid"
           },
+          "username": {
+            "type": "string",
+            "minLength": 1
+          },
+          "unitId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "role": {
+            "enum": ["admin", "operator", "viewer", "auditor"]
+          },
+          "missionIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._:-]{1,80}$"
+            },
+            "maxItems": 32
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Device": {
+        "type": "object",
+        "required": [
+          "id",
+          "userId",
+          "unitId",
+          "label",
+          "status",
+          "signingPublicKey",
+          "encryptionPublicKey",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "userId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "unitId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "status": {
+            "enum": ["pending", "approved", "revoked"]
+          },
+          "signingPublicKey": {
+            "$ref": "#/components/schemas/PublicP256Jwk"
+          },
+          "encryptionPublicKey": {
+            "$ref": "#/components/schemas/PublicP256Jwk"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "additionalProperties": false
+      },
+      "LoginResponse": {
+        "type": "object",
+        "required": ["token", "user", "expiresAt"],
+        "properties": {
+          "token": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "minLength": 43,
+            "maxLength": 43,
+            "description": "Opaque bearer session; never persist in browser storage."
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MeResponse": {
+        "type": "object",
+        "required": ["user", "device", "expiresAt"],
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "device": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Device"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Ok": {
+        "type": "object",
+        "required": ["ok"],
+        "properties": {
+          "ok": {
+            "const": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EmptyRequest": {
+        "type": "object",
+        "description": "No fields required."
+      },
+      "Challenge": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["purpose", "deviceId"],
+            "properties": {
+              "purpose": {
+                "const": "bind"
+              },
+              "deviceId": {
+                "$ref": "#/components/schemas/Uuid"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["purpose", "requestHash"],
+            "properties": {
+              "purpose": {
+                "const": "enroll"
+              },
+              "requestHash": {
+                "$ref": "#/components/schemas/Digest"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["purpose", "operation", "requestHash"],
+            "properties": {
+              "purpose": {
+                "const": "operation"
+              },
+              "deviceId": {
+                "$ref": "#/components/schemas/Uuid"
+              },
+              "operation": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 250
+              },
+              "requestHash": {
+                "$ref": "#/components/schemas/Digest"
+              }
+            }
+          }
+        ]
+      },
+      "DeviceChallenge": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["domain", "nonce", "sessionId", "expiresAt", "purpose", "deviceId"],
+            "properties": {
+              "domain": {
+                "const": "SIEPMU_DEVICE_PROOF_V1"
+              },
+              "nonce": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "minLength": 43,
+                "maxLength": 43
+              },
+              "sessionId": {
+                "$ref": "#/components/schemas/Uuid"
+              },
+              "expiresAt": {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              "purpose": {
+                "const": "bind"
+              },
+              "deviceId": {
+                "$ref": "#/components/schemas/Uuid"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": ["domain", "nonce", "sessionId", "expiresAt", "purpose", "requestHash"],
+            "properties": {
+              "domain": {
+                "const": "SIEPMU_DEVICE_PROOF_V1"
+              },
+              "nonce": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "minLength": 43,
+                "maxLength": 43
+              },
+              "sessionId": {
+                "$ref": "#/components/schemas/Uuid"
+              },
+              "expiresAt": {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              "purpose": {
+                "const": "enroll"
+              },
+              "requestHash": {
+                "$ref": "#/components/schemas/Digest"
+              },
+              "deviceId": {
+                "$ref": "#/components/schemas/Uuid"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "domain",
+              "nonce",
+              "sessionId",
+              "expiresAt",
+              "purpose",
+              "deviceId",
+              "operation",
+              "requestHash"
+            ],
+            "properties": {
+              "domain": {
+                "const": "SIEPMU_DEVICE_PROOF_V1"
+              },
+              "nonce": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "minLength": 43,
+                "maxLength": 43
+              },
+              "sessionId": {
+                "$ref": "#/components/schemas/Uuid"
+              },
+              "expiresAt": {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              "purpose": {
+                "const": "operation"
+              },
+              "deviceId": {
+                "$ref": "#/components/schemas/Uuid"
+              },
+              "operation": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 250
+              },
+              "requestHash": {
+                "$ref": "#/components/schemas/Digest"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "ChallengeResponse": {
+        "type": "object",
+        "required": ["challengeId", "challenge"],
+        "properties": {
+          "challengeId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "challenge": {
+            "$ref": "#/components/schemas/DeviceChallenge"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Bind": {
+        "type": "object",
+        "required": ["deviceId", "challengeId", "signature"],
+        "properties": {
           "deviceId": {
-            "type": "string",
-            "format": "uuid"
+            "$ref": "#/components/schemas/Uuid"
           },
-          "operation": {
-            "type": "string"
+          "challengeId": {
+            "$ref": "#/components/schemas/Uuid"
           },
-          "requestHash": {
-            "type": "string",
-            "pattern": "^[a-f0-9]{64}$",
-            "description": "Required for enroll and operation. SHA256 of canonical exact body excluding proof fields."
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
           }
         }
+      },
+      "Enrollment": {
+        "type": "object",
+        "required": [
+          "label",
+          "signingPublicKey",
+          "encryptionPublicKey",
+          "challengeId",
+          "signature"
+        ],
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "signingPublicKey": {
+            "$ref": "#/components/schemas/PublicP256Jwk"
+          },
+          "encryptionPublicKey": {
+            "$ref": "#/components/schemas/PublicP256Jwk"
+          },
+          "challengeId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          }
+        }
+      },
+      "DeviceResponse": {
+        "type": "object",
+        "required": ["device"],
+        "properties": {
+          "device": {
+            "$ref": "#/components/schemas/Device"
+          }
+        },
+        "additionalProperties": false
       },
       "Mutation": {
         "type": "object",
@@ -1417,24 +2311,32 @@
           },
           "expectedEpoch": {
             "type": "integer",
-            "minimum": 1
+            "minimum": 1,
+            "maximum": 9007199254740991
           }
         }
       },
-      "Policy": {
+      "Ack": {
         "type": "object",
-        "required": ["proof", "fromUnit", "toUnit", "missionId", "allow"],
+        "required": ["proof", "receiptId"],
         "properties": {
           "proof": {
             "$ref": "#/components/schemas/Proof"
           },
+          "receiptId": {
+            "$ref": "#/components/schemas/Uuid"
+          }
+        }
+      },
+      "PolicyValue": {
+        "type": "object",
+        "required": ["fromUnit", "toUnit", "missionId", "allow"],
+        "properties": {
           "fromUnit": {
-            "type": "string",
-            "format": "uuid"
+            "$ref": "#/components/schemas/Uuid"
           },
           "toUnit": {
-            "type": "string",
-            "format": "uuid"
+            "$ref": "#/components/schemas/Uuid"
           },
           "missionId": {
             "type": "string",
@@ -1443,7 +2345,274 @@
           "allow": {
             "type": "boolean"
           }
+        },
+        "additionalProperties": false
+      },
+      "Policy": {
+        "type": "object",
+        "required": ["fromUnit", "toUnit", "missionId", "allow", "proof"],
+        "properties": {
+          "fromUnit": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "toUnit": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "missionId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:-]{1,80}$"
+          },
+          "allow": {
+            "type": "boolean"
+          },
+          "proof": {
+            "$ref": "#/components/schemas/Proof"
+          }
         }
+      },
+      "PolicyResponse": {
+        "type": "object",
+        "required": ["policy"],
+        "properties": {
+          "policy": {
+            "$ref": "#/components/schemas/PolicyValue"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ControlPacket": {
+        "type": "object",
+        "required": ["payload", "signature", "keyId"],
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": ["epoch", "revocationVersion", "policyDigest", "issuedAt", "expiresAt"],
+            "properties": {
+              "epoch": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "revocationVersion": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "policyDigest": {
+                "$ref": "#/components/schemas/Digest"
+              },
+              "issuedAt": {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              "expiresAt": {
+                "$ref": "#/components/schemas/Timestamp"
+              }
+            },
+            "additionalProperties": false
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "keyId": {
+            "$ref": "#/components/schemas/Digest"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreationGrant": {
+        "type": "object",
+        "required": ["payload", "signature", "keyId"],
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "grantId",
+              "userId",
+              "deviceId",
+              "unitId",
+              "missionIds",
+              "creationEpoch",
+              "policyDigest",
+              "issuedAt",
+              "expiresAt",
+              "maxSensitivity"
+            ],
+            "properties": {
+              "grantId": {
+                "$ref": "#/components/schemas/Uuid"
+              },
+              "userId": {
+                "$ref": "#/components/schemas/Uuid"
+              },
+              "deviceId": {
+                "$ref": "#/components/schemas/Uuid"
+              },
+              "unitId": {
+                "$ref": "#/components/schemas/Uuid"
+              },
+              "missionIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9._:-]{1,80}$"
+                },
+                "maxItems": 32
+              },
+              "creationEpoch": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "policyDigest": {
+                "$ref": "#/components/schemas/Digest"
+              },
+              "issuedAt": {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              "expiresAt": {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              "maxSensitivity": {
+                "const": "DEMO"
+              }
+            },
+            "additionalProperties": false
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "keyId": {
+            "$ref": "#/components/schemas/Digest"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WrappedKey": {
+        "type": "object",
+        "required": ["ephemeralPublicKey", "salt", "iv", "ciphertext"],
+        "properties": {
+          "ephemeralPublicKey": {
+            "$ref": "#/components/schemas/PublicP256Jwk"
+          },
+          "salt": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "minLength": 43,
+            "maxLength": 43
+          },
+          "iv": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "minLength": 16,
+            "maxLength": 16
+          },
+          "ciphertext": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "minLength": 64,
+            "maxLength": 64
+          }
+        },
+        "additionalProperties": false
+      },
+      "Envelope": {
+        "type": "object",
+        "required": [
+          "schemaVersion",
+          "objectId",
+          "senderUserId",
+          "senderDeviceId",
+          "senderUnitId",
+          "recipientUserId",
+          "recipientDeviceId",
+          "recipientUnitId",
+          "recipientKeyId",
+          "missionId",
+          "classification",
+          "action",
+          "createdAt",
+          "expiresAt",
+          "creationGrant",
+          "cryptoSuite",
+          "keyVersion",
+          "ciphertextHash",
+          "nonce",
+          "wrappedKey"
+        ],
+        "properties": {
+          "schemaVersion": {
+            "const": 1
+          },
+          "objectId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "senderUserId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "senderDeviceId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "senderUnitId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "recipientUserId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "recipientDeviceId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "recipientUnitId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "recipientKeyId": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "missionId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:-]{1,80}$"
+          },
+          "classification": {
+            "const": "DEMO"
+          },
+          "action": {
+            "const": "deliver"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "creationGrant": {
+            "$ref": "#/components/schemas/CreationGrant"
+          },
+          "cryptoSuite": {
+            "const": "P256-HKDF-SHA256-AES256GCM"
+          },
+          "keyVersion": {
+            "const": 1
+          },
+          "ciphertextHash": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "nonce": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "minLength": 16,
+            "maxLength": 16
+          },
+          "wrappedKey": {
+            "$ref": "#/components/schemas/WrappedKey"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Ciphertext": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_-]+$",
+        "minLength": 22,
+        "maxLength": 1398123,
+        "description": "Unpadded base64url AES-GCM ciphertext including tag; 16 through 1,048,592 decoded bytes. Hash, canonical encoding and decoded length are checked at runtime."
       },
       "Submission": {
         "type": "object",
@@ -1453,15 +2622,585 @@
             "$ref": "#/components/schemas/Proof"
           },
           "envelope": {
-            "type": "object",
-            "description": "Exact signed envelope in docs/protocols/IMPLEMENTATION_CONTRACT.md; includes wrapped key, never returned by listing endpoints."
+            "$ref": "#/components/schemas/Envelope"
           },
           "signature": {
-            "type": "string"
+            "$ref": "#/components/schemas/Signature"
           },
           "ciphertext": {
+            "$ref": "#/components/schemas/Ciphertext"
+          }
+        }
+      },
+      "ObjectMetadata": {
+        "type": "object",
+        "required": [
+          "id",
+          "objectId",
+          "senderUserId",
+          "recipientUserId",
+          "senderDeviceId",
+          "recipientDeviceId",
+          "senderUnitId",
+          "recipientUnitId",
+          "missionId",
+          "classification",
+          "state",
+          "reason",
+          "preparedEpoch",
+          "ciphertextHash",
+          "createdAt",
+          "expiresAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "objectId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "senderUserId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "recipientUserId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "senderDeviceId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "recipientDeviceId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "senderUnitId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "recipientUnitId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "missionId": {
             "type": "string",
-            "description": "Base64url AES-GCM payload; maximum 1MiB plus tag"
+            "pattern": "^[A-Za-z0-9._:-]{1,80}$"
+          },
+          "classification": {
+            "const": "DEMO"
+          },
+          "state": {
+            "enum": ["PENDING", "HELD", "READY", "RELEASED", "DELIVERED", "REJECTED"]
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "preparedEpoch": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ciphertextHash": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReceiptPayload": {
+        "type": "object",
+        "required": [
+          "sequence",
+          "previousHash",
+          "eventId",
+          "eventType",
+          "timestamp",
+          "epoch",
+          "actorId"
+        ],
+        "properties": {
+          "sequence": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "previousHash": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "eventId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "eventType": {
+            "type": "string",
+            "minLength": 1
+          },
+          "timestamp": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "epoch": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "actorId": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Uuid"
+              },
+              {
+                "const": "system"
+              }
+            ]
+          },
+          "objectId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "decision": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "details": {
+            "type": "object"
+          },
+          "decisionId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "releaseState": {
+            "enum": ["PENDING", "HELD", "READY", "RELEASED", "DELIVERED", "REJECTED"]
+          }
+        },
+        "additionalProperties": false
+      },
+      "Receipt": {
+        "type": "object",
+        "required": ["payload", "signature", "keyId"],
+        "properties": {
+          "payload": {
+            "$ref": "#/components/schemas/ReceiptPayload"
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "keyId": {
+            "$ref": "#/components/schemas/Digest"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ObjectReceipt": {
+        "type": "object",
+        "required": ["object", "receipt"],
+        "properties": {
+          "object": {
+            "$ref": "#/components/schemas/ObjectMetadata"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/Receipt"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ObjectList": {
+        "type": "object",
+        "required": ["objects"],
+        "properties": {
+          "objects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObjectMetadata"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClaimResponse": {
+        "type": "object",
+        "required": [
+          "object",
+          "envelope",
+          "signature",
+          "ciphertext",
+          "senderSigningPublicKey",
+          "receipt"
+        ],
+        "properties": {
+          "object": {
+            "$ref": "#/components/schemas/ObjectMetadata"
+          },
+          "envelope": {
+            "$ref": "#/components/schemas/Envelope"
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "ciphertext": {
+            "$ref": "#/components/schemas/Ciphertext"
+          },
+          "senderSigningPublicKey": {
+            "$ref": "#/components/schemas/PublicP256Jwk"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/DecisionReceipt"
+          }
+        },
+        "additionalProperties": false
+      },
+      "HeldResponse": {
+        "type": "object",
+        "required": ["error", "code", "requestId", "object", "receipt"],
+        "properties": {
+          "error": {
+            "const": "Admission held"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "object": {
+            "$ref": "#/components/schemas/ObjectMetadata"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/DecisionReceipt"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DecisionDetails": {
+        "type": "object",
+        "required": [
+          "objectDigest",
+          "envelopeDigest",
+          "senderUserId",
+          "senderDeviceId",
+          "recipientUserId",
+          "recipientDeviceId",
+          "destinationUnitId",
+          "missionId",
+          "action",
+          "creationGrantId",
+          "creationEpoch",
+          "creationPolicyDigest",
+          "policyReference",
+          "policyDigest",
+          "revocationVersion",
+          "authorityEpoch",
+          "deviceEvidence",
+          "proofEvidence"
+        ],
+        "properties": {
+          "objectDigest": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "envelopeDigest": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "senderUserId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "senderDeviceId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "recipientUserId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "recipientDeviceId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "destinationUnitId": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "missionId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "action": {
+            "anyOf": [
+              {
+                "const": "deliver"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "creationGrantId": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "creationEpoch": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "creationPolicyDigest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Digest"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "policyReference": {
+            "type": "object",
+            "required": ["fromUnitId", "toUnitId", "missionId"],
+            "properties": {
+              "fromUnitId": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/Uuid"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "toUnitId": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/Uuid"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "missionId": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "policyDigest": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "revocationVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "authorityEpoch": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "deviceEvidence": {
+            "const": "software-proof-of-possession"
+          },
+          "proofEvidence": {
+            "type": "object",
+            "required": ["challengeId", "challengeDigest", "sessionId"],
+            "properties": {
+              "challengeId": {
+                "$ref": "#/components/schemas/Uuid"
+              },
+              "challengeDigest": {
+                "$ref": "#/components/schemas/Digest"
+              },
+              "sessionId": {
+                "$ref": "#/components/schemas/Uuid"
+              }
+            },
+            "additionalProperties": false
+          },
+          "preparedEpoch": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "expectedEpoch": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "currentEpoch": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "issuanceEventId": {
+            "$ref": "#/components/schemas/Uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DecisionReceiptPayload": {
+        "type": "object",
+        "required": [
+          "sequence",
+          "previousHash",
+          "eventId",
+          "eventType",
+          "timestamp",
+          "epoch",
+          "actorId",
+          "decisionId",
+          "objectId",
+          "decision",
+          "releaseState",
+          "reason",
+          "details"
+        ],
+        "properties": {
+          "sequence": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "previousHash": {
+            "$ref": "#/components/schemas/Digest"
+          },
+          "eventId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "eventType": {
+            "enum": ["ADMISSION", "RELEASE_ISSUED", "RELEASE_DENIED", "RELEASE_RETRY"]
+          },
+          "timestamp": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "epoch": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "actorId": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Uuid"
+              },
+              {
+                "const": "system"
+              }
+            ]
+          },
+          "objectId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "decision": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "details": {
+            "$ref": "#/components/schemas/DecisionDetails"
+          },
+          "decisionId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "releaseState": {
+            "enum": ["PENDING", "HELD", "READY", "RELEASED", "DELIVERED", "REJECTED"]
+          }
+        },
+        "additionalProperties": false
+      },
+      "DecisionReceipt": {
+        "type": "object",
+        "required": ["payload", "signature", "keyId"],
+        "properties": {
+          "payload": {
+            "$ref": "#/components/schemas/DecisionReceiptPayload"
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "keyId": {
+            "$ref": "#/components/schemas/Digest"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PreparedResponse": {
+        "type": "object",
+        "required": ["object", "receipt"],
+        "properties": {
+          "object": {
+            "$ref": "#/components/schemas/ObjectMetadata"
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/DecisionReceipt"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "headers": {
+      "RequestId": {
+        "description": "Server-generated request UUID, supplied on every control API response. JSON errors repeat exactly this value as requestId; an incoming value is not trusted.",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/Uuid"
+        }
+      }
+    },
+    "responses": {
+      "Error": {
+        "description": "JSON error with stable code and request correlation. No stack trace or secret material.",
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
           }
         }
       }
