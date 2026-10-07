@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-10-08",
+  "scope": "Frozen prototype evidence, not new TRL5/6 execution",
+  "implementation_commit": "49774e2111197412efb31d459317c0df23a838af",
+  "implementation_tree": "32a44730eaee4192aa54b5c364ab07e762fc7fac",
+  "tested_checkout": "2a8971abc2c2bd8ecaf1119e892864e21943f2bf",
+  "tested_tree": "32a44730eaee4192aa54b5c364ab07e762fc7fac",
+  "head_commit": "65a6891a41b57fe9480d1e1df901a1287c66753d",
+  "run_url": "https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/37683530326",
+  "run_id": 37683530326,
+  "source_digest": "3203523c0e5eb1e03bc5a806a66f0033e155283c318c0e2662ea5ccb80a083a1",
+  "native_finished_at": "2026-10-07T20:39:28.585Z",
+  "native_tests": {
+    "total": 87,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "native_demo": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "synthetic": true
+  },
+  "claims": 14,
+  "browser_checks": 15,
+  "browser_version": "Chromium 153.0.8010.12",
+  "codeql": {
+    "status": "PASS",
+    "reports": [
+      {
+        "file": "javascript.sarif",
+        "policy": "CodeQL severity >=7, any error-level finding, or unrated security finding blocks; no suppression waiver",
+        "status": "PASS",
+        "findings": 0,
+        "blocked": []
+      }
+    ]
+  },
+  "jobs": {
+    "native": "success",
+    "browser": "success",
+    "container": "success",
+    "secret-scan": "success",
+    "codeql": "success",
+    "package-candidate": "success"
+  },
+  "scanners": {
+    "trivy": "v0.69.3",
+    "gitleaks": "8.24.3 observed",
+    "codeql_cli": "2.27.1 observed"
+  },
+  "release_artifact_id": 11509918211,
+  "downloaded_zip_sha256": "6ec71ad7055c15a082cdf1cc4a7a2ea875f5d1eb27023f048e5e26ed56cf5280",
+  "limitations": [
+    "Hosted CI is not independent assurance or sponsor acceptance.",
+    "A dated scan does not establish absence of all vulnerabilities.",
+    "CodeQL and Gitleaks action pins do not pin all downloaded tool binaries.",
+    "No representative WAN, SAG grading, hardware custody, real military integration or TRL award."
+  ]
+}

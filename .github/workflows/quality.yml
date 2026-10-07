@@ -22,6 +22,8 @@ jobs:
         with:
           node-version: 24.19.0
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Validate research traceability and corruption checks
+        run: python3 research/trl56/validate.py --self-test
       - name: Validate source-bound claims and implementation
         run: npm run validate
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6, resolved 2026-10-07

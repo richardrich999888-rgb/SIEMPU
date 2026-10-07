@@ -1,0 +1,11 @@
+stage,item,quantity_provisional,criticality,price_inr,price_status,supplier,lead_time
+"TRL5","managed clients","3","essential","","QUOTE_REQUIRED","reuse or RFI","unknown"
+"TRL5","network switch/firewall","1 each","essential","","QUOTE_REQUIRED","RFI","unknown"
+"TRL5","isolated impairment host","1","essential","","QUOTE_REQUIRED","reuse or RFI","unknown"
+"TRL5","secure evidence workstation","1","essential","","QUOTE_REQUIRED","RFI","unknown"
+"TRL5","FIDO2 authenticators","2–4","optional","","QUOTE_REQUIRED","RFI","unknown"
+"TRL5","independent audit","1","assurance","","QUOTE_REQUIRED","licensed auditor RFP","unknown"
+"TRL6","multi-node on-prem servers","2–3","conditional","","QUOTE_REQUIRED","RFI","unknown"
+"TRL6","managed clients","4–6","essential","","QUOTE_REQUIRED","RFI","unknown"
+"TRL6","PKCS11/HSM prototype","1–2","sponsor-dependent","","QUOTE_REQUIRED","sponsor-approved RFI","unknown"
+"TRL6","independent security trial","1","assurance","","QUOTE_REQUIRED","accredited eligible lab","unknown"

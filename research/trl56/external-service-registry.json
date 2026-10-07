@@ -1,0 +1,74 @@
+[
+  {
+    "id": "certin",
+    "name": "CERT-In listed auditor pathway",
+    "official_source": "https://www.cert-in.org.in",
+    "category": "INDEPENDENT_REVIEW",
+    "limitation": "verify actual auditor current empanelment & scope",
+    "decision": "RESEARCH_CONTACT",
+    "accreditation_scope": "VERIFY",
+    "location": "VERIFY",
+    "price_inr": null,
+    "engagement_status": "NOT_ENGAGED"
+  },
+  {
+    "id": "stqc",
+    "name": "STQC / MeitY",
+    "official_source": "https://www.stqc.gov.in",
+    "category": "INDEPENDENT_IT_EVALUATION",
+    "limitation": "confirm specific available lab and certificate scope",
+    "decision": "RESEARCH_CONTACT",
+    "accreditation_scope": "VERIFY",
+    "location": "VERIFY",
+    "price_inr": null,
+    "engagement_status": "NOT_ENGAGED"
+  },
+  {
+    "id": "nabl",
+    "name": "NABL scope directory",
+    "official_source": "https://nabl-india.org",
+    "category": "LAB_SEARCH",
+    "limitation": "confirm exact accredited laboratory and ISO scope",
+    "decision": "RESEARCH_CONTACT",
+    "accreditation_scope": "VERIFY",
+    "location": "VERIFY",
+    "price_inr": null,
+    "engagement_status": "NOT_ENGAGED"
+  },
+  {
+    "id": "idex",
+    "name": "iDEX DIO",
+    "official_source": "https://idex.gov.in",
+    "category": "SPONSOR_LIAISON",
+    "limitation": "confirm authorized programme milestones",
+    "decision": "RESEARCH_CONTACT",
+    "accreditation_scope": "VERIFY",
+    "location": "VERIFY",
+    "price_inr": null,
+    "engagement_status": "NOT_ENGAGED"
+  },
+  {
+    "id": "sag",
+    "name": "DRDO/SAG sponsor channel",
+    "official_source": "https://drdo.gov.in",
+    "category": "SPONSOR_ONLY_CRYPTO",
+    "limitation": "approval process not publicly established",
+    "decision": "RESEARCH_CONTACT",
+    "accreditation_scope": "VERIFY",
+    "location": "VERIFY",
+    "price_inr": null,
+    "engagement_status": "NOT_ENGAGED"
+  },
+  {
+    "id": "cdac",
+    "name": "C-DAC capability enquiry",
+    "official_source": "https://www.cdac.in",
+    "category": "OPTIONAL_TESTBED",
+    "limitation": "no partnership agreed",
+    "decision": "RESEARCH_CONTACT",
+    "accreditation_scope": "VERIFY",
+    "location": "VERIFY",
+    "price_inr": null,
+    "engagement_status": "NOT_ENGAGED"
+  }
+]

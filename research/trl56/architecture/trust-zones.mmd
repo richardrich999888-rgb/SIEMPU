@@ -1,0 +1,6 @@
+flowchart LR
+  EP["Endpoint plaintext and private keys"] -- "TLS / ciphertext" --> TRANSPORT["Public Internet untrusted"]
+  TRANSPORT -- "ciphertext" --> RELAY["Relay no private keys"]
+  EP -- "authenticated control requests" --> CONTROL["Policy epoch authority: opaque wrapped keys"]
+  CONTROL --> AUDIT["Independent checkpoint boundary"]
+  CONTROL -. "authorised schema contract" .-> EXT["External synthetic integration boundary"]

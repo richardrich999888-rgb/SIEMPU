@@ -1,0 +1,249 @@
+[
+  {
+    "id": "E001",
+    "title": "iDEX DISC-14 official challenge compendium",
+    "url": "https://idex.gov.in/uploads/challenges/1774433728_800a3a04323d011d9303.pdf",
+    "supports": "R1-R12; PS-69 printed pp161-162 (PDF indices160-161); table-of-contents numbering differs",
+    "status": "OFFICIAL_PRIMARY_REOPENED",
+    "retrieved_date": "2026-10-08",
+    "verification_note": "Actual PS-69 body reopened; not reliance on TOC or adjacent challenge",
+    "review_date": "2026-10-08"
+  },
+  {
+    "id": "E002",
+    "title": "iDEX PS-69 challenge listing",
+    "url": "https://idex.gov.in/challenges-cpt/2507",
+    "supports": "programme context",
+    "status": "OFFICIAL_PUBLIC",
+    "retrieved_date": "2026-10-08",
+    "verification_note": "Retained source reference; scope below does not imply procurement or approval",
+    "review_date": "2026-10-08"
+  },
+  {
+    "id": "E003",
+    "title": "Frozen delivered main implementation",
+    "url": "https://github.com/richardrich999888-rgb/SIEMPU/commit/49774e2111197412efb31d459317c0df23a838af",
+    "supports": "Current code baseline; tree equality with tested PR checkout",
+    "status": "DIRECT_GITHUB",
+    "retrieved_date": "2026-10-08",
+    "verification_note": "Local git tree and source inspected; exact mapping in baseline-evidence.json",
+    "review_date": "2026-10-08"
+  },
+  {
+    "id": "E004",
+    "title": "Successful frozen hosted quality/release run",
+    "url": "https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/37683530326",
+    "supports": "Six successful jobs; 87 tests; 15 browser checks; container acceptance; scans; packaged evidence",
+    "status": "DIRECT_GITHUB",
+    "retrieved_date": "2026-10-08",
+    "verification_note": "Jobs and selected logs reread; downloaded release archive inspected and previously checksum-verified; run is dated, not current vulnerability immunity",
+    "review_date": "2026-10-08"
+  },
+  {
+    "id": "E005",
+    "title": "Node native WebCrypto docs",
+    "url": "https://nodejs.org/download/release/v24.19.0/docs/api/webcrypto.html",
+    "supports": "API corresponding to pinned runtime; not SAG grading",
+    "status": "UPSTREAM_DOCUMENTATION",
+    "retrieved_date": "2026-10-08",
+    "verification_note": "Retained source reference; scope below does not imply procurement or approval",
+    "review_date": "2026-10-08"
+  },
+  {
+    "id": "E006",
+    "title": "Linux netem manual",
+    "url": "https://man7.org/linux/man-pages/man8/tc-netem.8.html",
+    "supports": "network impairment",
+    "status": "UPSTREAM_DOCUMENTATION",
+    "retrieved_date": "2026-10-08",
+    "verification_note": "Retained source reference; scope below does not imply procurement or approval",
+    "review_date": "2026-10-08"
+  },
+  {
+    "id": "E007",
+    "title": "SPIFFE/SPIRE upstream docs",
+    "url": "https://spiffe.io/docs/latest/spire-about/",
+    "supports": "workload identities",
+    "status": "UPSTREAM_DOCUMENTATION",
+    "retrieved_date": "2026-10-08",
+    "verification_note": "Retained source reference; scope below does not imply procurement or approval",
+    "review_date": "2026-10-08"
+  },
+  {
+    "id": "E008",
+    "title": "CodeQL upstream",
+    "url": "https://codeql.github.com",
+    "supports": "security scan",
+    "status": "UPSTREAM_DOCUMENTATION",
+    "retrieved_date": "2026-10-08",
+    "verification_note": "Retained source reference; scope below does not imply procurement or approval",
+    "review_date": "2026-10-08"
+  },
+  {
+    "id": "E009",
+    "title": "Trivy upstream",
+    "url": "https://github.com/aquasecurity/trivy",
+    "supports": "container vuln scan",
+    "status": "UPSTREAM_DOCUMENTATION",
+    "retrieved_date": "2026-10-08",
+    "verification_note": "Retained source reference; scope below does not imply procurement or approval",
+    "review_date": "2026-10-08"
+  },
+  {
+    "id": "E010",
+    "title": "STQC official site",
+    "url": "https://www.stqc.gov.in",
+    "supports": "potential testing pathway",
+    "status": "PUBLIC_BASIS_NOT_SERVICE_AGREEMENT",
+    "retrieved_date": "2026-10-08",
+    "verification_note": "Retained source reference; scope below does not imply procurement or approval",
+    "review_date": "2026-10-08"
+  },
+  {
+    "id": "E011",
+    "title": "Pinned Node TLS documentation",
+    "url": "https://nodejs.org/download/release/v24.19.0/docs/api/tls.html",
+    "supports": "TLS/mTLS API; certificate checks; WP07",
+    "status": "PRIMARY_DOCUMENTATION_REVIEWED",
+    "review_date": "2026-10-08",
+    "verification_note": "Documentation is not an integrated or approved release"
+  },
+  {
+    "id": "E012",
+    "title": "Node v24.19.0 licence",
+    "url": "https://github.com/nodejs/node/blob/v24.19.0/LICENSE",
+    "supports": "MIT terms for Node code plus bundled component notices",
+    "status": "PRIMARY_FILE_READ",
+    "review_date": "2026-10-08",
+    "verification_note": "Licence opening inspected via GitHub; full distributed notices still required"
+  },
+  {
+    "id": "E013",
+    "title": "iproute2 COPYING",
+    "url": "https://github.com/iproute2/iproute2/blob/main/COPYING",
+    "supports": "GPL v2 text for lab-tool qualification",
+    "status": "PRIMARY_FILE_READ",
+    "review_date": "2026-10-08",
+    "verification_note": "Licence blob 3912109b5cd65a68039d473c11c9f7ac2303e06d; selected binary/kernel not yet pinned"
+  },
+  {
+    "id": "E014",
+    "title": "Toxiproxy upstream repository",
+    "url": "https://github.com/Shopify/toxiproxy",
+    "supports": "TCP fault injection alternative; MIT repository label",
+    "status": "PRIMARY_REPOSITORY_REVIEWED",
+    "review_date": "2026-10-08",
+    "verification_note": "No release selected; defer unless netem cannot isolate required failure"
+  },
+  {
+    "id": "E015",
+    "title": "Trivy v0.69.3 licence",
+    "url": "https://github.com/aquasecurity/trivy/blob/v0.69.3/LICENSE",
+    "supports": "Apache-2.0 licence text",
+    "status": "PRIMARY_FILE_READ",
+    "review_date": "2026-10-08",
+    "verification_note": "Licence blob 261eeb9e9f8b2b4b0d119366dda99c6fd7d35c64; scanner version pinned in workflow"
+  },
+  {
+    "id": "E016",
+    "title": "CodeQL CLI terms",
+    "url": "https://github.com/github/codeql-cli-binaries/blob/main/LICENSE.md",
+    "supports": "CLI-specific terms distinct from action/source licensing",
+    "status": "PRIMARY_DOCUMENTATION_REVIEWED",
+    "review_date": "2026-10-08",
+    "verification_note": "Do not infer permissive redistribution rights from codeql-action licence"
+  },
+  {
+    "id": "E017",
+    "title": "Gitleaks licence",
+    "url": "https://github.com/gitleaks/gitleaks/blob/master/LICENSE",
+    "supports": "MIT licence text for scanner",
+    "status": "PRIMARY_FILE_READ",
+    "review_date": "2026-10-08",
+    "verification_note": "Blob 3c270b36c539ca8fbc4cc1017d3cbb7be1e44bbc; action terms and downloaded tool provenance separate"
+  },
+  {
+    "id": "E018",
+    "title": "Historical failed run",
+    "url": "https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/37678323924",
+    "supports": "Superseded CodeQL parser and image scan findings",
+    "status": "HISTORICAL_ONLY",
+    "review_date": "2026-10-08",
+    "verification_note": "Current frozen run E004 supersedes release-blocker status; historical record retained"
+  },
+  {
+    "id": "E019",
+    "title": "Research import provenance",
+    "url": "https://github.com/richardrich999888-rgb/SIEMPU/tree/58e88d86506b686f17c18530b759a869907ec81f/research/trl56",
+    "supports": "Original 35 research files",
+    "status": "DIRECT_GIT_TREE",
+    "review_date": "2026-10-08",
+    "verification_note": "Only research content imported onto current main; older application code not merged"
+  },
+  {
+    "id": "P001",
+    "title": "User-provided DISC-14 PS-69 Annexure 1",
+    "url": null,
+    "sha256": "019760a85aeedb2632db28cc815e8c8f6f09e0ebb1afd00cc5f45523c47f2eba",
+    "supports": "Two pages; seven deliverables and 12-month/four-phase applicant proposal",
+    "status": "PRIVATE_USER_SUPPLIED_COPY_REVIEWED",
+    "review_date": "2026-10-08",
+    "verification_note": "Text extracted; Annexure 1 timeline visually checked. User identifies these as submitted copies; byte identity with portal-held attachments not independently verified. Original and identifying details excluded from public repo."
+  },
+  {
+    "id": "P002",
+    "title": "User-provided DISC-14 PS-69 Annexure 2",
+    "url": null,
+    "sha256": "ea59e3a3c9741c6d32c63eabb6c2388dd9e078e0bb18ba18fe26a5f1d1f74a11",
+    "supports": "Five PDF pages; detailed proposed architecture, roles and technical assertions",
+    "status": "PRIVATE_USER_SUPPLIED_COPY_REVIEWED",
+    "review_date": "2026-10-08",
+    "verification_note": "Text extracted; Annexure 1 timeline visually checked. User identifies these as submitted copies; byte identity with portal-held attachments not independently verified. Original and identifying details excluded from public repo."
+  },
+  {
+    "id": "P003",
+    "title": "Official proposal submission receipt",
+    "url": null,
+    "supports": "DISC-14 SIEPMU title; 12-month duration; administrative-category reconciliation",
+    "status": "PRIVATE_CORRESPONDENCE_REVIEWED",
+    "review_date": "2026-10-08",
+    "verification_note": "Receipt is not the full proposal, contract, funding approval or grading record; identifiers and original withheld."
+  },
+  {
+    "id": "P004",
+    "title": "Official HPSC document request",
+    "url": null,
+    "supports": "Requested presentation/document categories and tentative evaluation process",
+    "status": "PRIVATE_CORRESPONDENCE_REVIEWED",
+    "review_date": "2026-10-08",
+    "verification_note": "Schedule has date/weekday inconsistency; exact slot, time zone and undertaking contents need confirmation; no correspondence copied or sent."
+  },
+  {
+    "id": "E020",
+    "title": "Concurrent duty-role alignment branch",
+    "url": "https://github.com/richardrich999888-rgb/SIEMPU/commit/7320eb1803a318f62f7f70bd23f3273129a2686a",
+    "supports": "Additive duty policy; signed schema-v2 priority/domain; migration and direct authority negatives",
+    "status": "UNMERGED_DRAFT_TARGETED_CODE_REVIEW",
+    "review_date": "2026-10-08",
+    "verification_note": "PR13 run37687923040 all six jobs success observed; not the main baseline or a combined-branch test"
+  },
+  {
+    "id": "E021",
+    "title": "Concurrent foundation hardening branch",
+    "url": "https://github.com/richardrich999888-rgb/SIEMPU/commit/40ab9d038cd521e29ebd57b5e7dde041f9c61212",
+    "supports": "Stored-envelope revalidation; richer decisions/verifier; recovery hardening; Node24.21.0 candidate",
+    "status": "UNMERGED_DRAFT_TARGETED_CODE_REVIEW",
+    "review_date": "2026-10-08",
+    "verification_note": "PR2 CI37686786979 and Security37686786781 job successes observed; branch test counts not inherited by main"
+  },
+  {
+    "id": "P005",
+    "title": "User-provided DISC-14 PS-69 Annexure 3",
+    "url": null,
+    "sha256": "c6b5fc736c6c9b727f1385cb653db42a6c4dcc0820b0070ccbc32c82925809bc",
+    "supports": "Four-page applicant resume and technical assertions; additional dedicated priority authorization and source/dependency claims",
+    "status": "PRIVATE_USER_SUPPLIED_COPY_REVIEWED",
+    "review_date": "2026-10-08",
+    "verification_note": "All text extracted; applicant assertions are not independent test, patent or grading evidence. Personal details and original excluded; portal byte identity unverified"
+  }
+]

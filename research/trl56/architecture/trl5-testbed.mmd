@@ -1,0 +1,9 @@
+flowchart LR
+  UA["LAB UNIT A endpoint"] --> N["Isolated untrusted WAN emulator: netem / Toxiproxy"]
+  UB["LAB UNIT B endpoint"] --> N
+  N --> G["TLS ingress"]
+  G --> C["Control and policy-epoch issuer"]
+  G --> R["Ciphertext-only relay"]
+  C --> E["External independent evidence checkpoint"]
+  C --> SOC["Redacted telemetry collector"]
+  C --> M["Independent synthetic legacy mock"]

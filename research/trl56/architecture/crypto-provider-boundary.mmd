@@ -1,0 +1,7 @@
+flowchart LR
+  CLIENT["Endpoint signer/encrypter"] --> PORT["CryptoProvider v1 suite, AEAD, sign, verify, wrap, unwrap, lifecycle"]
+  PORT --> NATIVE["Native WebCrypto LAB provider"]
+  PORT -. "only if authorised" .-> SAG["Sponsor-approved SDK/HSM provider"]
+  CLIENT --> ENV["Signed suite-bound ciphertext envelope"]
+  ENV --> CTRL["Policy-epoch key release authority"]
+  CTRL --> RECIP["Recipient: verify then decrypt"]
