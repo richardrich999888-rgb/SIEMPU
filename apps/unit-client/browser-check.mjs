@@ -188,6 +188,69 @@ async function checkConcurrentVaultLocks(owner) {
   );
 }
 
+async function exchangeFile(alice, bob) {
+  await alice.page.getByRole('button', { name: 'Secure exchange', exact: true }).click();
+  const recipient = provisioning.profiles.find((p) => p.username === 'bob');
+  await alice.page.getByLabel('Recipient device').selectOption(recipient.deviceId);
+  let submitted = 0;
+  const countSubmission = (request) => {
+    if (request.method() === 'POST' && request.url().endsWith('/api/objects')) submitted++;
+  };
+  alice.page.on('request', countSubmission);
+  await alice.page.getByLabel('Attach a file').setInputFiles({
+    name: '..',
+    mimeType: 'text/html',
+    buffer: Buffer.from('<script>syntheticUnsafeName</script>'),
+  });
+  await alice.page.getByRole('button', { name: 'Seal & submit securely', exact: true }).click();
+  await alice.page.locator('#notice').filter({ hasText: 'Unsafe file name' }).waitFor();
+  assert.equal(submitted, 0, 'Unsafe filename must fail before any object submission');
+  results.push('Unsafe dot-dot file name rejected in browser before object submission');
+
+  const filename = 'synthetic-evidence.txt';
+  const bytes = Buffer.from(
+    'SIEPMU synthetic UTF-8 file\nIntegrity check: தமிழ் · हिन्दी · Δ\n',
+    'utf8',
+  );
+  // An untrusted MIME hint is intentionally supplied; the client must treat it as opaque binary.
+  await alice.page
+    .getByLabel('Attach a file')
+    .setInputFiles({ name: filename, mimeType: 'text/html', buffer: bytes });
+  await alice.page.getByRole('button', { name: 'Seal & submit securely', exact: true }).click();
+  await alice.page.locator('.badge.ready').waitFor();
+  await bob.page.getByRole('button', { name: 'Refresh objects', exact: true }).click();
+  await bob.page.getByRole('button', { name: 'Validate release & decrypt', exact: true }).click();
+  await bob.page.locator('.object-body').filter({ hasText: filename }).waitFor();
+  await bob.page.evaluate(() => {
+    const original = URL.createObjectURL;
+    URL.createObjectURL = function (blob) {
+      globalThis.__siepmuDownloadMime = blob.type;
+      return original.call(this, blob);
+    };
+  });
+  const received = bob.page.waitForEvent('download');
+  await bob.page
+    .getByRole('button', { name: 'Download encrypted-transfer attachment', exact: true })
+    .click();
+  const download = await received;
+  assert.equal(download.suggestedFilename(), filename);
+  const stream = await download.createReadStream();
+  const chunks = [];
+  for await (const chunk of stream) chunks.push(chunk);
+  assert.deepEqual(Buffer.concat(chunks), bytes);
+  assert.equal(
+    await bob.page.evaluate(() => globalThis.__siepmuDownloadMime),
+    'application/octet-stream',
+  );
+  alice.page.off('request', countSubmission);
+  results.push(
+    'Real file-input encryption, recipient release/decryption and attachment download preserve exact UTF-8 bytes and filename',
+  );
+  results.push(
+    'Untrusted HTML MIME hint is replaced by application/octet-stream for attachment download',
+  );
+}
+
 try {
   const alice = await loginUser('alice');
   const bob = await loginUser('bob');
@@ -207,6 +270,7 @@ try {
   results.push(
     'End-to-end text encryption, release, browser decryption, ACK and untrusted text rendering',
   );
+  await exchangeFile(alice, bob);
 
   await alice.page.getByRole('button', { name: 'Simulate disconnect', exact: true }).click();
   const queuedMessage = `Queued during authority change ${Date.now()}`;

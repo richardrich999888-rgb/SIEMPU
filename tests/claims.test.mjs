@@ -1,9 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
+import { promisify } from 'node:util';
+import { gateEnvironment } from '../scripts/validate.mjs';
 import { auditClaims, sourceDigest, requiredGates } from '../scripts/audit-claims.mjs';
 
 async function fixture(t) {
@@ -119,3 +121,38 @@ test('claims gate rejects invented certification, self-certified external approv
   f.manifest.claims[0].IMPLEMENTATION = ['../outside.mjs'];
   assert.equal((await auditClaims({ root: f.root, manifest: f.manifest })).valid, false);
 });
+
+test(
+  'real demo evidence survives a following benchmark without result-file collision',
+  { timeout: 90000 },
+  async (t) => {
+    const evidenceRoot = await mkdtemp(join(tmpdir(), 'siepmu-validation-artifacts-'));
+    t.after(() => rm(evidenceRoot, { recursive: true, force: true }));
+    const execute = promisify(execFile);
+    const demoEnv = gateEnvironment('demo', evidenceRoot);
+    const benchmarkEnv = gateEnvironment('benchmark', evidenceRoot, {
+      ...process.env,
+      SIEPMU_BENCH_ITERATIONS: '5',
+    });
+    await execute(process.execPath, ['scripts/demo.mjs'], {
+      env: demoEnv,
+      maxBuffer: 2 * 1024 * 1024,
+    });
+    const demoPath = join(demoEnv.SIEPMU_EVIDENCE_DIR, 'results.json');
+    const before = await readFile(demoPath, 'utf8');
+    const demo = JSON.parse(before);
+    assert.equal(demo.synthetic, true);
+    assert.equal(demo.results.length, 9);
+    assert.ok(demo.results.every((stage) => stage.outcome === 'PASS'));
+    await execute(process.execPath, ['scripts/benchmark.mjs'], {
+      env: benchmarkEnv,
+      maxBuffer: 2 * 1024 * 1024,
+    });
+    assert.equal(await readFile(demoPath, 'utf8'), before);
+    const benchmark = JSON.parse(
+      await readFile(join(benchmarkEnv.SIEPMU_EVIDENCE_DIR, 'results.json'), 'utf8'),
+    );
+    assert.equal(benchmark.status, 'MEASURED');
+    assert.equal(benchmark.workload.objects, 5);
+  },
+);
