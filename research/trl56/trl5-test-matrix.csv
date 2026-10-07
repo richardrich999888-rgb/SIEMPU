@@ -1,0 +1,9 @@
+test_id,requirements,ctes,test_name,status,expected_evidence
+"T5-01","R1 R2 R5 R7","CTE01 CTE02 CTE03 CTE04","multi-unit E2EE","PLANNED","ciphertext capture and ACK"
+"T5-02","R2 R10","CTE03 CTE05","WAN outage/reconnect","PLANNED","netem profiles + receipt"
+"T5-03","R5 R7","CTE02 CTE03","offline revocation","PLANNED","epoch/issuance trace"
+"T5-04","R6","CTE07","defensive alert","PLANNED","redacted event capture"
+"T5-05","R2 R10","CTE05","endpoint lock/restart","PLANNED","vault state"
+"T5-06","R8","CTE08","independent synthetic connector","PLANNED","schema/auth tests"
+"T5-07","R2 R12","CTE06","audit backup rollback","PLANNED","signature/restore evidence"
+"T5-08","R6 R12","ALL","approved defensive assessment","PLANNED","independent signed report"

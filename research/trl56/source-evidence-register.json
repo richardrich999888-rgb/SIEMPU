@@ -1,0 +1,92 @@
+[
+  {
+    "id": "E001",
+    "title": "iDEX DISC-14 official challenge compendium",
+    "url": "https://idex.gov.in/uploads/challenges/1774433728_800a3a04323d011d9303.pdf",
+    "supports": "PS-69 printed pp161-162",
+    "status": "OFFICIAL_PUBLIC",
+    "retrieved_date": "2026-10-08",
+    "verification_note": "No vendor commercial quote or sponsor approval represented"
+  },
+  {
+    "id": "E002",
+    "title": "iDEX PS-69 challenge listing",
+    "url": "https://idex.gov.in/challenges-cpt/2507",
+    "supports": "programme context",
+    "status": "OFFICIAL_PUBLIC",
+    "retrieved_date": "2026-10-08",
+    "verification_note": "No vendor commercial quote or sponsor approval represented"
+  },
+  {
+    "id": "E003",
+    "title": "repo HEAD commit",
+    "url": "https://github.com/richardrich999888-rgb/SIEMPU/commit/f6d75cf6b105319ca0d6942b2bbc196750a0b230",
+    "supports": "current HPSC code",
+    "status": "DIRECT_GITHUB",
+    "retrieved_date": "2026-10-08",
+    "verification_note": "No vendor commercial quote or sponsor approval represented"
+  },
+  {
+    "id": "E004",
+    "title": "GitHub Actions HEAD failure",
+    "url": "https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/37678323924",
+    "supports": "CodeQL gate + Trivy blocking, native/browser pass",
+    "status": "DIRECT_GITHUB",
+    "retrieved_date": "2026-10-08",
+    "verification_note": "No vendor commercial quote or sponsor approval represented"
+  },
+  {
+    "id": "E005",
+    "title": "Node native WebCrypto docs",
+    "url": "https://nodejs.org/api/webcrypto.html",
+    "supports": "software crypto API",
+    "status": "UPSTREAM_DOCUMENTATION",
+    "retrieved_date": "2026-10-08",
+    "verification_note": "No vendor commercial quote or sponsor approval represented"
+  },
+  {
+    "id": "E006",
+    "title": "Linux netem manual",
+    "url": "https://man7.org/linux/man-pages/man8/tc-netem.8.html",
+    "supports": "network impairment",
+    "status": "UPSTREAM_DOCUMENTATION",
+    "retrieved_date": "2026-10-08",
+    "verification_note": "No vendor commercial quote or sponsor approval represented"
+  },
+  {
+    "id": "E007",
+    "title": "SPIFFE/SPIRE upstream docs",
+    "url": "https://spiffe.io/docs/latest/spire-about/",
+    "supports": "workload identities",
+    "status": "UPSTREAM_DOCUMENTATION",
+    "retrieved_date": "2026-10-08",
+    "verification_note": "No vendor commercial quote or sponsor approval represented"
+  },
+  {
+    "id": "E008",
+    "title": "CodeQL upstream",
+    "url": "https://codeql.github.com",
+    "supports": "security scan",
+    "status": "UPSTREAM_DOCUMENTATION",
+    "retrieved_date": "2026-10-08",
+    "verification_note": "No vendor commercial quote or sponsor approval represented"
+  },
+  {
+    "id": "E009",
+    "title": "Trivy upstream",
+    "url": "https://github.com/aquasecurity/trivy",
+    "supports": "container vuln scan",
+    "status": "UPSTREAM_DOCUMENTATION",
+    "retrieved_date": "2026-10-08",
+    "verification_note": "No vendor commercial quote or sponsor approval represented"
+  },
+  {
+    "id": "E010",
+    "title": "STQC official site",
+    "url": "https://www.stqc.gov.in",
+    "supports": "potential testing pathway",
+    "status": "PUBLIC_BASIS_NOT_SERVICE_AGREEMENT",
+    "retrieved_date": "2026-10-08",
+    "verification_note": "No vendor commercial quote or sponsor approval represented"
+  }
+]

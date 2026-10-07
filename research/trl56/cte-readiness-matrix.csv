@@ -1,0 +1,10 @@
+cte,component,repo_evidence,relevant_lab_pass,external_approval,provisional_status
+"CTE01","E2EE","native/browser historical","NO","NO","ENGINEERING_PROTOTYPE"
+"CTE02","Device identity","native/browser historical","NO","NO","ENGINEERING_PROTOTYPE"
+"CTE03","Transactional release","race/crash tests historical","NO","NO","ENGINEERING_PROTOTYPE"
+"CTE04","Relay","HTTP historical","NO","NO","ENGINEERING_PROTOTYPE"
+"CTE05","Offline queue","browser historical","NO","NO","ENGINEERING_PROTOTYPE"
+"CTE06","Audit checkpoint","signed evidence tests historical","NO","NO","ENGINEERING_PROTOTYPE"
+"CTE07","Monitoring","local metrics","NO","NO","ENGINEERING_PROTOTYPE"
+"CTE08","Synthetic integration","validator tests","NO","NO","MOCK_ONLY"
+"CTE09","SAG provider","NONE","NO","NO","BLOCKED_EXTERNAL"

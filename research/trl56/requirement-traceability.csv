@@ -1,0 +1,13 @@
+requirement,source,component,cte,remaining
+"R1","PS69 pp161-162","apps/unit-client;services/web;services/control;services/relay","CTE01;CTE03;CTE04","internet TLS and multi-node proof"
+"R2","PS69 pp161-162","packages/crypto;services/control;services/relay","CTE01;CTE03;CTE05","WAN resilience evidence"
+"R3","PS69 pp161-162","apps/unit-client","CTE05","official latency and collaboration scope"
+"R4","PS69 pp161-162","services/*;compose.yaml","CTE04","independent deployment proof"
+"R5","PS69 pp161-162","packages/crypto;services/control","CTE01;CTE02","hardware and authorisation"
+"R6","PS69 pp161-162","services/web;services/control","CTE04;CTE07","TLS and external SOC lab"
+"R7","PS69 pp161-162","services/control/core.mjs","CTE03","approved IAF duty roles"
+"R8","PS69 pp161-162","/api/integration/validate","CTE08","synthetic mock + IAF interface"
+"R9","PS69 p161","packages/crypto","CTE09","SAG sponsor guidance"
+"R10","PS69 p162","apps/unit-client/vault-store.mjs","CTE05","endpoint custody and recovery"
+"R11","PS69 p162","services/control;services/relay","CTE04","multiuser performance"
+"R12","PS69 p162","tests;CI","ALL","third-party assessment"

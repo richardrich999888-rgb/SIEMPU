@@ -1,0 +1,7 @@
+name,url,relevant_scope,approval_status,price,next_step
+"CERT-In listed auditor pathway","https://www.cert-in.org.in","INDEPENDENT_REVIEW","NOT_APPROVED","QUOTE_REQUIRED","verify actual auditor current empanelment & scope"
+"STQC / MeitY","https://www.stqc.gov.in","INDEPENDENT_IT_EVALUATION","NOT_APPROVED","QUOTE_REQUIRED","confirm specific available lab and certificate scope"
+"NABL scope directory","https://nabl-india.org","LAB_SEARCH","NOT_APPROVED","QUOTE_REQUIRED","confirm exact accredited laboratory and ISO scope"
+"iDEX DIO","https://idex.gov.in","SPONSOR_LIAISON","NOT_APPROVED","QUOTE_REQUIRED","confirm authorized programme milestones"
+"DRDO/SAG sponsor channel","https://drdo.gov.in","SPONSOR_ONLY_CRYPTO","NOT_APPROVED","QUOTE_REQUIRED","approval process not publicly established"
+"C-DAC capability enquiry","https://www.cdac.in","OPTIONAL_TESTBED","NOT_APPROVED","QUOTE_REQUIRED","no partnership agreed"

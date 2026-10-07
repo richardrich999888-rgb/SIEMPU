@@ -1,0 +1,8 @@
+flowchart TB
+  G["Gateway auth decision events"] --> F["Field allowlist, secret redaction"]
+  C["Control issuance/revoke/restore events"] --> F
+  R["Relay metadata only"] --> F
+  F --> SOC["Self-hosted monitoring / SOC alert"]
+  C --> PROOF["Signed evidence"]
+  PROOF --> CHK["Independent checkpoint owner"]
+  CHK --> VER["Detached verification and audit review"]

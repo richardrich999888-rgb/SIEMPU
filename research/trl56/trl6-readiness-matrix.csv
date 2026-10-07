@@ -1,0 +1,10 @@
+gate,status,proposed_evidence,owner
+"G6-01 representative distributed deployment","PLANNED","multi-host topology + exact SHA","systems architect"
+"G6-02 TLS/device identity","PLANNED","cert + MFA key tests","security lead"
+"G6-03 approved crypto provider","SPONSOR_REQUIRED","SAG authority signed path","sponsor liaison"
+"G6-04 approved or synthetic interface","PLANNED","mock schema and approval scope","integration lead"
+"G6-05 relevant workload","PLANNED","WAN load/perf profiles","V&V"
+"G6-06 resilience and recovery","PLANNED","restart/backup/clock controls","V&V"
+"G6-07 SOC and incident workflow","PLANNED","alerts and redaction","operations"
+"G6-08 independent review","NOT_ENGAGED","signed findings","V&V"
+"G6-09 sponsor decision","PENDING","authority's decision record","IAF sponsor"

@@ -1,0 +1,8 @@
+flowchart LR
+  A["Unit client: browser and encrypted vault"] --> W["Web gateway"]
+  W --> C["Control: identity / SQLite transaction / policy / receipt"]
+  W --> R["Ciphertext relay / separate SQLite"]
+  C --> R
+  C --> V["Detached receipt verifier (export)"]
+  ADM["Admin browser"] --> W
+  style C stroke-width:2px
