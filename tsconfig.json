@@ -10,5 +10,14 @@
     "types": ["node"],
     "skipLibCheck": true
   },
-  "include": ["services/relay/auth.mjs", "services/relay/client.mjs"]
+  "include": [
+    "services/relay/auth.mjs",
+    "services/relay/client.mjs",
+    "packages/protocol/canonical.mjs",
+    "packages/crypto/crypto.mjs",
+    "packages/object-format/types.d.ts",
+    "apps/unit-client/challenge.mjs",
+    "services/control/primitives.mjs",
+    "services/control/build-info.mjs"
+  ]
 }

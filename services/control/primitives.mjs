@@ -13,15 +13,22 @@ import {
 } from 'node:crypto';
 import { canonical } from '../../packages/protocol/canonical.mjs';
 export { canonical };
+/** @typedef {import('../../packages/object-format/types.js').PublicP256Jwk} PublicP256Jwk */
+/** @typedef {import('../../packages/object-format/types.js').PrivateP256Jwk} PrivateP256Jwk */
+/** @param {import("node:crypto").BinaryLike} value */
 export const hash = (value) => createHash('sha256').update(value).digest('hex');
+/** @param {Uint8Array} v */
 export const encode = (v) => Buffer.from(v).toString('base64url');
+/** @param {unknown} v @returns {Buffer<ArrayBuffer>} */
 export const decode = (v) => {
   if (typeof v !== 'string' || !/^[A-Za-z0-9_-]+$/.test(v)) throw new Error('Invalid encoding');
   const bytes = Buffer.from(v, 'base64url');
   if (bytes.toString('base64url') !== v) throw new Error('Noncanonical encoding');
   return bytes;
 };
+/** @param {PublicP256Jwk | PrivateP256Jwk} k @returns {PublicP256Jwk} */
 export const publicJwk = (k) => ({ kty: 'EC', crv: 'P-256', x: k.x, y: k.y });
+/** @param {PublicP256Jwk | PrivateP256Jwk} k @param {boolean} [privateAllowed] @returns {PublicP256Jwk} */
 export function validateKey(k, privateAllowed = false) {
   if (
     !k ||
@@ -35,12 +42,15 @@ export function validateKey(k, privateAllowed = false) {
   createPublicKey({ key: publicJwk(k), format: 'jwk' });
   return publicJwk(k);
 }
+/** @param {PublicP256Jwk | PrivateP256Jwk} k */
 export const keyId = (k) => hash(canonical(publicJwk(k)));
+/** @param {PrivateP256Jwk} key @param {unknown} value */
 export const sign = (key, value) =>
   ecSign('sha256', Buffer.from(canonical(value)), {
     key: createPrivateKey({ key, format: 'jwk' }),
     dsaEncoding: 'ieee-p1363',
   }).toString('base64url');
+/** @param {PublicP256Jwk} key @param {unknown} value @param {unknown} sig @returns {boolean} */
 export function verify(key, value, sig) {
   try {
     return (
@@ -59,18 +69,22 @@ export function verify(key, value, sig) {
     return false;
   }
 }
+/** @template T @param {PrivateP256Jwk} key @param {T} payload @returns {import("../../packages/object-format/types.js").SignedPacket<T>} */
 export const packet = (key, payload) => ({
   payload,
   signature: sign(key, payload),
   keyId: keyId(key),
 });
+/** @param {PublicP256Jwk} key @param {import("../../packages/object-format/types.js").SignedPacket<unknown> | null | undefined} p */
 export const verifyPacket = (key, p) =>
   !!p && p.keyId === keyId(key) && verify(key, p.payload, p.signature);
+/** @param {string} password */
 export function passwordHash(password) {
   const salt = randomBytes(16);
   const result = scryptSync(password, salt, 32, { N: 16384, r: 8, p: 1 });
   return salt.toString('hex') + ':' + result.toString('hex');
 }
+/** @param {string} password @param {string} stored */
 export function passwordCheck(password, stored) {
   try {
     const [s, h] = stored.split(':');
@@ -80,6 +94,7 @@ export function passwordCheck(password, stored) {
     return false;
   }
 }
+/** @param {string} value @param {Uint8Array} key */
 export function seal(value, key) {
   const iv = randomBytes(12);
   const c = createCipheriv('aes-256-gcm', key, iv);
@@ -89,6 +104,7 @@ export function seal(value, key) {
     tag: encode(c.getAuthTag()),
   });
 }
+/** @param {string} value @param {Uint8Array} key @returns {string} */
 export function unseal(value, key) {
   const p = JSON.parse(value);
   const d = createDecipheriv('aes-256-gcm', key, decode(p.iv));
@@ -96,6 +112,7 @@ export function unseal(value, key) {
   return Buffer.concat([d.update(decode(p.data)), d.final()]).toString();
 }
 const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+/** @param {Uint8Array} bytes */
 export function base32(bytes) {
   let bits = 0,
     value = 0,
@@ -111,6 +128,7 @@ export function base32(bytes) {
   if (bits) out += alphabet[(value << (5 - bits)) & 31];
   return out;
 }
+/** @param {string} s */
 export function fromBase32(s) {
   let bits = 0,
     value = 0,
@@ -127,6 +145,7 @@ export function fromBase32(s) {
   }
   return Buffer.from(out);
 }
+/** @param {string} secret @param {number} [time] */
 export function totp(secret, time = Date.now()) {
   const count = Buffer.alloc(8);
   count.writeBigUInt64BE(BigInt(Math.floor(time / 30000)));
@@ -134,6 +153,7 @@ export function totp(secret, time = Date.now()) {
   const o = mac[mac.length - 1] & 15;
   return String((mac.readUInt32BE(o) & 0x7fffffff) % 1000000).padStart(6, '0');
 }
+/** @param {string} secret @param {string} code @param {number} floor @param {number} [time] */
 export function totpCounter(secret, code, floor, time = Date.now()) {
   if (!/^\d{6}$/.test(code || '')) return -1;
   for (const delta of [-1, 0, 1]) {
