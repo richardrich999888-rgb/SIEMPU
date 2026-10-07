@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /** Offline verification: no service, credentials, or authority database required. */
 import { createHash, createPublicKey, verify as nativeVerify } from 'node:crypto';
-import { readFile, stat } from 'node:fs/promises';
+import { open, readFile, stat } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { canonical } from '../../packages/protocol/canonical.mjs';
@@ -119,6 +119,118 @@ function expectedBindings(payload, { objectDigest, epoch, objectId }) {
   return checked;
 }
 
+// Intentionally independent of the admission service's evidence constructor.
+// Strict release mode accepts the current HTTP issuance schema only; legacy
+// packets remain inspectable through verifyEvidence without acceptance.
+function strictReleaseSchema(payload) {
+  const uuid = (value) =>
+    typeof value === 'string' &&
+    /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(value);
+  const sha256 = (value) => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
+  assert(uuid(payload.eventId), 'Receipt lacks a valid event ID');
+  keys(payload, [
+    'sequence',
+    'previousHash',
+    'eventId',
+    'eventType',
+    'timestamp',
+    'epoch',
+    'actorId',
+    'decisionId',
+    'objectId',
+    'decision',
+    'releaseState',
+    'reason',
+    'details',
+  ]);
+  for (const field of ['decisionId', 'objectId', 'actorId']) {
+    assert(uuid(payload[field]), `Invalid release ${field}`);
+  }
+  assert(
+    Number.isSafeInteger(payload.sequence) && payload.sequence > 0,
+    'Invalid release sequence',
+  );
+  assert(sha256(payload.previousHash), 'Invalid release previous hash');
+  assert(
+    (payload.sequence === 1) === (payload.previousHash === GENESIS),
+    'Inconsistent release genesis reference',
+  );
+  assert(
+    Number.isSafeInteger(payload.timestamp) && payload.timestamp >= 0,
+    'Invalid release timestamp',
+  );
+  assert(payload.releaseState === 'RELEASED', 'Invalid release state');
+  assert(payload.reason === 'CURRENT_AUTHORITY_VALID', 'Invalid release reason');
+  const d = payload.details;
+  keys(d, [
+    'objectDigest',
+    'envelopeDigest',
+    'senderUserId',
+    'senderDeviceId',
+    'recipientUserId',
+    'recipientDeviceId',
+    'destinationUnitId',
+    'missionId',
+    'action',
+    'creationGrantId',
+    'creationEpoch',
+    'creationPolicyDigest',
+    'policyReference',
+    'policyDigest',
+    'revocationVersion',
+    'authorityEpoch',
+    'deviceEvidence',
+    'proofEvidence',
+  ]);
+  for (const field of ['objectDigest', 'envelopeDigest', 'creationPolicyDigest', 'policyDigest']) {
+    assert(sha256(d[field]), `Invalid release ${field}`);
+  }
+  for (const field of [
+    'senderUserId',
+    'senderDeviceId',
+    'recipientUserId',
+    'recipientDeviceId',
+    'destinationUnitId',
+    'creationGrantId',
+  ]) {
+    assert(uuid(d[field]), `Invalid release ${field}`);
+  }
+  assert(payload.actorId === d.recipientUserId, 'Release actor and recipient reference mismatch');
+  assert(
+    typeof d.missionId === 'string' && /^[A-Za-z0-9._:-]{1,80}$/.test(d.missionId),
+    'Invalid release mission',
+  );
+  assert(d.action === 'deliver', 'Invalid release action');
+  assert(
+    Number.isSafeInteger(d.creationEpoch) &&
+      d.creationEpoch > 0 &&
+      d.creationEpoch <= d.authorityEpoch,
+    'Invalid release creation epoch',
+  );
+  assert(
+    Number.isSafeInteger(d.revocationVersion) && d.revocationVersion >= 0,
+    'Invalid release revocation version',
+  );
+  keys(d.policyReference, ['fromUnitId', 'toUnitId', 'missionId']);
+  assert(
+    uuid(d.policyReference.fromUnitId) && uuid(d.policyReference.toUnitId),
+    'Invalid release policy unit reference',
+  );
+  assert(
+    d.policyReference.toUnitId === d.destinationUnitId &&
+      d.policyReference.missionId === d.missionId,
+    'Release policy reference mismatch',
+  );
+  assert(d.deviceEvidence === 'software-proof-of-possession', 'Invalid release device evidence');
+  keys(d.proofEvidence, ['challengeId', 'challengeDigest', 'sessionId']);
+  assert(
+    uuid(d.proofEvidence.challengeId) &&
+      uuid(d.proofEvidence.sessionId) &&
+      sha256(d.proofEvidence.challengeDigest),
+    'Invalid release proof evidence',
+  );
+}
+
 /** Throws on failure. A saved external checkpoint limits undetected suffix truncation
  * to records after that checkpoint; neither signatures nor hashes establish truth.
  */
@@ -215,26 +327,119 @@ export async function verifyEvidence(
   };
 }
 
+/** Verify and consume one release issuance in a local, durable replay domain.
+ * All expectations must come from independently retained context. This verifies
+ * a historical decision; it never contacts or substitutes for the authority.
+ */
+export async function verifyReleaseReceipt(
+  input,
+  trustedPublicKey,
+  { objectDigest, epoch, objectId, replayStore } = {},
+) {
+  assert(
+    objectDigest !== undefined && epoch !== undefined && objectId !== undefined,
+    'Strict release verification requires expected object digest, epoch and object ID',
+  );
+  assert(
+    typeof replayStore === 'string' && replayStore.length > 0 && replayStore !== ':memory:',
+    'Strict release verification requires a durable replay store path',
+  );
+  assert(!Array.isArray(input?.records), 'Strict release verification requires a single receipt');
+  const receipt = structuredClone(input);
+  const verified = await verifyEvidence(receipt, trustedPublicKey, {
+    objectDigest,
+    epoch,
+    objectId,
+  });
+  strictReleaseSchema(receipt.payload);
+  const eventId = receipt.payload.eventId;
+  // Create new stores with owner-only permissions before SQLite opens the file.
+  // The parent directory must already exist and belong to the verifier operator.
+  const handle = await open(replayStore, 'a', 0o600);
+  await handle.close();
+  const { DatabaseSync } = await import('node:sqlite');
+  const db = new DatabaseSync(replayStore);
+  try {
+    db.exec(`PRAGMA busy_timeout=10000; PRAGMA synchronous=FULL;
+      CREATE TABLE IF NOT EXISTS accepted_receipts(
+        key_id TEXT NOT NULL,
+        event_id TEXT NOT NULL,
+        packet_digest TEXT NOT NULL,
+        object_id TEXT NOT NULL,
+        authority_epoch INTEGER NOT NULL,
+        accepted_at INTEGER NOT NULL,
+        PRIMARY KEY(key_id,event_id)
+      ) STRICT;`);
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      const inserted = db
+        .prepare(
+          `INSERT OR IGNORE INTO accepted_receipts
+        (key_id,event_id,packet_digest,object_id,authority_epoch,accepted_at)
+        VALUES (?,?,?,?,?,?)`,
+        )
+        .run(receipt.keyId, eventId, digest(receipt), objectId, epoch, Date.now());
+      assert(inserted.changes === 1, 'Receipt replay detected: this event was already accepted');
+      db.exec('COMMIT');
+    } catch (error) {
+      db.exec('ROLLBACK');
+      throw error;
+    }
+  } finally {
+    db.close();
+  }
+  return {
+    ...verified,
+    type: 'release-receipt',
+    strictReleaseVerified: true,
+    receiptId: eventId,
+    replayChecked: true,
+    replayRecorded: true,
+    limitations: [
+      ...verified.limitations,
+      'Replay protection covers this trusted-key/event-ID pair only within the retained local replay store; deleting, restoring or replacing that store removes later replay history.',
+      'The receipt is consumed before success is printed; a crash after commit can require operator reconciliation. No current authorization or human delivery is established.',
+    ],
+  };
+}
+
 async function readJSON(path) {
   assert((await stat(path)).size <= 64 * 1024 * 1024, 'Verifier input file exceeds 64 MiB');
   return JSON.parse(await readFile(path, 'utf8'));
 }
 async function main(args) {
   const usage =
-    'Usage: node apps/verifier/verify.mjs receipt-or-export.json trusted-public-key.json [--checkpoint saved-checkpoint.json] [--object-digest SHA256_HEX] [--epoch INTEGER] [--object-id ID]';
+    'Usage: node apps/verifier/verify.mjs receipt-or-export.json trusted-public-key.json [--mode evidence|release] [--checkpoint saved-checkpoint.json] [--object-digest SHA256_HEX] [--epoch INTEGER] [--object-id ID] [--replay-store receipts.sqlite]';
   assert(args.length >= 2 && args.length % 2 === 0, usage);
   const options = {};
   for (let index = 2; index < args.length; index += 2) {
     const option = args[index],
       value = args[index + 1];
     assert(
-      ['--checkpoint', '--object-digest', '--epoch', '--object-id'].includes(option) &&
+      [
+        '--mode',
+        '--checkpoint',
+        '--object-digest',
+        '--epoch',
+        '--object-id',
+        '--replay-store',
+      ].includes(option) &&
         !(option in options) &&
         value.length > 0,
       usage,
     );
     options[option] = value;
   }
+  const mode = options['--mode'] ?? 'evidence';
+  assert(['evidence', 'release'].includes(mode), usage);
+  assert(
+    mode !== 'release' || !options['--checkpoint'],
+    'Verify chain checkpoints separately from release receipts',
+  );
+  assert(
+    mode === 'release' || !options['--replay-store'],
+    'A replay store requires --mode release',
+  );
   let epoch;
   if (options['--epoch'] !== undefined) {
     assert(
@@ -248,12 +453,18 @@ async function main(args) {
     readJSON(args[1]),
     options['--checkpoint'] ? readJSON(options['--checkpoint']) : undefined,
   ]);
-  const result = await verifyEvidence(input, key, {
-    checkpoint: saved,
+  const bindings = {
     objectDigest: options['--object-digest'],
     epoch,
     objectId: options['--object-id'],
-  });
+  };
+  const result =
+    mode === 'release'
+      ? await verifyReleaseReceipt(input, key, {
+          ...bindings,
+          replayStore: options['--replay-store'],
+        })
+      : await verifyEvidence(input, key, { ...bindings, checkpoint: saved });
   process.stdout.write(JSON.stringify(result, null, 2) + '\n');
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
