@@ -217,5 +217,33 @@
     "status": "PRIVATE_CORRESPONDENCE_REVIEWED",
     "review_date": "2026-10-08",
     "verification_note": "Schedule has date/weekday inconsistency; exact slot, time zone and undertaking contents need confirmation; no correspondence copied or sent."
+  },
+  {
+    "id": "E020",
+    "title": "Concurrent duty-role alignment branch",
+    "url": "https://github.com/richardrich999888-rgb/SIEMPU/commit/7320eb1803a318f62f7f70bd23f3273129a2686a",
+    "supports": "Additive duty policy; signed schema-v2 priority/domain; migration and direct authority negatives",
+    "status": "UNMERGED_DRAFT_TARGETED_CODE_REVIEW",
+    "review_date": "2026-10-08",
+    "verification_note": "PR13 run37687923040 all six jobs success observed; not the main baseline or a combined-branch test"
+  },
+  {
+    "id": "E021",
+    "title": "Concurrent foundation hardening branch",
+    "url": "https://github.com/richardrich999888-rgb/SIEMPU/commit/40ab9d038cd521e29ebd57b5e7dde041f9c61212",
+    "supports": "Stored-envelope revalidation; richer decisions/verifier; recovery hardening; Node24.21.0 candidate",
+    "status": "UNMERGED_DRAFT_TARGETED_CODE_REVIEW",
+    "review_date": "2026-10-08",
+    "verification_note": "PR2 CI37686786979 and Security37686786781 job successes observed; branch test counts not inherited by main"
+  },
+  {
+    "id": "P005",
+    "title": "User-provided DISC-14 PS-69 Annexure 3",
+    "url": null,
+    "sha256": "c6b5fc736c6c9b727f1385cb653db42a6c4dcc0820b0070ccbc32c82925809bc",
+    "supports": "Four-page applicant resume and technical assertions; additional dedicated priority authorization and source/dependency claims",
+    "status": "PRIVATE_USER_SUPPLIED_COPY_REVIEWED",
+    "review_date": "2026-10-08",
+    "verification_note": "All text extracted; applicant assertions are not independent test, patent or grading evidence. Personal details and original excluded; portal byte identity unverified"
   }
 ]

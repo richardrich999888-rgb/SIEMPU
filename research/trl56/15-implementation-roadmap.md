@@ -30,7 +30,7 @@ P0–P4 ranges total **14–28+ sequential engineering weeks** before external d
 
 1. WP05: use the reviewed annexures to correct the HPSC capability table and obtain owner decisions on differences. Keep originals unchanged.
 2. WP06/WP11: prepare sponsor questions in parallel with engineering because approval and interface access can dominate lead time. No messages have been sent by this work.
-3. WP07 → WP08 → WP09: implement secure transport, separate trust zones and reproducible impairment.
+3. WP23: resolve the concurrent schema-v2/integrity/CI compatibility issues before treating both feature branches as one candidate. Then WP07 → WP08 → WP09: implement secure transport, separate trust zones and reproducible impairment.
 4. WP12 → WP13 → WP14: prove independent evidence custody, safe restore and controlled reconnect.
 5. WP16/WP17/WP21 and then WP18: qualify integration, monitoring, role policy and the measured workload.
 6. WP19 → WP20, with WP15 conditional: create the reviewable representative candidate and seek witnessed acceptance.

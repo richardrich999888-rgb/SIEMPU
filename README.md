@@ -10,7 +10,7 @@ The central experiment is **policy-epoch-bound release**: ciphertext can be queu
 
 ## Research and next-stage plan
 
-The [reconciled TRL 5/6 dossier](research/trl56/README.md) compares the actual submitted technical annexures with the delivered code, records all remote branch heads, maps 12 requirements to 16 checks, and defines 22 work packages. [Proposal claims](research/trl56/17-proposal-reconciliation.md) and [planned acceptance tests](research/trl56/08-trl5-verification-matrix.md) remain distinct from implemented results.
+The [reconciled TRL 5/6 dossier](research/trl56/README.md) compares the actual submitted technical annexures with the delivered code, records all remote branch heads, maps 12 requirements to 17 checks, and defines 23 work packages. [Proposal claims](research/trl56/17-proposal-reconciliation.md) and [planned acceptance tests](research/trl56/08-trl5-verification-matrix.md) remain distinct from implemented results.
 
 ## Run locally
 

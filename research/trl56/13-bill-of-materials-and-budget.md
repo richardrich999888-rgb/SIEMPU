@@ -26,7 +26,7 @@ See [source register](source-evidence-register.json) and [proposal reconciliatio
 
 ## Budget discipline
 
-No invented INR prices. Record public vendor URL, exact config/firmware, price date, tax/GST, freight, support year, warranty, importer, rental option, country of origin, alternative, supplier lead time and approved project financing/ceiling. Use a procurement-bom.csv with quote_required=true until verified quote. Agree cap with approved SPARK/product-development budget (not established by the two technical annexures or receipt) before RFP.
+No invented INR prices. Record public vendor URL, exact config/firmware, price date, tax/GST, freight, support year, warranty, importer, rental option, country of origin, alternative, supplier lead time and approved project financing/ceiling. Use a procurement-bom.csv with quote_required=true until verified quote. Agree cap with approved SPARK/product-development budget (not established by the three reviewed annexures or receipt) before RFP.
 
 ## Decision rule
 

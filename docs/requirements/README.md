@@ -9,7 +9,7 @@ This repository uses **SIEPMU**, the official challenge acronym. `SIEMPU` is the
 3. The implementation brief supplied on 8 October 2026 defines prototype acceptance experiments. Its test counts, architecture and outage scenarios are user engineering instructions, not official performance requirements.
 4. Source, test output and a frozen commit determine implementation claims. Consult `CLAIMS_REGISTER.yaml` and generated test evidence; the table below defines obligations, not test results.
 
-The user-provided DISC-14 Annexures 1 and 2 were reviewed on 8 October 2026. Their seven deliverables, six-role proposal and 12-month schedule are reconciled in [the proposal register](../../research/trl56/17-proposal-reconciliation.md). These are applicant commitments, not additional official IAF requirements. Their byte identity with portal-held attachments, the signed contract and approved budget remain unverified. Private originals are not published. No classified operating scenario is assumed.
+The user-provided DISC-14 Annexures 1, 2 and 3 were reviewed on 8 October 2026. Their seven deliverables, six-role/action proposal and 12-month schedule are reconciled in [the proposal register](../../research/trl56/17-proposal-reconciliation.md). These are applicant commitments, not additional official IAF requirements. Their byte identity with portal-held attachments, the signed contract and approved budget remain unverified. Private originals are not published. No classified operating scenario is assumed.
 
 ## Explicit published requirements
 

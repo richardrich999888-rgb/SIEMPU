@@ -2,8 +2,66 @@
   "review_date": "2026-10-08",
   "repository": "richardrich999888-rgb/SIEMPU",
   "base_sha": "49774e2111197412efb31d459317c0df23a838af",
-  "branch_count": 14,
+  "branch_count": 16,
   "branches": [
+    {
+      "ref": "origin/codex/reconcile-trl56-research",
+      "sha": "be6cdada45d5137c5ed275ff9669f3628251ee2a",
+      "unique_commits_vs_base": 1,
+      "base_only_commits": 0,
+      "changed_paths_vs_base": [
+        ".github/workflows/quality.yml",
+        "README.md",
+        "docs/TRACEABILITY_MATRIX.md",
+        "docs/identity.md",
+        "docs/requirements/README.md",
+        "docs/requirements/open-questions.md",
+        "research/trl56/01-repository-and-cte-baseline.md",
+        "research/trl56/02-defence-software-ecosystem.md",
+        "research/trl56/03-external-hardware-and-security-addons.md",
+        "research/trl56/04-sag-crypto-integration-pathway.md",
+        "research/trl56/05-iaf-interoperability-readiness.md",
+        "research/trl56/06-defence-relevant-testbed-design.md",
+        "research/trl56/07-trl5-validation-master-plan.md",
+        "research/trl56/08-trl5-verification-matrix.md",
+        "research/trl56/09-trl6-prototype-reference-architecture.md",
+        "research/trl56/10-trl6-demonstration-and-test-plan.md",
+        "research/trl56/11-assurance-and-laboratory-partners.md",
+        "research/trl56/12-build-vs-buy-and-supply-chain.md",
+        "research/trl56/13-bill-of-materials-and-budget.md",
+        "research/trl56/14-technical-risk-register.md",
+        "research/trl56/15-implementation-roadmap.md",
+        "research/trl56/16-iaf-clarification-register.md",
+        "research/trl56/17-proposal-reconciliation.md",
+        "research/trl56/18-work-packages.md",
+        "research/trl56/README.md",
+        "research/trl56/architecture/adapter-boundary.mmd",
+        "research/trl56/architecture/crypto-provider-boundary.mmd",
+        "research/trl56/architecture/current.mmd",
+        "research/trl56/architecture/monitoring-evidence.mmd",
+        "research/trl56/architecture/trl5-testbed.mmd",
+        "research/trl56/architecture/trl6-representative.mmd",
+        "research/trl56/architecture/trust-zones.mmd",
+        "research/trl56/baseline-evidence.json",
+        "research/trl56/branch-inventory.json",
+        "research/trl56/cte-readiness-matrix.csv",
+        "research/trl56/external-service-registry.json",
+        "research/trl56/hardware-addon-registry.json",
+        "research/trl56/historical-baseline.md",
+        "research/trl56/integration-backlog.csv",
+        "research/trl56/procurement-bom.csv",
+        "research/trl56/proposal-claim-register.csv",
+        "research/trl56/requirement-traceability.csv",
+        "research/trl56/software-dependency-registry.json",
+        "research/trl56/source-evidence-register.json",
+        "research/trl56/trl5-test-matrix.csv",
+        "research/trl56/trl6-readiness-matrix.csv",
+        "research/trl56/validate.py",
+        "research/trl56/vendor-and-laboratory-register.csv"
+      ],
+      "disposition": "THIS_RECONCILIATION_PRIOR_PUBLISHED_HEAD",
+      "audit_scope": "Fetched head and complete changed-path inventory; targeted source review for concurrent feature branches; not a full new execution audit"
+    },
     {
       "ref": "origin/codex/siepmu-hpsc",
       "sha": "65a6891a41b57fe9480d1e1df901a1287c66753d",
@@ -11,7 +69,7 @@
       "base_only_commits": 1,
       "changed_paths_vs_base": [],
       "disposition": "HISTORICAL_DEVELOPMENT_RETAINED",
-      "audit_scope": "fetched head; ancestry and complete changed-path inventory; not execution of every branch"
+      "audit_scope": "Fetched head and complete changed-path inventory; targeted source review for concurrent feature branches; not a full new execution audit"
     },
     {
       "ref": "origin/dependabot/docker/node-26.10.0-alpine3.24",
@@ -20,7 +78,7 @@
       "base_only_commits": 0,
       "changed_paths_vs_base": ["Dockerfile"],
       "disposition": "DEPENDENCY_PROPOSAL_NOT_ADOPTED",
-      "audit_scope": "fetched head; ancestry and complete changed-path inventory; not execution of every branch"
+      "audit_scope": "Fetched head and complete changed-path inventory; targeted source review for concurrent feature branches; not a full new execution audit"
     },
     {
       "ref": "origin/dependabot/github_actions/actions/checkout-7.0.1",
@@ -29,7 +87,7 @@
       "base_only_commits": 0,
       "changed_paths_vs_base": [".github/workflows/quality.yml", ".github/workflows/release.yml"],
       "disposition": "DEPENDENCY_PROPOSAL_NOT_ADOPTED",
-      "audit_scope": "fetched head; ancestry and complete changed-path inventory; not execution of every branch"
+      "audit_scope": "Fetched head and complete changed-path inventory; targeted source review for concurrent feature branches; not a full new execution audit"
     },
     {
       "ref": "origin/dependabot/github_actions/actions/download-artifact-8.0.1",
@@ -38,7 +96,7 @@
       "base_only_commits": 0,
       "changed_paths_vs_base": [".github/workflows/quality.yml", ".github/workflows/release.yml"],
       "disposition": "DEPENDENCY_PROPOSAL_NOT_ADOPTED",
-      "audit_scope": "fetched head; ancestry and complete changed-path inventory; not execution of every branch"
+      "audit_scope": "Fetched head and complete changed-path inventory; targeted source review for concurrent feature branches; not a full new execution audit"
     },
     {
       "ref": "origin/dependabot/github_actions/actions/setup-node-7.0.0",
@@ -47,7 +105,7 @@
       "base_only_commits": 0,
       "changed_paths_vs_base": [".github/workflows/quality.yml", ".github/workflows/release.yml"],
       "disposition": "DEPENDENCY_PROPOSAL_NOT_ADOPTED",
-      "audit_scope": "fetched head; ancestry and complete changed-path inventory; not execution of every branch"
+      "audit_scope": "Fetched head and complete changed-path inventory; targeted source review for concurrent feature branches; not a full new execution audit"
     },
     {
       "ref": "origin/dependabot/github_actions/actions/upload-artifact-7.0.1",
@@ -56,7 +114,7 @@
       "base_only_commits": 0,
       "changed_paths_vs_base": [".github/workflows/quality.yml", ".github/workflows/release.yml"],
       "disposition": "DEPENDENCY_PROPOSAL_NOT_ADOPTED",
-      "audit_scope": "fetched head; ancestry and complete changed-path inventory; not execution of every branch"
+      "audit_scope": "Fetched head and complete changed-path inventory; targeted source review for concurrent feature branches; not a full new execution audit"
     },
     {
       "ref": "origin/dependabot/github_actions/aquasecurity/trivy-action-0.36.0",
@@ -65,7 +123,7 @@
       "base_only_commits": 0,
       "changed_paths_vs_base": [".github/workflows/quality.yml"],
       "disposition": "DEPENDENCY_PROPOSAL_NOT_ADOPTED",
-      "audit_scope": "fetched head; ancestry and complete changed-path inventory; not execution of every branch"
+      "audit_scope": "Fetched head and complete changed-path inventory; targeted source review for concurrent feature branches; not a full new execution audit"
     },
     {
       "ref": "origin/dependabot/npm_and_yarn/globals-17.13.0",
@@ -74,7 +132,7 @@
       "base_only_commits": 0,
       "changed_paths_vs_base": ["package-lock.json", "package.json"],
       "disposition": "DEPENDENCY_PROPOSAL_NOT_ADOPTED",
-      "audit_scope": "fetched head; ancestry and complete changed-path inventory; not execution of every branch"
+      "audit_scope": "Fetched head and complete changed-path inventory; targeted source review for concurrent feature branches; not a full new execution audit"
     },
     {
       "ref": "origin/dependabot/npm_and_yarn/prettier-3.9.9",
@@ -83,7 +141,7 @@
       "base_only_commits": 0,
       "changed_paths_vs_base": ["package-lock.json", "package.json"],
       "disposition": "DEPENDENCY_PROPOSAL_NOT_ADOPTED",
-      "audit_scope": "fetched head; ancestry and complete changed-path inventory; not execution of every branch"
+      "audit_scope": "Fetched head and complete changed-path inventory; targeted source review for concurrent feature branches; not a full new execution audit"
     },
     {
       "ref": "origin/dependabot/npm_and_yarn/types/node-26.6.4",
@@ -92,7 +150,7 @@
       "base_only_commits": 0,
       "changed_paths_vs_base": ["package-lock.json", "package.json"],
       "disposition": "DEPENDENCY_PROPOSAL_NOT_ADOPTED",
-      "audit_scope": "fetched head; ancestry and complete changed-path inventory; not execution of every branch"
+      "audit_scope": "Fetched head and complete changed-path inventory; targeted source review for concurrent feature branches; not a full new execution audit"
     },
     {
       "ref": "origin/dependabot/npm_and_yarn/typescript-7.0.2",
@@ -101,20 +159,44 @@
       "base_only_commits": 0,
       "changed_paths_vs_base": ["package-lock.json", "package.json"],
       "disposition": "DEPENDENCY_PROPOSAL_NOT_ADOPTED",
-      "audit_scope": "fetched head; ancestry and complete changed-path inventory; not execution of every branch"
+      "audit_scope": "Fetched head and complete changed-path inventory; targeted source review for concurrent feature branches; not a full new execution audit"
+    },
+    {
+      "ref": "origin/feature/disc14-ps69-filed-application-alignment",
+      "sha": "7320eb1803a318f62f7f70bd23f3273129a2686a",
+      "unique_commits_vs_base": 12,
+      "base_only_commits": 1,
+      "changed_paths_vs_base": [
+        "README.md",
+        "apps/admin-console/admin.mjs",
+        "apps/unit-client/app.mjs",
+        "apps/unit-client/sw.js",
+        "database/migrations/003-duty-roles.sql",
+        "docs/application/DELIVERY_TRACKER.md",
+        "docs/application/DISC14_PS69_FILED_BASELINE.md",
+        "docs/crypto.md",
+        "docs/protocols/IMPLEMENTATION_CONTRACT.md",
+        "packages/crypto/crypto.mjs",
+        "packages/mission/policy.mjs",
+        "services/control/core.mjs",
+        "tests/filed-mission-authority.test.mjs",
+        "tests/filed-mission-policy.test.mjs",
+        "tests/recovery.test.mjs"
+      ],
+      "disposition": "DRAFT_PR_TARGETED_SOURCE_AND_HOSTED_STATUS_REVIEW",
+      "audit_scope": "Fetched head and complete changed-path inventory; targeted source review for concurrent feature branches; not a full new execution audit"
     },
     {
       "ref": "origin/feature/repository-foundation",
-      "sha": "2758b4f939efca162562d4d13fd3a7ac604d215c",
-      "unique_commits_vs_base": 14,
-      "base_only_commits": 5,
+      "sha": "40ab9d038cd521e29ebd57b5e7dde041f9c61212",
+      "unique_commits_vs_base": 15,
+      "base_only_commits": 0,
       "changed_paths_vs_base": [
         ".github/rulesets/README.md",
         ".github/rulesets/main.json",
         ".github/workflows/ci.yml",
         ".github/workflows/quality.yml",
         ".github/workflows/security.yml",
-        "CHANGELOG.md",
         "Dockerfile",
         "Makefile",
         "README.md",
@@ -122,6 +204,7 @@
         "apps/unit-client/app.mjs",
         "apps/unit-client/authority-pin.mjs",
         "apps/unit-client/authority-pin.test.mjs",
+        "apps/unit-client/browser-check.mjs",
         "apps/unit-client/challenge.mjs",
         "apps/unit-client/sw.js",
         "apps/unit-client/trust.mjs",
@@ -137,26 +220,14 @@
         "docs/api.md",
         "docs/api.openapi.json",
         "docs/ci-cd.md",
-        "docs/claims.md",
         "docs/decisions/ADR-001-technology-stack.md",
         "docs/deployment.md",
         "docs/deployment/local-development.md",
         "docs/hpsc/evidence-index.md",
-        "docs/hpsc/node-test-snapshot.json",
-        "docs/hpsc/performance-results-earlier.json",
-        "docs/hpsc/performance-results.json",
         "docs/limitations.md",
-        "docs/performance.md",
         "docs/security/HOSTED_SCAN_REVIEW.md",
-        "docs/security/SECURITY_REGRESSION_LOG.md",
-        "docs/security/codeql-review-input.json",
         "docs/testing.md",
-        "docs/testing/browser-results-trust-pin.json",
-        "docs/testing/browser-results.json",
         "docs/testing/browser-validation.md",
-        "docs/testing/native-ci-fixes-validation.json",
-        "docs/testing/native-scan-fixes-validation.json",
-        "docs/testing/native-validation.json",
         "infrastructure/README.md",
         "package.json",
         "packages/crypto/crypto.mjs",
@@ -166,12 +237,10 @@
         "scripts/audit-claims.mjs",
         "scripts/browser-e2e.mjs",
         "scripts/build.mjs",
-        "scripts/container-acceptance.mjs",
         "scripts/demo.mjs",
         "scripts/recover-identity.mjs",
         "scripts/sarif-gate.mjs",
         "scripts/sarif-gate.test.mjs",
-        "scripts/sbom.mjs",
         "security/README.md",
         "services/admission/integrity.mjs",
         "services/control/build-info.mjs",
@@ -184,7 +253,6 @@
         "services/identity/README.md",
         "services/policy/README.md",
         "services/relay/server.mjs",
-        "services/web/destination.test.mjs",
         "services/web/server.mjs",
         "services/web/web.test.mjs",
         "tests/acceptance/authorized-backlog/authorized-backlog.test.mjs",
@@ -192,15 +260,15 @@
         "tests/acceptance/vertical-slice/vertical-slice.test.mjs",
         "tests/additional-boundaries.test.mjs",
         "tests/admission-integrity.test.mjs",
-        "tests/auth-routing.test.mjs",
         "tests/contracts/api-contract.test.mjs",
         "tests/routing-boundary.test.mjs",
         "tests/verifier-replay.test.mjs",
         "tools/verify",
         "tsconfig.json"
       ],
-      "disposition": "HISTORICAL_DEVELOPMENT_RETAINED",
-      "audit_scope": "fetched head; ancestry and complete changed-path inventory; not execution of every branch"
+      "disposition": "DRAFT_PR_TARGETED_SOURCE_AND_HOSTED_STATUS_REVIEW",
+      "audit_scope": "Fetched head and complete changed-path inventory; targeted source review for concurrent feature branches; not a full new execution audit",
+      "previously_observed_sha": "2758b4f939efca162562d4d13fd3a7ac604d215c"
     },
     {
       "ref": "origin/main",
@@ -209,7 +277,7 @@
       "base_only_commits": 0,
       "changed_paths_vs_base": [],
       "disposition": "FROZEN_IMPLEMENTATION",
-      "audit_scope": "fetched head; ancestry and complete changed-path inventory; not execution of every branch"
+      "audit_scope": "Fetched head and complete changed-path inventory; targeted source review for concurrent feature branches; not a full new execution audit"
     },
     {
       "ref": "origin/research/defence-ecosystem-trl56",
@@ -290,8 +358,10 @@
         "tests/auth-routing.test.mjs"
       ],
       "disposition": "RESEARCH_DIRECTORY_RECONCILED_ONLY",
-      "audit_scope": "fetched head; ancestry and complete changed-path inventory; not execution of every branch"
+      "audit_scope": "Fetched head and complete changed-path inventory; targeted source review for concurrent feature branches; not a full new execution audit"
     }
   ],
-  "inventory_stage": "Before publishing the reconciliation branch; origin/HEAD is a symbolic alias, not an extra branch"
+  "inventory_stage": "Refresh after concurrent branch work arrived; own reconciliation head is the previously published snapshot, not a self-referential future SHA",
+  "initial_branch_count": 14,
+  "refresh_observed_at": "2026-10-07T21:22:07.352675+00:00"
 }

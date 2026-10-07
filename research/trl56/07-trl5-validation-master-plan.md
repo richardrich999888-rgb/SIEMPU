@@ -22,7 +22,7 @@ Validate each approved CTE in a relevant environment, not simply pass unit tests
 | T5-07 | signed receipt+checkpoint, backup/restore, corrupt DB | tamper detection and rollback limitation documented      | detached verifier, restore tests                |
 | T5-08 | authorised defensive security review                  | findings tracked, critical issues remediated             | scoped test report and retest                   |
 
-The complete 16-row source of truth is [trl5-test-matrix.csv](trl5-test-matrix.csv), rendered in [08-trl5-verification-matrix.md](08-trl5-verification-matrix.md). It additionally covers TLS, external SAG approval, frozen CI, online latency, independent deployment, capacity, provider conformance and the filed role/priority model. The eight scenarios above are not a complete coverage claim.
+The complete 17-row source of truth is [trl5-test-matrix.csv](trl5-test-matrix.csv), rendered in [08-trl5-verification-matrix.md](08-trl5-verification-matrix.md). It additionally covers TLS, external SAG approval, frozen CI, online latency, independent deployment, capacity, provider conformance and the filed role/priority model. The eight scenarios above are not a complete coverage claim.
 
 ## Test result envelope
 

@@ -4,30 +4,31 @@ Generated from `integration-backlog.csv` by `python3 research/trl56/validate.py 
 
 WP01–WP03 are evidenced only at the frozen implementation. WP04 is a completed repository reconciliation. WP05's document comparison is complete, but presentation corrections and owner/programme decisions remain open. Other packages are future work.
 
-| ID   | Work package                                            | Phase / priority | State                        | Depends on                              | Person-days                  |
-| ---- | ------------------------------------------------------- | ---------------- | ---------------------------- | --------------------------------------- | ---------------------------- |
-| WP01 | Image vulnerability remediation                         | P0 / P0          | EVIDENCED_FROZEN_BASELINE    | None                                    | 0 remaining at baseline      |
-| WP02 | CodeQL SARIF and application findings                   | P0 / P0          | EVIDENCED_FROZEN_BASELINE    | None                                    | 0 remaining at baseline      |
-| WP03 | Frozen build and release evidence                       | P0 / P0          | EVIDENCED_FROZEN_BASELINE    | WP01 WP02                               | 0 remaining at baseline      |
-| WP04 | All-branch inventory and research reconciliation        | P0 / P0          | RECONCILED                   | WP03                                    | 1-2                          |
-| WP05 | Filed proposal and HPSC claim reconciliation            | P0 / P0          | RECONCILED_OWNER_ACTION_OPEN | WP04                                    | 2-3                          |
-| WP06 | Requirements and relevant environment agreement         | P0 / P0          | PLANNED                      | WP05                                    | 3-5                          |
-| WP07 | TLS ingress and mTLS service identities                 | P1 / P0          | PLANNED                      | WP03                                    | 4-7                          |
-| WP08 | Isolated multi-node testbed                             | P1 / P0          | PLANNED                      | WP07                                    | 3-5                          |
-| WP09 | Deterministic network impairment                        | P1 / P0          | PLANNED                      | WP08                                    | 3-5                          |
-| WP10 | Versioned cryptographic provider boundary               | P2 / P1          | PLANNED                      | WP05                                    | 5-10                         |
-| WP11 | SAG evaluation and provider decision dossier            | P0 / P0          | EXTERNAL_BLOCKED             | WP05                                    | 2-3 plus agency time         |
-| WP12 | Independent checkpoint custody                          | P2 / P0          | PLANNED                      | WP08                                    | 4-6                          |
-| WP13 | Restore rollback containment                            | P2 / P0          | PLANNED                      | WP12                                    | 4-8                          |
-| WP14 | WAN outage and revocation experiment                    | P2 / P0          | PLANNED                      | WP09 WP13                               | 4-7                          |
-| WP15 | Hardware login and separate key-custody study           | P3 / P2          | CONDITIONAL                  | WP10 WP11                               | 5-10                         |
-| WP16 | Independent synthetic integration adapter               | P2 / P1          | PLANNED                      | WP08                                    | 5-8                          |
-| WP17 | Redacted event collection and response                  | P1 / P1          | PLANNED                      | WP08                                    | 3-6                          |
-| WP18 | Latency and capacity envelope                           | P2 / P1          | PLANNED                      | WP09 WP14                               | 4-7                          |
-| WP19 | Signed offline release and dependency qualification     | P3 / P1          | PLANNED                      | WP03 WP10                               | 4-7                          |
-| WP20 | Independent assessment and representative demonstration | P4 / P0          | NOT_ENGAGED                  | WP06 WP11 WP14 WP16 WP17 WP18 WP19 WP21 | 5-10 plus assessor lead time |
-| WP21 | Filed role and priority policy mapping                  | P2 / P0          | PLANNED                      | WP05                                    | 4-7                          |
-| WP22 | Field trial, licensing, training and support plan       | P3 / P1          | EXTERNAL_BLOCKED             | WP05 WP06                               | 3-5 plus programme lead time |
+| ID   | Work package                                              | Phase / priority | State                         | Depends on                              | Person-days                  |
+| ---- | --------------------------------------------------------- | ---------------- | ----------------------------- | --------------------------------------- | ---------------------------- |
+| WP01 | Image vulnerability remediation                           | P0 / P0          | EVIDENCED_FROZEN_BASELINE     | None                                    | 0 remaining at baseline      |
+| WP02 | CodeQL SARIF and application findings                     | P0 / P0          | EVIDENCED_FROZEN_BASELINE     | None                                    | 0 remaining at baseline      |
+| WP03 | Frozen build and release evidence                         | P0 / P0          | EVIDENCED_FROZEN_BASELINE     | WP01 WP02                               | 0 remaining at baseline      |
+| WP04 | All-branch inventory and research reconciliation          | P0 / P0          | RECONCILED                    | WP03                                    | 1-2                          |
+| WP05 | Filed proposal and HPSC claim reconciliation              | P0 / P0          | RECONCILED_OWNER_ACTION_OPEN  | WP04                                    | 2-3                          |
+| WP06 | Requirements and relevant environment agreement           | P0 / P0          | PLANNED                       | WP05                                    | 3-5                          |
+| WP07 | TLS ingress and mTLS service identities                   | P1 / P0          | PLANNED                       | WP03                                    | 4-7                          |
+| WP08 | Isolated multi-node testbed                               | P1 / P0          | PLANNED                       | WP07                                    | 3-5                          |
+| WP09 | Deterministic network impairment                          | P1 / P0          | PLANNED                       | WP08                                    | 3-5                          |
+| WP10 | Versioned cryptographic provider boundary                 | P2 / P1          | PLANNED                       | WP05                                    | 5-10                         |
+| WP11 | SAG evaluation and provider decision dossier              | P0 / P0          | EXTERNAL_BLOCKED              | WP05                                    | 2-3 plus agency time         |
+| WP12 | Independent checkpoint custody                            | P2 / P0          | PLANNED                       | WP08                                    | 4-6                          |
+| WP13 | Restore rollback containment                              | P2 / P0          | PLANNED                       | WP12                                    | 4-8                          |
+| WP14 | WAN outage and revocation experiment                      | P2 / P0          | PLANNED                       | WP09 WP13                               | 4-7                          |
+| WP15 | Hardware login and separate key-custody study             | P3 / P2          | CONDITIONAL                   | WP10 WP11                               | 5-10                         |
+| WP16 | Independent synthetic integration adapter                 | P2 / P1          | PLANNED                       | WP08                                    | 5-8                          |
+| WP17 | Redacted event collection and response                    | P1 / P1          | PLANNED                       | WP08                                    | 3-6                          |
+| WP18 | Latency and capacity envelope                             | P2 / P1          | PLANNED                       | WP09 WP14                               | 4-7                          |
+| WP19 | Signed offline release and dependency qualification       | P3 / P1          | PLANNED                       | WP03 WP10                               | 4-7                          |
+| WP20 | Independent assessment and representative demonstration   | P4 / P0          | NOT_ENGAGED                   | WP06 WP11 WP14 WP16 WP17 WP18 WP19 WP21 | 5-10 plus assessor lead time |
+| WP21 | Filed role and priority policy mapping                    | P2 / P0          | PARTIAL_BRANCH_IMPLEMENTATION | WP05 WP23                               | 4-7                          |
+| WP22 | Field trial, licensing, training and support plan         | P3 / P1          | EXTERNAL_BLOCKED              | WP05 WP06                               | 3-5 plus programme lead time |
+| WP23 | Integrate concurrent hardening and duty-policy candidates | P0 / P0          | PLANNED                       | WP04 WP05                               | 3-6                          |
 
 ## WP01 — Image vulnerability remediation
 
@@ -71,7 +72,7 @@ Owner role: **Repository maintainer** (UNASSIGNED_ROLE). Exit authority: **Maint
 
 Traceability: R12; tests CI-01.
 
-Acceptance: Every advertised remote branch has a frozen SHA and disposition; import research directory without older application code.
+Acceptance: All 16 remote branches at refreshed snapshot have frozen heads and dispositions; new draft feature changes reviewed separately from main; no older application code imported.
 
 Evidence: `branch-inventory.json`.
 
@@ -83,7 +84,7 @@ Owner role: **Proposal owner** (UNASSIGNED_ROLE). Exit authority: **Proposal own
 
 Traceability: R1 R4 R5 R7 R9 R12; tests SAG-01 T5-13.
 
-Acceptance: Every filed deliverable and major claim mapped; unsupported assertions corrected in presentation; owner records any proposed scope change separately.
+Acceptance: All three submitted-copy annexures reviewed; every filed deliverable and major claim mapped; unsupported assertions corrected in presentation; owner records any proposed scope change separately.
 
 Evidence: `17-proposal-reconciliation.md; proposal-claim-register.csv`.
 
@@ -275,7 +276,7 @@ Owner role: **Authorization engineer** (UNASSIGNED_ROLE). Exit authority: **Info
 
 Traceability: R7; tests T5-13.
 
-Acceptance: Owner maps six filed duty roles and four priorities to approved actions; default deny; full 24 role-priority cross-product plus direct API and issue-time tests; no universal system-admin decrypt privilege.
+Acceptance: Owner maps six filed duty roles and four priorities to approved actions; default deny; full 24 role-priority cross-product plus direct API and issue-time tests; no universal system-admin decrypt privilege; dedicated highest-priority authorization action reviewed separately from write; branch E020 supplies partial implementation only.
 
 Evidence: `evidence/policy/approved-role-matrix-and-tests.json (planned)`.
 
@@ -292,6 +293,18 @@ Acceptance: Named trial authority and site, accepted integration scope, costed r
 Evidence: `Private trial/handover/support decision record; public status only`.
 
 Dependency or limitation: Filed 12-month schedule is not signed trial/certification/rollout authorisation.
+
+## WP23 — Integrate concurrent hardening and duty-policy candidates
+
+Owner role: **Integration and security engineer** (UNASSIGNED_ROLE). Exit authority: **Security and release reviewers**.
+
+Traceability: R2 R5 R7 R12; tests INT-01.
+
+Acceptance: Preserve foundation stored-envelope revalidation while supporting authenticated v1/v2 envelopes and current duty policy; no signature/epoch bypass; retain research validator in replacement CI; rerun full combined candidate gates.
+
+Evidence: `evidence/integration/combined-candidate.json (planned)`.
+
+Dependency or limitation: Draft PR2 and PR13 are not combined; proposed role semantics require owner/sponsor decision.
 
 ## Execution record required for closure
 

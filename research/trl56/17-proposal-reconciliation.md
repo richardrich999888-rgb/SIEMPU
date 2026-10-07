@@ -4,11 +4,13 @@ Review date: 8 October 2026 (India). Code baseline: `49774e2111197412efb31d45931
 
 ## Sources and programme identity
 
-P001 is the user-provided DISC-14 PS-69 Annexure 1: two pages, seven deliverables and a 12-month four-phase proposal. P002 is the matching detailed Annexure 2: five PDF pages, with architecture, roles and technical assertions. Both were extracted in full; P001's deliverable/timeline table was visually checked. P003 is the official receipt confirming the challenge and duration. Hashes are in [the source register](source-evidence-register.json).
+P001 is the user-provided DISC-14 PS-69 Annexure 1: two pages, seven deliverables and a 12-month four-phase proposal. P002 is the matching detailed Annexure 2: five PDF pages, with architecture, roles and technical assertions. P005 is the matching four-page resume/technical-evidence annexure. All three were extracted in full; P001's deliverable/timeline table was visually checked. P003 is the official receipt confirming the challenge and duration. Hashes are in [the source register](source-evidence-register.json).
 
 The user identifies these files as submitted copies. Their exact byte identity with portal-held attachments has not been independently established. A signed grant/contract, accepted scope changes, approved financial application and the HPSC undertaking contents were not available for this review. The separate Open Challenge 19/Edge annexures and unrelated project credentials are not SIEPMU evidence.
 
-The [claim register](proposal-claim-register.csv) contains 24 decisions, with private source page/section locators, actual code references and corrective work. Original PDFs, correspondence, personal identifiers and detailed unpublished protocol material are not copied into this public repository.
+A final refresh found draft PR13 implementing part of the duty-role/priority model and draft PR2 adding security hardening. These are credited separately in [the concurrent branch review](19-concurrent-branch-review.md), not silently treated as released main capability.
+
+The [claim register](proposal-claim-register.csv) contains 25 decisions, with private source page/section locators, actual code references and corrective work. Original PDFs, correspondence, personal identifiers and detailed unpublished protocol material are not copied into this public repository.
 
 ## Seven deliverables: actual disposition
 

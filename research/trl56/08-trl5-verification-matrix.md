@@ -22,6 +22,7 @@ Only CI-01 records observed frozen prototype evidence. Every other row remains p
 | T5-11  | R11          | CTE03 CTE04 CTE05                                     | Performance QA                  | WP09 WP18                | PLANNED                   |
 | T5-12  | R2 R5 R9 R10 | CTE01 CTE02 CTE09                                     | Crypto QA                       | WP10 WP15                | PLANNED                   |
 | T5-13  | R7           | CTE02 CTE03                                           | Authorization QA                | WP05 WP21                | PLANNED                   |
+| INT-01 | R2 R5 R7 R12 | CTE01 CTE02 CTE03 CTE06                               | Integration security QA         | WP23                     | PLANNED                   |
 
 ## T5-01 — Multi-unit E2EE
 
@@ -87,7 +88,7 @@ Required evidence: Contract version; separate process/network manifest; auth/sch
 
 Basis: **PROVISIONAL_LAB_TARGET**. Status: **PLANNED**.
 
-Procedure: Export checkpoint to separate custodian; revoke then restore older DB; corrupt receipt; remove checkpoint; isolate verifier.
+Procedure: Export checkpoint to separate custodian; revoke, independently retain the post-revocation checkpoint, then restore older DB; corrupt receipt; remove checkpoint; isolate verifier.
 
 Acceptance: 10 repetitions/case; tampering rejected; restored state behind trusted checkpoint quarantined before new issuance; missing checkpoint fails closed; checkpoint-age blind interval documented.
 
@@ -179,9 +180,19 @@ Basis: **APPLICANT_SCOPE_PENDING_SPONSOR**. Status: **PLANNED**.
 
 Procedure: Freeze owner-approved six-role/four-priority matrix; exercise every pair via direct API; cross-unit, role change and revoke after enqueue.
 
-Acceptance: All 24 role-priority pairs match matrix for each applicable action; unspecified grants deny; UI hiding alone never passes; no new issuance after committed role removal; audit-reader rights do not imply unrestricted content decryption.
+Acceptance: All 24 role-priority pairs match matrix for each applicable action; unspecified grants deny; UI hiding alone never passes; no new issuance after committed role removal; audit-reader rights do not imply unrestricted content decryption; highest-priority release requires separately defined authorization action, not just write eligibility.
 
 Required evidence: Approved matrix; direct API and issue-time tests; privilege-review record.
+
+## INT-01 — Combined branch security regression
+
+Basis: **ENGINEERING_INTEGRATION_GATE**. Status: **PLANNED**.
+
+Procedure: Combine versioned priority context with strict persisted-envelope revalidation, richer decision evidence, verifier and replacement CI; exercise both versions and role-change-at-release cases.
+
+Acceptance: Valid authorised v1/v2 cases pass; signed-field mutation, stored DB substitution and version downgrade reject; priority-denied metadata probes reject; epoch/issuance/evidence atomicity unchanged; all combined native/browser/container/security/research gates pass on one SHA.
+
+Required evidence: Combined tree/source digests; v1/v2 compatibility matrix; negative outcomes; full hosted jobs; migration/recovery results.
 
 ## Review sequence
 
