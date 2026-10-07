@@ -42,7 +42,7 @@ const uuid = (v) =>
   /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(v);
 const parse = (v) => JSON.parse(v);
 
-// Public capabilities are explicitly registered and cannot select protected
+// Public capabilities are explicitly dispatched and cannot select protected
 // handlers. Login itself always checks password and MFA before issuing a session.
 const publicHealth = (authority) => {
   authority.get('SELECT 1');
@@ -63,14 +63,6 @@ const publicLogin = (authority, body, context) => ({
   status: 200,
   body: authority.login(body, context.ip ?? 'local'),
 });
-const PUBLIC_CONTROL_ROUTES = new Map([
-  ['GET /health', publicHealth],
-  ['GET /live', publicHealth],
-  ['GET /ready', publicHealth],
-  ['GET /api/meta', publicMetadata],
-  ['POST /api/auth/login', publicLogin],
-]);
-
 export class Authority {
   constructor({ dbPath, signingKey, masterKey, hooks = {}, relay }) {
     this.key = signingKey;
@@ -786,9 +778,20 @@ export class Authority {
     };
   }
   async dispatch(method, path, b = {}, token, context = { ip: 'local' }) {
-    const publicHandler = PUBLIC_CONTROL_ROUTES.get(`${method} ${path}`);
-    if (publicHandler) return publicHandler(this, b, context);
-    return this.#authenticatedDispatch(method, path, b, token);
+    // Exact static routing only: request values never become a callable or a
+    // property name. All remaining routes enter the mandatory session gate.
+    switch (`${method} ${path}`) {
+      case 'GET /health':
+      case 'GET /live':
+      case 'GET /ready':
+        return publicHealth(this);
+      case 'GET /api/meta':
+        return publicMetadata(this);
+      case 'POST /api/auth/login':
+        return publicLogin(this, b, context);
+      default:
+        return this.#authenticatedDispatch(method, path, b, token);
+    }
   }
   async #authenticatedDispatch(method, path, b, token) {
     // This is the only entry into protected route dispatch. Authentication is
