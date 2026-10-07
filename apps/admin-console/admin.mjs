@@ -295,7 +295,7 @@ export async function renderAdmin(root, helpers) {
               field('Initial password (12+ characters)', password),
               field('Unit', unit),
               field('Role', role),
-               field('Filed duty-position profile (synthetic)', dutyRole),
+              field('Filed duty-position profile (synthetic)', dutyRole),
               field('Missions (comma-separated)', missions),
               el(
                 'div',
