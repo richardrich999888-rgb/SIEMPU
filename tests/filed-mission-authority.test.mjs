@@ -37,9 +37,12 @@ test('signed schema-v2 priority permits routine and holds forbidden FLASH recipi
   assert.equal(held.body.object.state, 'HELD');
   assert.equal(held.body.object.reason, 'ROLE_PRIORITY_DENIED');
   const rejected = await bob.claim(urgent.envelope.objectId, ctl.payload.epoch);
-  assert.equal(rejected.status, 409);
-  assert.equal(rejected.body.code, 'ROLE_PRIORITY_DENIED');
+  assert.equal(rejected.status, 404);
+  assert.equal(rejected.body.code, 'OBJECT_NOT_FOUND');
   assert.ok(!JSON.stringify(rejected.body).includes('wrappedKey'));
+  const probed = await bob.prepare(urgent.envelope.objectId);
+  assert.equal(probed.status, 404);
+  assert.ok(!JSON.stringify(probed.body).includes('wrappedKey'));
   const listed = await bob.ok('GET', '/api/objects');
   assert.ok(!listed.objects.some((x) => x.id === urgent.envelope.objectId));
 
