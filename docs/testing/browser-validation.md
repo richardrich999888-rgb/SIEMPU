@@ -1,6 +1,6 @@
 # Executed browser validation
 
-**PASS: a real Chromium browser executed the synthetic application through its UI and the actual three-process stack.** The machine-readable record is `browser-results.json`; the runner is `apps/unit-client/browser-check.mjs`. This is a local engineering test, not external assurance or a hosted CI result.
+**PASS: a real Chromium browser executed the synthetic application through its UI and the actual three-process stack.** The checked-in `browser-results.json` and the earlier sequence below are historical records; the runner is `apps/unit-client/browser-check.mjs`. The current local run passes **14 checks**, including attachment encryption and recipient download with exact bytes and filename, MIME-hint handling and unsafe-name rejection. See [implementation status](../IMPLEMENTATION_STATUS.md) and exact candidate artifacts for current results. This is local engineering evidence, not external assurance or proof of a hosted CI result.
 
 The test used separate browser contexts for Alice, Bob and the administrator, a fresh synthetic database, and the real web gateway, control authority and ciphertext relay. It exercised mandatory MFA, encrypted provisioning imports, device binding, endpoint encrypted text exchange, cryptographic release verification, recipient decryption and acknowledgement. Hostile HTML-shaped content stayed text and did not execute.
 
@@ -16,6 +16,6 @@ The normal Playwright Chromium downloader returned an invalid/truncated archive 
 
 The 1440-pixel recipient and authority screenshots were visually inspected; no material clipping or overlap was found. Generated screenshots are in `artifacts/browser/recipient.png` and `artifacts/browser/authority.png`. Those paths are generated test artifacts, not proof that another environment has passed.
 
-Reproduce against a fresh synthetic deployment using the command in `apps/unit-client/README.md`, with a functioning Chromium installation. The runner changes the synthetic policy and consumes current TOTP codes. The hosted GitHub Actions browser job remains **pending execution** until an actual run reports its result.
+Reproduce against a fresh synthetic deployment using the command in `apps/unit-client/README.md`, with a functioning Chromium installation. The runner changes the synthetic policy and consumes current TOTP codes. Inspect the exact candidate commit’s hosted GitHub Actions browser result separately; an earlier local or hosted pass does not establish a later commit’s result.
 
-This run does not establish all browser engines, hardware-backed keys, endpoint-compromise resistance, the browser file-download journey, or production readiness. API, cryptographic, race, recovery and independent-evidence results belong to their separate test records.
+These runs do not establish all browser engines, hardware-backed keys, endpoint-compromise resistance, production attachment management, or production readiness. API, cryptographic, race, recovery and independent-evidence results belong to their separate test records.

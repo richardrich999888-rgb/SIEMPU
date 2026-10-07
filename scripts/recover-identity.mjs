@@ -1,6 +1,6 @@
 /** Offline administrator recovery. Requires the authority's local secret files. */
 import { readFileSync, writeFileSync, openSync, closeSync, fsyncSync, unlinkSync } from 'node:fs';
-import { resolve, join } from 'node:path';
+import { dirname, resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { randomBytes } from 'node:crypto';
 import { Authority } from '../services/control/core.mjs';
@@ -43,6 +43,13 @@ export function recoverIdentity(dir, username, output) {
       ),
     );
     fsyncSync(outputFd);
+    // Persist the new filename before activating credentials that depend on it.
+    const outputDirectoryFd = openSync(dirname(resolve(output)), 'r');
+    try {
+      fsyncSync(outputDirectoryFd);
+    } finally {
+      closeSync(outputDirectoryFd);
+    }
     a.tx(() => {
       a.run(
         'UPDATE users SET password=?,totp=?,totp_floor=-1 WHERE id=?',
