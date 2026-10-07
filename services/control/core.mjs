@@ -47,6 +47,36 @@ const uuid = (v) =>
   typeof v === 'string' &&
   /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(v);
 const parse = (v) => JSON.parse(v);
+// These exact public routes are separate from the protected handler. No request
+// field can turn off authentication inside dispatchAuthenticated().
+const healthRoute = (authority) => {
+  authority.get('SELECT 1');
+  return { status: 200, body: { status: 'ok', service: 'control', version: '0.1.0' } };
+};
+const metadataRoute = (authority) => ({
+  status: 200,
+  body: {
+    version: '0.1.0',
+    build: buildInfo(),
+    serverPublicKey: authority.publicKey,
+    serverKeyId: keyId(authority.publicKey),
+    limits: { objectBytes: 1048576, sessionSeconds: 900, grantSeconds: 3600 },
+    securityProfile: 'PROTOTYPE / software device keys / no SAG approval',
+  },
+});
+const loginRoute = (authority, request) => ({
+  status: 200,
+  body: authority.login(request.body, request.context.ip ?? 'local'),
+});
+const authenticatedRoute = (authority, request) =>
+  authority.dispatchAuthenticated(request.method, request.path, request.body, request.token);
+const publicRoutes = new Map([
+  ['GET /health', healthRoute],
+  ['GET /live', healthRoute],
+  ['GET /ready', healthRoute],
+  ['GET /api/meta', metadataRoute],
+  ['POST /api/auth/login', loginRoute],
+]);
 export class Authority {
   constructor({ dbPath, signingKey, masterKey, hooks = {}, relay }) {
     this.key = signingKey;
@@ -758,24 +788,10 @@ export class Authority {
     };
   }
   async dispatch(method, path, b = {}, token, context = { ip: 'local' }) {
-    if (method === 'GET' && ['/health', '/live', '/ready'].includes(path)) {
-      this.get('SELECT 1');
-      return { status: 200, body: { status: 'ok', service: 'control', version: '0.1.0' } };
-    }
-    if (method === 'GET' && path === '/api/meta')
-      return {
-        status: 200,
-        body: {
-          version: '0.1.0',
-          build: buildInfo(),
-          serverPublicKey: this.publicKey,
-          serverKeyId: keyId(this.publicKey),
-          limits: { objectBytes: 1048576, sessionSeconds: 900, grantSeconds: 3600 },
-          securityProfile: 'PROTOTYPE / software device keys / no SAG approval',
-        },
-      };
-    if (method === 'POST' && path === '/api/auth/login')
-      return { status: 200, body: this.login(b, context.ip ?? 'local') };
+    const route = publicRoutes.get(`${method} ${path}`) ?? authenticatedRoute;
+    return route(this, { method, path, body: b, token, context });
+  }
+  async dispatchAuthenticated(method, path, b, token) {
     let s = this.authenticate(token);
     this.rate('session:' + s.id, 500);
     let value;

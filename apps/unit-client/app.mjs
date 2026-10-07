@@ -17,6 +17,7 @@ import { element as el, field, button, badge, hint, panel, download, safeName } 
 import { renderAdmin } from '/apps/admin-console/admin.mjs';
 import { commitEncryptedVaultLocked } from './vault-store.mjs';
 import { validateDeviceChallenge, validateReleaseScope } from './challenge.mjs';
+import { authorityPublicJwk } from './authority-pin.mjs';
 
 const VAULT_PREFIX = 'siepmu.vault.v1.';
 const PIN_KEY = 'siepmu.authority.pin.v1';
@@ -342,7 +343,7 @@ function renderTrust() {
           ? 'Accept independently verified replacement'
           : 'Trust independently verified authority',
         action(async () => {
-          state.pin = state.meta.serverPublicKey;
+          state.pin = authorityPublicJwk(state.meta.serverPublicKey);
           localStorage.setItem(PIN_KEY, JSON.stringify(state.pin));
           notify('Authority public key pinned on this browser.');
           await render();
@@ -368,7 +369,7 @@ function importPanel() {
     placeholder: 'At least 12 characters',
   });
   let profiles;
-  let trustedKey;
+  let provisionedAuthorityPublicJwk;
   input.addEventListener(
     'change',
     action(async () => {
@@ -378,7 +379,7 @@ function importPanel() {
       if (!Array.isArray(data.profiles) || !data.serverPublicKey)
         throw new Error('Expected a generated demo-profiles.json provisioning file.');
       profiles = data.profiles;
-      trustedKey = data.serverPublicKey;
+      provisionedAuthorityPublicJwk = authorityPublicJwk(data.serverPublicKey);
       choices.replaceChildren(
         ...profiles.map((p, i) => el('option', { value: String(i) }, p.username)),
       );
@@ -413,7 +414,10 @@ function importPanel() {
             throw new Error('The selected profile has no complete device key pair.');
           if (pass.value.length < 12)
             throw new Error('Use a vault passphrase of at least 12 characters.');
-          if (state.meta && canonical(trustedKey) !== canonical(state.meta.serverPublicKey))
+          if (
+            state.meta &&
+            canonical(provisionedAuthorityPublicJwk) !== canonical(state.meta.serverPublicKey)
+          )
             throw new Error('Provisioned authority key does not match this server.');
           if (state.token && state.user.username !== p.username)
             throw new Error('Sign out before importing a different user’s profile.');
@@ -422,8 +426,8 @@ function importPanel() {
             throw new Error(
               'A vault already exists for this username. Unlock or explicitly remove it before importing again.',
             );
-          state.pin = trustedKey;
-          localStorage.setItem(PIN_KEY, JSON.stringify(trustedKey));
+          state.pin = provisionedAuthorityPublicJwk;
+          localStorage.setItem(PIN_KEY, JSON.stringify(provisionedAuthorityPublicJwk));
           state.passphrase = pass.value;
           state.vaultStored = null;
           state.vault = {
@@ -437,7 +441,7 @@ function importPanel() {
           };
           await persist();
           profiles = null;
-          trustedKey = null;
+          provisionedAuthorityPublicJwk = null;
           input.value = '';
           pass.value = '';
           notify(
@@ -1297,7 +1301,7 @@ async function logout() {
 }
 async function initialize() {
   try {
-    state.pin = JSON.parse(localStorage.getItem(PIN_KEY) || 'null');
+    state.pin = authorityPublicJwk(JSON.parse(localStorage.getItem(PIN_KEY) || 'null'));
   } catch {
     state.pin = null;
   }

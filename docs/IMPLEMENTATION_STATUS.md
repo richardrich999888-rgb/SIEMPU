@@ -37,23 +37,29 @@ Designed for integration with service-mandated and approved cryptographic suites
 
 Command: `npm run validate`; Node v24.19.0, Linux x64; 2026-10-07 UTC / 2026-10-08 IST.
 
-- **120 tests passed; 0 failed, cancelled or skipped.**
-- Coverage over the configured services/packages/verifier/SARIF-gate scope: **95.44% lines, 87.60% branches, 97.97% functions**. This is not whole-application coverage.
+- **126 tests passed; 0 failed, cancelled or skipped.**
+- Coverage over the configured services/packages/verifier/SARIF-gate scope: **95.98% lines, 88.21% branches, 98.04% functions**. This is not whole-application coverage.
 - Syntax, lint, format, scoped type checking, coverage, local security checks, dependency audit, build, SBOM and nine-stage synthetic HTTP demo: **PASS**.
-- Build: **37 allowlisted runtime files**. Application SBOM inventories 84 development dependency packages and runtime components separately.
+- Build: **38 allowlisted runtime files**. Application SBOM inventories 84 development dependency packages and runtime components separately.
 - Three named HTTP acceptance scenarios: PASS; included in the full suite and separately executed through `make e2e`.
 - Real Chromium 153: **14 checks PASS** using a fresh disposable three-process deployment, including the upstream attachment test.
 - `make setup` installed 84 locked development packages from a clean dependency directory. `make bootstrap` ran migrations/seeds and `make dev` reached HTTP 200 readiness. `make docker-build` could not run because this host has no Docker binary; this is not recorded as a passing container test.
-- Strict checking covers seven runtime modules plus wire declarations. Core authority, verifier and complete frontend are not all statically typechecked.
+- Strict checking covers eight runtime modules plus wire declarations. Core authority, verifier and complete frontend are not all statically typechecked.
 
-Source digest of the complete native validation: `d58cf7fe3d23877f066a92eb8efbc9812d1579822af26b4a81564332715ceca3`.
+Source digest of the complete native validation: `4c8299be9227d846abd98bd3211b6d1944b003f49846bbfeef4c49525bed4d5e`.
 Generated native reports/logs are under `artifacts/validation/`; browser/continuation logs under `artifacts/execution/`. CI publishes fresh reports for its exact commit. A local native report cannot assert hosted scanner or container results.
 
 ## Recent research commit review
 
 All four current branches were inspected. Research commits `1992ebf5e20af91fb2fe561d4481a8a6d4f67625` and `58e88d86506b686f17c18530b759a869907ec81f` add 35 planning files under `research/trl56/`, with no runtime changes. Preserve their transaction invariant and staged evidence requirements; TRL5/6 remain planned gates. Their baseline is `f6d75cf`, not this candidate.
 
-Verified historical run 37678323924: native/browser/secret scan passed; custom CodeQL SARIF resolution and Trivy failed. This candidate corrects extension-rule resolution without weakening severity gates and refreshes/minimizes the runtime image; success requires a new actual scan.
+The newer implementation commit `7120ae8fceb96ec27c94c96bd2fafd6423484af3` was also reviewed. It repairs query-pack rule resolution and minimizes its Node 24.19.0 Alpine image. Its actual run 37681469970 still failed on ten CodeQL findings and two OpenSSL HIGH image findings. This branch already uses the newer digest-pinned Node 24.21.0 / Alpine 3.24 image; those upstream failures are not attributed to this branch.
+
+## Hosted execution observations
+
+At candidate `de654ccae73e61576ae2f56b90a0b6f014ca134e`, push CI run 37681272231 and PR CI run 37681295142 passed all native, browser and container jobs. The container was built, bootstrapped, started as three healthy services, checked for unauthenticated denial and UID/revision, and scanned: Trivy reported zero HIGH/CRITICAL OS or application findings. Image SBOM artifact: 11508789494. Local Docker remains unavailable.
+
+Security runs 37681272125 and 37681295057 passed dependency/regression and secret scans but failed CodeQL with ten findings. The subsequent source fixes pin forwarding to the configured authority origin, validate/project persisted public trust keys, read verifier files through one bounded descriptor, atomically reserve private recovery output before credential changes, and isolate exact public routes from authenticated handlers. They also correct package URL sanitization. Focused regressions and full local validation pass; hosted rescanning of these changes is pending. No scanner rule, severity threshold or finding was suppressed.
 
 Unresolved research inconsistencies: Keycloak and Zeek are PROTOTYPE in narrative but DEFER in the registry; independent connector is P1 in the plan and P3 in the backlog; all backlog items are labeled P0 without individual owners/acceptance metrics. Submitted annexures were not available to that research run. These are planning inconsistencies, not instructions to add every dependency now.
 

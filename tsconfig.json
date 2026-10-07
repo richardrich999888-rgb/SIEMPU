@@ -17,6 +17,7 @@
     "packages/crypto/crypto.mjs",
     "packages/object-format/types.d.ts",
     "apps/unit-client/challenge.mjs",
+    "apps/unit-client/authority-pin.mjs",
     "services/control/primitives.mjs",
     "services/control/build-info.mjs"
   ]

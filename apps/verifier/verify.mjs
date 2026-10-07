@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /** Offline verification: no service, credentials, or authority database required. */
 import { createHash, createPublicKey, verify as nativeVerify } from 'node:crypto';
-import { open, readFile, stat } from 'node:fs/promises';
+import { open } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { canonical } from '../../packages/protocol/canonical.mjs';
@@ -404,8 +404,28 @@ export async function verifyReleaseReceipt(
 }
 
 async function readJSON(path) {
-  assert((await stat(path)).size <= 64 * 1024 * 1024, 'Verifier input file exceeds 64 MiB');
-  return JSON.parse(await readFile(path, 'utf8'));
+  const file = await open(path, 'r');
+  try {
+    const limit = 64 * 1024 * 1024;
+    const info = await file.stat();
+    assert(info.isFile(), 'Verifier input must be a regular file');
+    assert(info.size <= limit, 'Verifier input file exceeds 64 MiB');
+    const chunks = [];
+    let size = 0;
+    // Read the same descriptor that was checked. A concurrent writer cannot evade
+    // the bound by growing the file after fstat or swapping the path's target.
+    while (true) {
+      const chunk = Buffer.alloc(Math.min(64 * 1024, limit + 1 - size));
+      const { bytesRead } = await file.read(chunk);
+      if (!bytesRead) break;
+      size += bytesRead;
+      assert(size <= limit, 'Verifier input file exceeds 64 MiB');
+      chunks.push(chunk.subarray(0, bytesRead));
+    }
+    return JSON.parse(Buffer.concat(chunks, size).toString('utf8'));
+  } finally {
+    await file.close();
+  }
 }
 async function main(args) {
   const usage =

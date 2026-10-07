@@ -1,22 +1,48 @@
 /** Offline administrator recovery. Requires the authority's local secret files. */
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, openSync, closeSync, fsyncSync, unlinkSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { randomBytes } from 'node:crypto';
 import { Authority } from '../services/control/core.mjs';
 import { base32, passwordHash, seal } from '../services/control/primitives.mjs';
 export function recoverIdentity(dir, username, output) {
-  if (existsSync(output)) throw new Error('Recovery output must be a new private file');
-  const a = new Authority({
-    dbPath: join(dir, 'control.sqlite'),
-    signingKey: JSON.parse(readFileSync(join(dir, 'server-key.json'))),
-    masterKey: readFileSync(join(dir, 'master.key')),
-  });
+  let outputFd;
   try {
+    outputFd = openSync(output, 'wx', 0o600);
+  } catch (error) {
+    if (error.code === 'EEXIST') throw new Error('Recovery output must be a new private file');
+    throw error;
+  }
+  let a;
+  let committed = false;
+  try {
+    a = new Authority({
+      dbPath: join(dir, 'control.sqlite'),
+      signingKey: JSON.parse(readFileSync(join(dir, 'server-key.json'))),
+      masterKey: readFileSync(join(dir, 'master.key')),
+    });
     const user = a.get('SELECT * FROM users WHERE username=?', username);
     if (!user) throw new Error('Unknown recovery identity');
     const password = randomBytes(24).toString('base64url'),
       totpSecret = base32(randomBytes(20));
+    // Reserve and durably write the private output before changing identity state.
+    // Concurrent recovery to the same output fails before any database mutation.
+    writeFileSync(
+      outputFd,
+      JSON.stringify(
+        {
+          username,
+          password,
+          totpSecret,
+          userId: user.id,
+          warning:
+            'Private recovery material. Valid only after recovery reports success; import MFA securely and destroy this file afterward.',
+        },
+        null,
+        2,
+      ),
+    );
+    fsyncSync(outputFd);
     a.tx(() => {
       a.run(
         'UPDATE users SET password=?,totp=?,totp_floor=-1 WHERE id=?',
@@ -33,25 +59,15 @@ export function recoverIdentity(dir, username, output) {
       });
       a.alert('IDENTITY_RECOVERY', user.id, 'OFFLINE_ADMINISTRATOR_RECOVERY');
     });
-    writeFileSync(
-      output,
-      JSON.stringify(
-        {
-          username,
-          password,
-          totpSecret,
-          userId: user.id,
-          warning:
-            'Private one-time recovery material. Import MFA securely; destroy this file afterward.',
-        },
-        null,
-        2,
-      ),
-      { mode: 0o600, flag: 'wx' },
-    );
+    committed = true;
     return { username, allSessionsRevoked: true, epoch: a.epoch().epoch };
   } finally {
-    a.close();
+    try {
+      a?.close();
+    } finally {
+      closeSync(outputFd);
+      if (!committed) unlinkSync(output);
+    }
   }
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

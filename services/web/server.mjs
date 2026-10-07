@@ -138,7 +138,15 @@ export function createWebServer({
         if (req.headers.authorization) headers.authorization = req.headers.authorization;
         if (mutation) headers['content-type'] = 'application/json';
         // The gateway has validated the browser Origin. Do not forward caller-controlled proxy headers.
-        const response = await fetch(new URL(req.url, upstream), {
+        // Only the path is client-controlled. Never resolve an arbitrary request
+        // target against the authority base, which could replace its host.
+        if (req.url.includes('?')) {
+          send(400, { error: 'INVALID_PATH' });
+          return;
+        }
+        const destination = new URL(upstream.href);
+        destination.pathname = path;
+        const response = await fetch(destination, {
           method: req.method,
           headers,
           ...(mutation ? { body: Buffer.concat(chunks) } : {}),

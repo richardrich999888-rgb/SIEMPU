@@ -14,7 +14,7 @@ const components = entries.map(([path, item]) => {
     'bom-ref': `npm:${path}@${item.version}`,
     name,
     version: item.version,
-    purl: `pkg:npm/${name.replace('@', '%40')}@${item.version}`,
+    purl: `pkg:npm/${name.replaceAll('@', '%40')}@${item.version}`,
     properties: [
       { name: 'siepmu:dependency-kind', value: item.dev ? 'development' : 'runtime' },
       {

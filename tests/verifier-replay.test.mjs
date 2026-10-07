@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdtemp, writeFile, readFile, rm, stat } from 'node:fs/promises';
+import { mkdtemp, writeFile, readFile, rm, stat, truncate } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -115,6 +115,18 @@ function cliFailure(expected) {
     return true;
   };
 }
+
+test('verifier rejects oversized or non-file JSON inputs without consuming replay state', async (t) => {
+  const f = await fixture(t);
+  await truncate(f.receiptPath, 64 * 1024 * 1024 + 1);
+  await assert.rejects(f.run(), cliFailure(/exceeds 64 MiB/));
+  await rm(f.receiptPath);
+  await assert.rejects(
+    execute(process.execPath, [cli, f.dir, f.keyPath]),
+    cliFailure(/regular file/),
+  );
+  await assert.rejects(stat(f.replayStore), { code: 'ENOENT' });
+});
 
 test('strict release CLI requires every binding and an explicit durable replay domain', async (t) => {
   const f = await fixture(t);
