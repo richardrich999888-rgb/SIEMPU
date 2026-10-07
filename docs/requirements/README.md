@@ -9,7 +9,7 @@ This repository uses **SIEPMU**, the official challenge acronym. `SIEMPU` is the
 3. The implementation brief supplied on 8 October 2026 defines prototype acceptance experiments. Its test counts, architecture and outage scenarios are user engineering instructions, not official performance requirements.
 4. Source, test output and a frozen commit determine implementation claims. Consult `CLAIMS_REGISTER.yaml` and generated test evidence; the table below defines obligations, not test results.
 
-The original filed AIRON application and exact role/budget commitments require reconciliation with the authoritative submission. Recovered summaries do not establish those details. No classified operating scenario is assumed.
+The user-provided DISC-14 Annexures 1 and 2 were reviewed on 8 October 2026. Their seven deliverables, six-role proposal and 12-month schedule are reconciled in [the proposal register](../../research/trl56/17-proposal-reconciliation.md). These are applicant commitments, not additional official IAF requirements. Their byte identity with portal-held attachments, the signed contract and approved budget remain unverified. Private originals are not published. No classified operating scenario is assumed.
 
 ## Explicit published requirements
 
@@ -34,15 +34,15 @@ The compendium's existing-solution field is not a global novelty conclusion. The
 
 ## Inferences and prototype decisions
 
-| ID  | Assumption / source                                                 | Prototype treatment                                          | Boundary                                                   |
-| --- | ------------------------------------------------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------- |
-| I1  | Sovereign operator control; user goal                               | Owner controls deployment, roots, updates and logs           | Does not mean all dependencies are Indian-owned            |
-| I2  | Managed device admission; threat-model inference                    | Enrolment, proof of key possession and revocation            | Software key binding is not hardware attestation           |
-| I3  | Internet interruption; reliability inference                        | Local encrypted outbox and explicit pending/held states      | Offline creation is not offline permission to deliver      |
-| I4  | Current-authority race; engineering experiment                      | Epoch-fenced release with atomic evidence                    | Local authority consistency, not instant global revocation |
-| I5  | Six filed military duty-position roles; recovered summary           | Generic demonstrator roles pending authoritative role matrix | Do not invent IAF job authorities                          |
-| I6  | Classified content may require stronger handling                    | Synthetic demo content only                                  | No permission to process operational/classified material   |
-| I7  | Sender/recipient software and enrolled trust roots behave correctly | Explicit trusted endpoint boundary                           | Compromised reader can disclose plaintext                  |
+| ID  | Assumption / source                                                 | Prototype treatment                                                        | Boundary                                                   |
+| --- | ------------------------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| I1  | Sovereign operator control; user goal                               | Owner controls deployment, roots, updates and logs                         | Does not mean all dependencies are Indian-owned            |
+| I2  | Managed device admission; threat-model inference                    | Enrolment, proof of key possession and revocation                          | Software key binding is not hardware attestation           |
+| I3  | Internet interruption; reliability inference                        | Local encrypted outbox and explicit pending/held states                    | Offline creation is not offline permission to deliver      |
+| I4  | Current-authority race; engineering experiment                      | Epoch-fenced release with atomic evidence                                  | Local authority consistency, not instant global revocation |
+| I5  | Six proposed duty-position roles; reviewed Annexure 2 p2            | Current four generic roles; filed six-role/action/priority mapping pending | Applicant taxonomy is not sponsor-approved authority       |
+| I6  | Classified content may require stronger handling                    | Synthetic demo content only                                                | No permission to process operational/classified material   |
+| I7  | Sender/recipient software and enrolled trust roots behave correctly | Explicit trusted endpoint boundary                                         | Compromised reader can disclose plaintext                  |
 
 ## Out of the first demonstrator
 

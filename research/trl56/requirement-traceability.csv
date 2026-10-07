@@ -1,0 +1,13 @@
+requirement,source,component,cte,remaining,tests,status
+R1,E001: PS-69 printed pp161-162,apps/unit-client;services/web;services/control;services/relay,CTE01 CTE02 CTE03 CTE04,internet TLS and multi-node proof,T5-01 TLS-01,PARTIAL_PROTOTYPE_EXTERNAL_APPROVAL_OPEN
+R2,E001: PS-69 printed pp161-162,packages/crypto;services/control;services/relay,CTE01 CTE02 CTE03 CTE04 CTE05 CTE06 CTE09,WAN resilience evidence,T5-01 T5-02 T5-05 T5-07 T5-12,PARTIAL_PROTOTYPE_EXTERNAL_APPROVAL_OPEN
+R3,E001: PS-69 printed pp161-162,apps/unit-client,CTE04 CTE05,official latency and collaboration scope,T5-09,PARTIAL_PROTOTYPE_EXTERNAL_APPROVAL_OPEN
+R4,E001: PS-69 printed pp161-162,services/*;compose.yaml,CTE04,independent deployment proof,T5-10,PARTIAL_PROTOTYPE_EXTERNAL_APPROVAL_OPEN
+R5,E001: PS-69 printed pp161-162,packages/crypto;services/control,CTE01 CTE02 CTE03 CTE04 CTE05 CTE09,Relevant-lab E2EE/MFA qualification; hardware optional unless sponsor requires,T5-01 T5-03 T5-05 TLS-01 T5-12,PARTIAL_PROTOTYPE_EXTERNAL_APPROVAL_OPEN
+R6,E001: PS-69 printed pp161-162,services/web;services/control,CTE01 CTE02 CTE03 CTE04 CTE05 CTE06 CTE07 CTE08 CTE09,TLS and external SOC lab,T5-04 T5-08 TLS-01,PARTIAL_PROTOTYPE_EXTERNAL_APPROVAL_OPEN
+R7,E001: PS-69 printed pp161-162,services/control/core.mjs,CTE01 CTE02 CTE03 CTE04,Filed six-role taxonomy observed; authority and full action/priority policy not approved or implemented,T5-01 T5-03 T5-13,PARTIAL_PROTOTYPE_EXTERNAL_APPROVAL_OPEN
+R8,E001: PS-69 printed pp161-162,/api/integration/validate,CTE08,synthetic mock + IAF interface,T5-06,PARTIAL_PROTOTYPE_EXTERNAL_APPROVAL_OPEN
+R9,E001: PS-69 printed pp161-162,packages/crypto,CTE01 CTE02 CTE09,SAG sponsor guidance,SAG-01 T5-12,EXTERNAL_BLOCKED
+R10,E001: PS-69 printed pp161-162,apps/unit-client/vault-store.mjs,CTE01 CTE02 CTE03 CTE05 CTE06 CTE09,endpoint custody and recovery,T5-02 T5-05 T5-07 T5-12,PARTIAL_PROTOTYPE_EXTERNAL_APPROVAL_OPEN
+R11,E001: PS-69 printed pp161-162,services/control;services/relay,CTE03 CTE04 CTE05,multiuser performance,T5-11,PARTIAL_PROTOTYPE_EXTERNAL_APPROVAL_OPEN
+R12,E001: PS-69 printed pp161-162,tests;CI,CTE01 CTE02 CTE03 CTE04 CTE05 CTE06 CTE07 CTE08 CTE09,third-party assessment,T5-07 T5-08 CI-01,PARTIAL_PROTOTYPE_EXTERNAL_APPROVAL_OPEN

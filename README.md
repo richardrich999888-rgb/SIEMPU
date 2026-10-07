@@ -8,6 +8,10 @@ Start with the [delivery report](docs/DELIVERY_REPORT.md), [both-brief execution
 
 The central experiment is **policy-epoch-bound release**: ciphertext can be queued or relayed, but recipient-wrapped key material stays behind an authority check. A transaction revalidates current users, devices, roles, mission membership, destination policy, grant expiry and epoch, then commits one signed issuance and its evidence. Revocation committed first blocks release. An issuance committed first may already be usable and cannot be recalled.
 
+## Research and next-stage plan
+
+The [reconciled TRL 5/6 dossier](research/trl56/README.md) compares the actual submitted technical annexures with the delivered code, records all remote branch heads, maps 12 requirements to 16 checks, and defines 22 work packages. [Proposal claims](research/trl56/17-proposal-reconciliation.md) and [planned acceptance tests](research/trl56/08-trl5-verification-matrix.md) remain distinct from implemented results.
+
 ## Run locally
 
 Requires Node **24.19.0**, npm and a current browser with WebCrypto. Runtime services use Node built-ins; npm dependencies are development tools only.

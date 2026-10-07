@@ -1,0 +1,18 @@
+flowchart TB
+  subgraph Z1["Unit A managed trust zone"]
+    A["Managed client / encrypted vault / hardware-auth pilot"]
+  end
+  subgraph Z2["Unit B managed trust zone"]
+    B["Managed client / encrypted vault / hardware-auth pilot"]
+  end
+  A --> WAN["Untrusted WAN impairment boundary"]
+  B --> WAN
+  WAN --> TLS["TLS/mTLS ingress + service identity"]
+  subgraph Z3["Services on separately managed nodes"]
+    TLS --> CTRL["Authority: transaction / key-release policy"]
+    TLS --> RELAY["Ciphertext-only relay"]
+    CTRL --> CP["Crypto provider contract / sponsor SDK later"]
+  end
+  CTRL --> MOCK["Independent synthetic legacy adapter"]
+  CTRL --> SOC["SOC redacted collector"]
+  CTRL --> PROOF["Off-host checkpoint / independent verifier"]

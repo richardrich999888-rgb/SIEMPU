@@ -1,0 +1,6 @@
+flowchart LR
+  LEG["Synthetic legacy emulator (external trust zone)"] --> MTLS["Authenticated interface"]
+  MTLS --> VAL["Schema / purpose / replay / signature validation"]
+  VAL --> POL["Authority current-epoch check"]
+  POL --> ENV["Encrypted envelope reference and signed receipt"]
+  VAL --> ERR["Fail-closed error log"]

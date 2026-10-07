@@ -1,0 +1,10 @@
+cte,component,repo_evidence,relevant_lab_pass,external_approval,provisional_status
+CTE01,Endpoint E2EE and envelope,E003;E004,NO,NO,ENGINEERING_PROTOTYPE
+CTE02,User and device trust,E003;E004,NO,NO,ENGINEERING_PROTOTYPE
+CTE03,Policy-epoch transactional release,E003;E004,NO,NO,ENGINEERING_PROTOTYPE
+CTE04,Relay and service boundary,E003;E004,NO,NO,ENGINEERING_PROTOTYPE
+CTE05,Encrypted offline vault/outbox,E003;E004,NO,NO,ENGINEERING_PROTOTYPE
+CTE06,Audit and checkpoint,E003;E004,NO,NO,ENGINEERING_PROTOTYPE
+CTE07,Monitoring and operations,E003;E004,NO,NO,ENGINEERING_PROTOTYPE
+CTE08,Integration boundary,E003;E004,NO,NO,MOCK_ONLY
+CTE09,Sponsor cryptographic compliance,No graded-provider approval,NO,NO,BLOCKED_EXTERNAL
