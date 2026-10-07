@@ -34,7 +34,7 @@
     "help": "make help",
     "test:e2e": "node --test --test-concurrency=1 tests/acceptance/*/*.test.mjs",
     "test:browser:isolated": "node scripts/browser-e2e.mjs",
-    "test:security": "node --test --test-concurrency=1 tests/authority.test.mjs tests/admission-integrity.test.mjs tests/crypto.test.mjs tests/http.test.mjs tests/additional-boundaries.test.mjs tests/recovery.test.mjs tests/verifier-replay.test.mjs scripts/sarif-gate.test.mjs apps/unit-client/authority-pin.test.mjs services/web/web.test.mjs services/relay/relay.test.mjs tests/routing-boundary.test.mjs",
+    "test:security": "node --test --test-concurrency=1 tests/authority.test.mjs tests/admission-integrity.test.mjs tests/crypto.test.mjs tests/http.test.mjs tests/additional-boundaries.test.mjs tests/recovery.test.mjs tests/verifier-replay.test.mjs scripts/sarif-gate.test.mjs apps/unit-client/authority-pin.test.mjs apps/unit-client/trust.test.mjs services/web/web.test.mjs services/web/destination.test.mjs services/relay/relay.test.mjs tests/routing-boundary.test.mjs tests/auth-routing.test.mjs",
     "ci": "npm run check && npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run test:e2e && npm run security && npm run build && npm run sbom"
   },
   "devDependencies": {

@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "kind": "native-validation",
+  "startedAt": "2026-10-07T19:53:20.092Z",
+  "gitCommit": "596b74c4a31091b7312760ef4360bba7eb21dcac",
+  "workingTreeStatus": " M .env.example\n M .github/workflows/quality.yml\n M .github/workflows/release.yml\n M .prettierrc.json\n M Dockerfile\n M apps/unit-client/README.md\n M apps/unit-client/app.mjs\n M apps/unit-client/browser-check.mjs\n M apps/unit-client/dom.mjs\n M apps/unit-client/sw.js\n M apps/unit-client/vault-store.mjs\n M apps/unit-client/vault-store.test.mjs\n M compose.yaml\n M docs/IMPLEMENTATION_STATUS.md\n M docs/SUPPLY_CHAIN_SECURITY.md\n M docs/ci-cd.md\n M docs/deployment.md\n M docs/hpsc/evaluation.md\n M package.json\n M scripts/build.mjs\n M scripts/sbom.mjs\n M services/control/core.mjs\n M tests/authority.test.mjs\n M tests/crypto.test.mjs\n M tests/helpers/client.mjs\n?? .gitleaksignore\n?? CLAIMS_REGISTER.yaml\n?? apps/unit-client/challenge.mjs\n?? apps/unit-client/challenge.test.mjs\n?? docs/EXECUTION_CHECKLIST.md\n?? docs/TRACEABILITY_MATRIX.md\n?? docs/api.md\n?? docs/api.openapi.json\n?? docs/architecture.md\n?? docs/claims.md\n?? docs/crypto.md\n?? docs/database.md\n?? docs/disaster-recovery.md\n?? docs/evidence.md\n?? docs/hpsc/demo-runbook.md\n?? docs/hpsc/evaluator-questions.md\n?? docs/hpsc/evidence-index.md\n?? docs/hpsc/node-test-snapshot.json\n?? docs/hpsc/performance-results.json\n?? docs/hpsc/technical-demo.md\n?? docs/identity.md\n?? docs/limitations.md\n?? docs/operations.md\n?? docs/performance.md\n?? docs/policy.md\n?? docs/reconnection.md\n?? docs/security.md\n?? docs/security/\n?? docs/supply-chain.md\n?? docs/testing.md\n?? docs/testing/\n?? docs/threat-model.md\n?? scripts/audit-claims.mjs\n?? scripts/recover-identity.mjs\n?? scripts/sarif-gate.mjs\n?? scripts/sarif-gate.test.mjs\n?? scripts/validate.mjs\n?? services/control/build-info.mjs\n?? tests/additional-boundaries.test.mjs\n?? tests/claims.test.mjs\n",
+  "sourceDigest": "33f380b76e86566594e2279e72a6c2f6c1e4216ea3b9cf4998548726b9d30492",
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "externalObservations": {
+    "container": "NOT_OBSERVED",
+    "hostedSast": "NOT_OBSERVED",
+    "browser": "NOT_OBSERVED"
+  },
+  "gates": [
+    {
+      "name": "check",
+      "command": ["npm", "run", "check"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T19:53:20.172Z",
+      "finishedAt": "2026-10-07T19:53:26.629Z",
+      "log": "artifacts/validation/check.log"
+    },
+    {
+      "name": "lint",
+      "command": ["npm", "run", "lint"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T19:53:26.630Z",
+      "finishedAt": "2026-10-07T19:53:28.175Z",
+      "log": "artifacts/validation/lint.log"
+    },
+    {
+      "name": "typecheck",
+      "command": ["npm", "run", "typecheck"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T19:53:28.175Z",
+      "finishedAt": "2026-10-07T19:53:30.240Z",
+      "log": "artifacts/validation/typecheck.log"
+    },
+    {
+      "name": "format:check",
+      "command": ["npm", "run", "format:check"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T19:53:30.240Z",
+      "finishedAt": "2026-10-07T19:53:34.063Z",
+      "log": "artifacts/validation/format-check.log"
+    },
+    {
+      "name": "test:coverage",
+      "command": ["npm", "run", "test:coverage"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T19:53:34.063Z",
+      "finishedAt": "2026-10-07T19:54:04.398Z",
+      "log": "artifacts/validation/test-coverage.log"
+    },
+    {
+      "name": "security",
+      "command": ["npm", "run", "security"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T19:54:04.398Z",
+      "finishedAt": "2026-10-07T19:54:04.852Z",
+      "log": "artifacts/validation/security.log"
+    },
+    {
+      "name": "dependency-audit",
+      "command": ["npm", "audit", "--audit-level=high"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T19:54:04.852Z",
+      "finishedAt": "2026-10-07T19:54:13.171Z",
+      "log": "artifacts/validation/dependency-audit.log"
+    },
+    {
+      "name": "build",
+      "command": ["npm", "run", "build"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T19:54:13.172Z",
+      "finishedAt": "2026-10-07T19:54:13.566Z",
+      "log": "artifacts/validation/build.log"
+    },
+    {
+      "name": "sbom",
+      "command": ["npm", "run", "sbom"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T19:54:13.566Z",
+      "finishedAt": "2026-10-07T19:54:14.022Z",
+      "log": "artifacts/validation/sbom.log"
+    },
+    {
+      "name": "demo",
+      "command": ["npm", "run", "demo"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T19:54:14.022Z",
+      "finishedAt": "2026-10-07T19:54:16.210Z",
+      "log": "artifacts/validation/demo.log"
+    },
+    {
+      "name": "benchmark",
+      "command": ["npm", "run", "benchmark"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T19:54:16.210Z",
+      "finishedAt": "2026-10-07T19:54:20.927Z",
+      "log": "artifacts/validation/benchmark.log"
+    }
+  ],
+  "tests": {
+    "total": 72,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "demo": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "synthetic": true
+  },
+  "sourceDigestAfter": "33f380b76e86566594e2279e72a6c2f6c1e4216ea3b9cf4998548726b9d30492",
+  "finishedAt": "2026-10-07T19:54:20.976Z",
+  "outcome": "PASS",
+  "claimsAudit": {
+    "valid": true,
+    "mode": "EXECUTION_EVIDENCE_CHECKED",
+    "claims": 14,
+    "errors": [],
+    "trustBoundary": "Local records are not independent attestation; reviewer must trust the runner and inspect logs."
+  }
+}

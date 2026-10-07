@@ -1,6 +1,6 @@
 {
   "status": "PASS",
-  "recordedAt": "2026-10-07T19:53:18.839493+00:00",
+  "recordedAt": "2026-10-07T20:30:19.037892+00:00",
   "scope": "Local synthetic three-process deployment; real browser UI, not mocked API",
   "node": "v24.19.0",
   "playwright": "1.62.1",
@@ -117,12 +117,18 @@
       "finding": "localStorage compare-before-write alone was not atomic across tabs",
       "fix": "Exclusive cooperative Web Lock around comparison and synchronous encrypted write; unsupported browsers fail closed",
       "validation": "Focused unit cases and actual simultaneous two-tab browser test"
+    },
+    {
+      "finding": "Hosted scanner classified authority public-key pin persistence as clear-text sensitive storage; source accepted arbitrary key-shaped objects before explicit validation",
+      "fix": "Persist SHA-256 fingerprint as pin; accept exact public-only P-256 key schema; reject private/extra fields; WebCrypto validates curve point; cache only allowlisted public metadata; migrate legacy public pins to digests",
+      "validation": "Two focused trust-storage tests plus complete real-browser acceptance rerun including first-use trust, profile import and offline reload",
+      "hostedRescan": "Pending; no suppression added"
     }
   ],
   "frontendUnitRegressionTests": {
-    "passed": 7,
+    "passed": 9,
     "failed": 0,
-    "command": "node --test apps/unit-client/challenge.test.mjs apps/unit-client/vault-store.test.mjs"
+    "command": "node --test apps/unit-client/trust.test.mjs apps/unit-client/challenge.test.mjs apps/unit-client/vault-store.test.mjs"
   },
   "fileExchangeEvidence": {
     "filename": "synthetic-evidence.txt",

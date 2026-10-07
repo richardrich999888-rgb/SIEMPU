@@ -1,15 +1,27 @@
 {
-  "status": "PASS",
-  "record": "Existing local artifacts/test-coverage.txt inspected during documentation update",
-  "tests": 57,
-  "passed": 57,
-  "failed": 0,
-  "authorityCoverage": {
-    "linesPercent": 93.77,
-    "branchesPercent": 89.27,
-    "functionsPercent": 92.59
+  "scope": "Native validation on source digest, not external assurance",
+  "completedAt": "2026-10-07T19:54:20.976Z",
+  "baseCommit": "596b74c4a31091b7312760ef4360bba7eb21dcac",
+  "sourceDigest": "33f380b76e86566594e2279e72a6c2f6c1e4216ea3b9cf4998548726b9d30492",
+  "tests": {
+    "total": 72,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0
   },
-  "outputSha256": "03ff3390ea169d061fa56ca286952b6cc5dec1cbfa8a2e273750719eb8ea8bf5",
-  "source": "npm run test:coverage / tests and package filters",
-  "limitation": "Historical local output, not proof that a later amended commit or hosted CI passed. Exact execution commit was not recorded in this output."
+  "demo": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "synthetic": true
+  },
+  "claimsAudit": {
+    "valid": true,
+    "mode": "EXECUTION_EVIDENCE_CHECKED",
+    "claims": 14,
+    "errors": [],
+    "trustBoundary": "Local records are not independent attestation; reviewer must trust the runner and inspect logs."
+  },
+  "command": "npm run validate -- --benchmark",
+  "record": "docs/testing/native-validation.json"
 }

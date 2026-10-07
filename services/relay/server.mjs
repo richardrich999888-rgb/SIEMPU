@@ -32,13 +32,9 @@ export function createRelayServer({
     db.prepare('SELECT 1').get();
     json(res, 200, { status: 'ok', service: 'blind-ciphertext-relay' });
   }
-  const publicRoutes = new Map([
-    ['GET /health', healthRoute],
-    ['GET /health/live', healthRoute],
-    ['GET /health/ready', healthRoute],
-  ]);
   // Authentication is an unconditional workload boundary. Route, Origin and
-  // content checks below cannot select an unauthenticated blob handler.
+  // content checks below cannot select an unauthenticated blob handler. The HMAC
+  // binds the original method, URL and complete bounded body.
   async function workloadRoute(req, res) {
     if (Number(req.headers['content-length'] || 0) > maxBytes) {
       json(res, 413, { error: 'BODY_LIMIT' });
@@ -135,8 +131,15 @@ export function createRelayServer({
   }
   const server = createServer(async (req, res) => {
     try {
-      const route = publicRoutes.get(`${req.method} ${req.url}`) ?? workloadRoute;
-      await route(req, res);
+      switch (`${req.method} ${req.url}`) {
+        case 'GET /health':
+        case 'GET /health/live':
+        case 'GET /health/ready':
+          healthRoute(req, res);
+          return;
+        default:
+          await workloadRoute(req, res);
+      }
     } catch {
       if (!res.headersSent) json(res, 503, { error: 'RELAY_UNAVAILABLE' });
       else res.destroy();

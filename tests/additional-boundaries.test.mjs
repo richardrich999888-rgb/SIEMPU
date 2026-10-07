@@ -1,7 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, openSync, fstatSync, closeSync, existsSync, writeFileSync } from 'node:fs';
-import { spawn } from 'node:child_process';
+import {
+  readFileSync,
+  openSync,
+  fstatSync,
+  closeSync,
+  existsSync,
+  writeFileSync,
+  symlinkSync,
+  ftruncateSync,
+} from 'node:fs';
+import { spawn, spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { coreFixture } from './helpers/fixture.mjs';
 import { ApiClient, createObject } from './helpers/client.mjs';
@@ -149,4 +159,135 @@ test('concurrent recovery writers reserve one output and rotate identity exactly
   const material = JSON.parse(readFileSync(output, 'utf8'));
   const recovered = new ApiClient(f.transport, { ...f.profiles.alice, ...material });
   await recovered.authenticate();
+});
+
+test('recovery refuses occupied/symlink/unwritable destinations before credential mutation', async (t) => {
+  const f = await coreFixture(t);
+  await f.clients.alice.authenticate();
+  const before = f.authority.get(
+    'SELECT password,totp,totp_floor FROM users WHERE username=?',
+    'alice',
+  );
+  const epoch = f.authority.epoch().epoch;
+  const existing = join(f.dir, 'occupied.json');
+  writeFileSync(existing, 'original-output', { mode: 0o600 });
+  const link = join(f.dir, 'linked-output.json');
+  symlinkSync(existing, link);
+  for (const output of [existing, link, join(f.dir, 'missing-parent', 'recovery.json')]) {
+    assert.throws(() => recoverIdentity(f.dir, 'alice', output));
+    assert.deepEqual(
+      f.authority.get('SELECT password,totp,totp_floor FROM users WHERE username=?', 'alice'),
+      before,
+    );
+    assert.equal(f.authority.epoch().epoch, epoch);
+    assert.equal((await f.clients.alice.request('GET', '/api/auth/me')).status, 200);
+  }
+  assert.equal(readFileSync(existing, 'utf8'), 'original-output');
+});
+
+test('verifier CLI rejects an oversized opened input before JSON parsing', async (t) => {
+  const f = await coreFixture(t);
+  const oversized = join(f.dir, 'oversized.json'),
+    trusted = join(f.dir, 'public-key.json');
+  const descriptor = openSync(oversized, 'wx', 0o600);
+  try {
+    ftruncateSync(descriptor, 64 * 1024 * 1024 + 1);
+  } finally {
+    closeSync(descriptor);
+  }
+  writeFileSync(trusted, JSON.stringify(f.provisioned.serverPublicKey));
+  const result = spawnSync(
+    process.execPath,
+    [fileURLToPath(new URL('../apps/verifier/verify.mjs', import.meta.url)), oversized, trusted],
+    { encoding: 'utf8' },
+  );
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /exceeds 64 MiB/);
+});
+
+test('SBOM purls encode every reserved package-name character without altering scope separators', async (t) => {
+  const f = await coreFixture(t);
+  writeFileSync(
+    join(f.dir, 'package.json'),
+    JSON.stringify({ name: 'synthetic', version: '1.0.0' }),
+  );
+  writeFileSync(
+    join(f.dir, 'package-lock.json'),
+    JSON.stringify({
+      packages: {
+        'node_modules/@scope/package': { name: '@scope/package', version: '1.2.3' },
+        'node_modules/untrusted': { name: '@scope/name@extra?#', version: '1.0.0+metadata' },
+      },
+    }),
+  );
+  const result = spawnSync(
+    process.execPath,
+    [fileURLToPath(new URL('../scripts/sbom.mjs', import.meta.url))],
+    { cwd: f.dir, encoding: 'utf8' },
+  );
+  assert.equal(result.status, 0, result.stderr);
+  const output = JSON.parse(readFileSync(join(f.dir, 'artifacts/application.cdx.json')));
+  assert.equal(
+    output.components.find((component) => component.name === '@scope/package').purl,
+    'pkg:npm/%40scope/package@1.2.3',
+  );
+  assert.equal(
+    output.components.find((component) => component.name === '@scope/name@extra?#').purl,
+    'pkg:npm/%40scope/name%40extra%3F%23@1.0.0%2Bmetadata',
+  );
+});
+
+test('recovery durability or evidence failure leaves credentials, sessions and epoch unchanged', async (t) => {
+  const f = await coreFixture(t);
+  await f.clients.alice.authenticate();
+  const before = f.authority.get('SELECT * FROM users WHERE id=?', f.profiles.alice.userId);
+  const epoch = f.authority.epoch().epoch;
+  const recoveryModule = new URL('../scripts/recover-identity.mjs', import.meta.url).href;
+  const authorityModule = new URL('../services/control/core.mjs', import.meta.url).href;
+  for (const failure of ['file-fsync', 'directory-fsync', 'evidence']) {
+    const output = join(f.dir, `${failure}-recovery.json`);
+    const result = spawnSync(
+      process.execPath,
+      [
+        '--input-type=module',
+        '-e',
+        `
+        import fs from 'node:fs';
+        import { syncBuiltinESMExports } from 'node:module';
+        import { Authority } from ${JSON.stringify(authorityModule)};
+        const failure = process.argv[3];
+        const originalFsync = fs.fsyncSync;
+        fs.fsyncSync = (descriptor) => {
+          const directory = fs.fstatSync(descriptor).isDirectory();
+          if ((failure === 'file-fsync' && !directory) ||
+              (failure === 'directory-fsync' && directory)) {
+            throw new Error('Injected recovery durability failure');
+          }
+          return originalFsync(descriptor);
+        };
+        syncBuiltinESMExports();
+        if (failure === 'evidence') Authority.prototype.event = () => {
+          throw new Error('Injected recovery evidence failure');
+        };
+        const { recoverIdentity } = await import(${JSON.stringify(recoveryModule)});
+        try { recoverIdentity(process.argv[1], 'alice', process.argv[2]); }
+        catch (error) { process.stderr.write(error.message); process.exit(1); }
+      `,
+        f.dir,
+        output,
+        failure,
+      ],
+      { encoding: 'utf8', timeout: 10000 },
+    );
+    assert.equal(result.status, 1, result.stderr);
+    assert.match(result.stderr, /Injected recovery (durability|evidence) failure/);
+    assert.equal(existsSync(output), false, failure);
+    assert.deepEqual(
+      f.authority.get('SELECT * FROM users WHERE id=?', f.profiles.alice.userId),
+      before,
+      failure,
+    );
+    assert.equal(f.authority.epoch().epoch, epoch, failure);
+    assert.equal((await f.clients.alice.request('GET', '/api/auth/me')).status, 200, failure);
+  }
 });

@@ -1,5 +1,5 @@
 /* Public app-shell assets only. Never cache API responses, credentials or user data. */
-const CACHE = 'siepmu-public-shell-v3';
+const CACHE = 'siepmu-public-shell-v4';
 const ASSETS = [
   '/',
   '/apps/unit-client/index.html',
@@ -8,6 +8,7 @@ const ASSETS = [
   '/apps/unit-client/styles.css',
   '/apps/unit-client/vault-store.mjs',
   '/apps/unit-client/challenge.mjs',
+  '/apps/unit-client/trust.mjs',
   '/apps/unit-client/authority-pin.mjs',
   '/apps/admin-console/admin.mjs',
   '/apps/admin-console/admin.css',

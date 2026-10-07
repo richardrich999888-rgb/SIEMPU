@@ -1,6 +1,6 @@
 {
   "status": "MEASURED",
-  "timestamp": "2026-10-07T19:54:20.774Z",
+  "timestamp": "2026-10-07T19:22:37.734Z",
   "environment": {
     "node": "v24.19.0",
     "platform": "linux",
@@ -19,64 +19,64 @@
     "loginAndDeviceBind": {
       "samples": 2,
       "percentileMethod": "nearest-rank",
-      "minMs": 111.15202899999986,
-      "p50Ms": 111.15202899999986,
-      "p95Ms": 318.0754699999999,
-      "maxMs": 318.0754699999999
+      "minMs": 98.35535600000003,
+      "p50Ms": 98.35535600000003,
+      "p95Ms": 152.94077199999992,
+      "maxMs": 152.94077199999992
     },
     "encrypt": {
       "samples": 30,
       "percentileMethod": "nearest-rank",
-      "minMs": 0.7750760000003538,
-      "p50Ms": 1.2185989999998128,
-      "p95Ms": 5.709173999999621,
-      "maxMs": 10.227281000000403
+      "minMs": 0.7260779999996885,
+      "p50Ms": 1.1448490000002494,
+      "p95Ms": 5.676445999999942,
+      "maxMs": 13.094084000000066
     },
     "submit": {
       "samples": 30,
       "percentileMethod": "nearest-rank",
-      "minMs": 18.365499,
-      "p50Ms": 31.686345999999958,
-      "p95Ms": 127.99874699999964,
-      "maxMs": 172.1227689999996
+      "minMs": 17.1071579999998,
+      "p50Ms": 25.199270999999953,
+      "p95Ms": 41.265488000000005,
+      "maxMs": 70.98058900000001
     },
     "prepare": {
       "samples": 30,
       "percentileMethod": "nearest-rank",
-      "minMs": 9.716958999999406,
-      "p50Ms": 17.10662000000002,
-      "p95Ms": 50.60448499999984,
-      "maxMs": 149.48969699999998
+      "minMs": 11.399461999999858,
+      "p50Ms": 17.88932900000009,
+      "p95Ms": 29.046021999999994,
+      "maxMs": 31.70910300000014
     },
     "claim": {
       "samples": 30,
       "percentileMethod": "nearest-rank",
-      "minMs": 13.449965999999677,
-      "p50Ms": 22.030557999999928,
-      "p95Ms": 31.719763000000057,
-      "maxMs": 37.41766800000005
+      "minMs": 15.118867000000137,
+      "p50Ms": 23.316807000000153,
+      "p95Ms": 35.60228499999994,
+      "maxMs": 50.265681000000086
     },
     "decrypt": {
       "samples": 30,
       "percentileMethod": "nearest-rank",
-      "minMs": 0.7818059999999605,
-      "p50Ms": 1.0969569999997475,
-      "p95Ms": 4.287524999999732,
-      "maxMs": 8.593415999999934
+      "minMs": 0.7121629999996912,
+      "p50Ms": 1.2812260000000606,
+      "p95Ms": 3.4825009999999565,
+      "maxMs": 4.352917999999818
     }
   },
-  "elapsedMs": 3041.8629060000003,
-  "achievedObjectsPerSecond": 9.86237740722165,
+  "elapsedMs": 2457.737908,
+  "achievedObjectsPerSecond": 12.206346291990384,
   "clientCpuMicroseconds": {
-    "user": 737390,
-    "system": 89442
+    "user": 646021,
+    "system": 76475
   },
   "clientMemory": {
-    "rss": 126423040,
-    "heapTotal": 31236096,
-    "heapUsed": 17057192,
-    "external": 5192832,
-    "arrayBuffers": 1199830
+    "rss": 124657664,
+    "heapTotal": 31498240,
+    "heapUsed": 15817200,
+    "external": 5191071,
+    "arrayBuffers": 1198005
   },
   "notMeasured": [
     "Server CPU/RAM separately",

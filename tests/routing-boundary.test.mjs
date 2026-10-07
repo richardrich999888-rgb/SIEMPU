@@ -20,11 +20,9 @@ test('only exact public method/path pairs bypass the protected authority handler
   for (const path of ['/api/auth/login/', '/api/auth/login/extra', '/api/objects']) {
     assert.equal((await f.transport('POST', path, {})).status, 401);
   }
-  // Entering the protected handler directly cannot select a public route.
-  await assert.rejects(
-    f.authority.dispatchAuthenticated('POST', '/api/auth/login', {}, undefined),
-    (error) => error.status === 401 && error.code === 'UNAUTHENTICATED',
-  );
+  // Protected dispatch is an internal capability, absent from the public object.
+  assert.equal(typeof f.authority.dispatchAuthenticated, 'undefined');
+  assert.equal(typeof f.authority.authenticatedDispatch, 'undefined');
   assert.equal(f.authority.get('SELECT count(*) n FROM sessions').n, 0);
 });
 

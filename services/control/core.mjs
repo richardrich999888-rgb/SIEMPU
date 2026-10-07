@@ -47,13 +47,14 @@ const uuid = (v) =>
   typeof v === 'string' &&
   /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(v);
 const parse = (v) => JSON.parse(v);
-// These exact public routes are separate from the protected handler. No request
-// field can turn off authentication inside dispatchAuthenticated().
-const healthRoute = (authority) => {
+
+// Public capabilities are explicitly dispatched and cannot select protected
+// handlers. Login itself always checks password and MFA before issuing a session.
+const publicHealth = (authority) => {
   authority.get('SELECT 1');
   return { status: 200, body: { status: 'ok', service: 'control', version: '0.1.0' } };
 };
-const metadataRoute = (authority) => ({
+const publicMetadata = (authority) => ({
   status: 200,
   body: {
     version: '0.1.0',
@@ -64,9 +65,9 @@ const metadataRoute = (authority) => ({
     securityProfile: 'PROTOTYPE / software device keys / no SAG approval',
   },
 });
-const loginRoute = (authority, request) => ({
+const publicLogin = (authority, body, context) => ({
   status: 200,
-  body: authority.login(request.body, request.context.ip ?? 'local'),
+  body: authority.login(body, context.ip ?? 'local'),
 });
 export class Authority {
   constructor({ dbPath, signingKey, masterKey, hooks = {}, relay }) {
@@ -779,22 +780,24 @@ export class Authority {
     };
   }
   async dispatch(method, path, b = {}, token, context = { ip: 'local' }) {
-    // Fixed call targets make the public allowlist explicit. Request strings
-    // never become a method name or a callable; the default always authenticates.
+    // Exact static routing only: request values never become a callable or a
+    // property name. All remaining routes enter the mandatory session gate.
     switch (`${method} ${path}`) {
       case 'GET /health':
       case 'GET /live':
       case 'GET /ready':
-        return healthRoute(this);
+        return publicHealth(this);
       case 'GET /api/meta':
-        return metadataRoute(this);
+        return publicMetadata(this);
       case 'POST /api/auth/login':
-        return loginRoute(this, { body: b, context });
+        return publicLogin(this, b, context);
       default:
-        return this.dispatchAuthenticated(method, path, b, token);
+        return this.#authenticatedDispatch(method, path, b, token);
     }
   }
-  async dispatchAuthenticated(method, path, b, token) {
+  async #authenticatedDispatch(method, path, b, token) {
+    // This is the only entry into protected route dispatch. Authentication is
+    // unconditional here and cannot be skipped by a method or path supplied by a client.
     let s = this.authenticate(token);
     this.rate('session:' + s.id, 500);
     let value;

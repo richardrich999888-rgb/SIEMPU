@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "kind": "native-validation",
+  "startedAt": "2026-10-07T20:19:35.071Z",
+  "gitCommit": "f6d75cf6b105319ca0d6942b2bbc196750a0b230",
+  "workingTreeStatus": " M .github/workflows/quality.yml\n M Dockerfile\n M scripts/build.mjs\n M scripts/sarif-gate.mjs\n M scripts/sarif-gate.test.mjs\n?? scripts/container-acceptance.mjs\n",
+  "sourceDigest": "7f91f29182724ca4025da6a7e55995be47fce58081820cbea62cdd7d86705717",
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "externalObservations": {
+    "container": "NOT_OBSERVED",
+    "hostedSast": "NOT_OBSERVED",
+    "browser": "NOT_OBSERVED"
+  },
+  "gates": [
+    {
+      "name": "check",
+      "command": ["npm", "run", "check"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T20:19:35.154Z",
+      "finishedAt": "2026-10-07T20:19:41.474Z",
+      "log": "artifacts/validation/check.log"
+    },
+    {
+      "name": "lint",
+      "command": ["npm", "run", "lint"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T20:19:41.474Z",
+      "finishedAt": "2026-10-07T20:19:43.192Z",
+      "log": "artifacts/validation/lint.log"
+    },
+    {
+      "name": "typecheck",
+      "command": ["npm", "run", "typecheck"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T20:19:43.193Z",
+      "finishedAt": "2026-10-07T20:19:45.206Z",
+      "log": "artifacts/validation/typecheck.log"
+    },
+    {
+      "name": "format:check",
+      "command": ["npm", "run", "format:check"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T20:19:45.206Z",
+      "finishedAt": "2026-10-07T20:19:49.196Z",
+      "log": "artifacts/validation/format-check.log"
+    },
+    {
+      "name": "test:coverage",
+      "command": ["npm", "run", "test:coverage"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T20:19:49.197Z",
+      "finishedAt": "2026-10-07T20:20:24.994Z",
+      "log": "artifacts/validation/test-coverage.log"
+    },
+    {
+      "name": "security",
+      "command": ["npm", "run", "security"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T20:20:24.995Z",
+      "finishedAt": "2026-10-07T20:20:25.481Z",
+      "log": "artifacts/validation/security.log"
+    },
+    {
+      "name": "dependency-audit",
+      "command": ["npm", "audit", "--audit-level=high"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T20:20:25.481Z",
+      "finishedAt": "2026-10-07T20:20:39.484Z",
+      "log": "artifacts/validation/dependency-audit.log"
+    },
+    {
+      "name": "build",
+      "command": ["npm", "run", "build"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T20:20:39.484Z",
+      "finishedAt": "2026-10-07T20:20:39.920Z",
+      "log": "artifacts/validation/build.log"
+    },
+    {
+      "name": "sbom",
+      "command": ["npm", "run", "sbom"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T20:20:39.921Z",
+      "finishedAt": "2026-10-07T20:20:40.222Z",
+      "log": "artifacts/validation/sbom.log"
+    },
+    {
+      "name": "demo",
+      "command": ["npm", "run", "demo"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T20:20:40.222Z",
+      "finishedAt": "2026-10-07T20:20:42.307Z",
+      "log": "artifacts/validation/demo.log"
+    }
+  ],
+  "tests": {
+    "total": 78,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "demo": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "synthetic": true
+  },
+  "sourceDigestAfter": "7f91f29182724ca4025da6a7e55995be47fce58081820cbea62cdd7d86705717",
+  "finishedAt": "2026-10-07T20:20:42.347Z",
+  "outcome": "PASS",
+  "claimsAudit": {
+    "valid": true,
+    "mode": "EXECUTION_EVIDENCE_CHECKED",
+    "claims": 14,
+    "errors": [],
+    "trustBoundary": "Local records are not independent attestation; reviewer must trust the runner and inspect logs."
+  }
+}

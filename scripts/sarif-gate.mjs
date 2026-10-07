@@ -2,67 +2,105 @@ import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-// SARIF 2.1.0 permits query-pack rules in tool.extensions. Their indices are local
-// to the referenced component, not indices into tool.driver.rules.
+const object = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
+const present = (value, key) => Object.hasOwn(value, key);
+const indexValue = (value) => Number.isSafeInteger(value) && value >= 0;
+const identifier = (value) => typeof value === 'string' && value.length > 0;
+
+// SARIF 2.1.0 sections 3.27.7, 3.52 and 3.54: component indexes address
+// tool.extensions, whereas rule indexes address that selected component's rules.
+// https://docs.oasis-open.org/sarif/sarif/v2.1.0/os/sarif-v2.1.0-os.html
 function resolveRule(run, result) {
-  const reference = result.rule;
+  if (!object(result) || (present(result, 'rule') && !object(result.rule)))
+    throw new Error('Invalid SARIF rule reference');
+  const reference = result.rule ?? {};
+  const componentReference = reference.toolComponent ?? {};
   if (
-    reference !== undefined &&
-    (!reference || typeof reference !== 'object' || Array.isArray(reference))
+    !object(componentReference) ||
+    (present(reference, 'toolComponent') && reference.toolComponent === null)
   )
-    throw new Error('Invalid rule reference');
+    throw new Error('Invalid SARIF component reference');
   const extensions = run.tool.extensions ?? [];
-  const componentReference = reference?.toolComponent;
   let component = run.tool.driver;
-  if (componentReference !== undefined) {
-    if (
-      !componentReference ||
-      typeof componentReference !== 'object' ||
-      Array.isArray(componentReference)
-    )
-      throw new Error('Invalid tool component reference');
-    if (componentReference.index !== undefined) {
-      if (!Number.isInteger(componentReference.index) || componentReference.index < 0)
-        throw new Error('Invalid tool component index');
-      component = extensions[componentReference.index];
-    } else {
-      if (componentReference.name === undefined && componentReference.guid === undefined)
-        throw new Error('Empty tool component reference');
-      const matches = [run.tool.driver, ...extensions].filter(
-        (candidate) =>
-          (componentReference.name === undefined || candidate.name === componentReference.name) &&
-          (componentReference.guid === undefined || candidate.guid === componentReference.guid),
-      );
-      if (matches.length !== 1) throw new Error('Ambiguous tool component reference');
-      [component] = matches;
-    }
-    if (
-      !component ||
-      (componentReference.name !== undefined && component.name !== componentReference.name) ||
-      (componentReference.guid !== undefined && component.guid !== componentReference.guid)
-    )
-      throw new Error('Unresolved or conflicting tool component reference');
+  if (present(componentReference, 'index')) {
+    if (!indexValue(componentReference.index)) throw new Error('Invalid component index');
+    component = extensions[componentReference.index];
   }
-  const rules = component.rules ?? [];
-  if (!Array.isArray(rules)) throw new Error('Invalid component rules');
-  const indices = [reference?.index, result.ruleIndex].filter((value) => value !== undefined);
-  if (indices.some((value) => !Number.isInteger(value) || value < 0) || new Set(indices).size > 1)
-    throw new Error('Invalid or conflicting rule indices');
-  const ids = [reference?.id, result.ruleId].filter((value) => value !== undefined);
-  if (ids.some((value) => typeof value !== 'string' || !value) || new Set(ids).size > 1)
-    throw new Error('Invalid or conflicting rule identifiers');
-  let matches = indices.length
-    ? [rules[indices[0]]].filter(Boolean)
-    : rules.filter((rule) => rule.id === ids[0]);
-  if (reference?.guid !== undefined)
-    matches = matches.filter((rule) => rule.guid === reference.guid);
+  if (present(componentReference, 'guid')) {
+    if (!identifier(componentReference.guid)) throw new Error('Invalid component GUID');
+    const matches = [run.tool.driver, ...extensions].filter(
+      (candidate) => candidate.guid === componentReference.guid,
+    );
+    if (matches.length !== 1 || (present(componentReference, 'index') && matches[0] !== component))
+      throw new Error('Component reference is missing, conflicting or ambiguous');
+    component = matches[0];
+  }
   if (
-    matches.length !== 1 ||
-    typeof matches[0].id !== 'string' ||
-    (ids.length && matches[0].id !== ids[0])
+    !object(component) ||
+    !identifier(component.name) ||
+    (component.rules !== undefined && !Array.isArray(component.rules))
   )
+    throw new Error('Unresolved SARIF tool component');
+  if (present(componentReference, 'name') && componentReference.name !== component.name)
+    throw new Error('Conflicting component name');
+  for (const [flat, nested] of [
+    ['ruleIndex', 'index'],
+    ['ruleId', 'id'],
+  ]) {
+    if (present(result, flat) && present(reference, nested) && result[flat] !== reference[nested])
+      throw new Error('Conflicting result and nested rule reference');
+  }
+  const ruleIndex = present(reference, 'index') ? reference.index : result.ruleIndex;
+  const ruleId = present(reference, 'id') ? reference.id : result.ruleId;
+  const rules = component.rules ?? [];
+  let rule;
+  if (ruleIndex !== undefined) {
+    if (!indexValue(ruleIndex)) throw new Error('Invalid rule index');
+    rule = rules[ruleIndex];
+  }
+  if (present(reference, 'guid')) {
+    if (!identifier(reference.guid)) throw new Error('Invalid rule GUID');
+    const matches = rules.filter((candidate) => candidate.guid === reference.guid);
+    if (matches.length !== 1 || (ruleIndex !== undefined && matches[0] !== rule))
+      throw new Error('Rule GUID reference is missing, conflicting or ambiguous');
+    rule = matches[0];
+  }
+  // Metadata-bearing SARIF references require index or GUID. Never guess a
+  // same-named rule in another component or silently use the first duplicate.
+  if (!object(rule) || !identifier(rule.id))
     throw new Error('Finding does not resolve to an unambiguous rule');
-  return matches[0];
+  if (ruleId !== undefined) {
+    const suffix =
+      typeof ruleId === 'string' && ruleId.startsWith(rule.id + '/')
+        ? ruleId.slice(rule.id.length + 1)
+        : null;
+    if (!identifier(ruleId) || (ruleId !== rule.id && (!suffix || suffix.includes('/'))))
+      throw new Error('Rule identifier does not match selected descriptor');
+  }
+  return { rule, component };
+}
+
+function resultLocations(run, result) {
+  if (result.locations !== undefined && !Array.isArray(result.locations))
+    throw new Error('Invalid result locations');
+  return (result.locations ?? []).map((location) => {
+    const physical = location.physicalLocation ?? {};
+    const artifact = physical.artifactLocation ?? {};
+    let uri = artifact.uri;
+    if (artifact.index !== undefined) {
+      if (!indexValue(artifact.index) || !run.artifacts?.[artifact.index])
+        throw new Error('Unresolved artifact location index');
+      const indexedUri = run.artifacts[artifact.index].location?.uri;
+      if (uri !== undefined && indexedUri !== undefined && uri !== indexedUri)
+        throw new Error('Conflicting artifact locations');
+      uri ??= indexedUri;
+    }
+    if (uri !== undefined && !identifier(uri)) throw new Error('Invalid artifact URI');
+    const line = physical.region?.startLine;
+    if (line !== undefined && (!Number.isSafeInteger(line) || line < 1))
+      throw new Error('Invalid source line');
+    return { path: uri ?? null, line: line ?? null };
+  });
 }
 
 /** Reject high/critical or ungraded error/security findings. Suppressions do not waive this gate. */
@@ -75,15 +113,29 @@ export function evaluateSarif(document) {
     if (
       run.tool?.driver?.name !== 'CodeQL' ||
       (run.tool.driver.rules !== undefined && !Array.isArray(run.tool.driver.rules)) ||
-      (run.tool.extensions !== undefined && !Array.isArray(run.tool.extensions)) ||
+      (run.tool.extensions !== undefined &&
+        (!Array.isArray(run.tool.extensions) ||
+          run.tool.extensions.some((component) => !object(component)))) ||
       !Array.isArray(run.results)
     )
       throw new Error('Invalid CodeQL SARIF structure');
+    if (
+      run.invocations !== undefined &&
+      (!Array.isArray(run.invocations) ||
+        run.invocations.some(
+          (invocation) =>
+            !object(invocation) ||
+            (invocation.executionSuccessful !== undefined &&
+              typeof invocation.executionSuccessful !== 'boolean'),
+        ))
+    )
+      throw new Error('Invalid SARIF invocations');
     if (run.invocations?.some((invocation) => invocation.executionSuccessful === false))
       throw new Error('CodeQL reported an unsuccessful invocation');
     for (const result of run.results) {
       if (['pass', 'notApplicable'].includes(result.kind)) continue;
-      const rule = resolveRule(run, result);
+      const { rule, component } = resolveRule(run, result);
+      const locations = resultLocations(run, result);
       const rawScore = rule.properties?.['security-severity'];
       if (
         rawScore !== undefined &&
@@ -94,7 +146,15 @@ export function evaluateSarif(document) {
       const score = rawScore === undefined ? null : Number(rawScore);
       if (score !== null && (!Number.isFinite(score) || score < 0 || score > 10))
         throw new Error('Invalid security severity');
-      const level = result.level || rule.defaultConfiguration?.level || 'warning';
+      const level = result.level ?? rule.defaultConfiguration?.level ?? 'warning';
+      if (!['none', 'note', 'warning', 'error'].includes(level))
+        throw new Error('Invalid result severity level');
+      if (
+        rule.properties?.tags !== undefined &&
+        (!Array.isArray(rule.properties.tags) ||
+          rule.properties.tags.some((tag) => typeof tag !== 'string'))
+      )
+        throw new Error('Invalid rule tags');
       const securityTagged = rule.properties?.tags?.includes('security') === true;
       findings++;
       if (
@@ -104,6 +164,10 @@ export function evaluateSarif(document) {
       ) {
         blocked.push({
           ruleId: rule.id,
+          toolComponent: component.name,
+          path: locations[0]?.path ?? null,
+          line: locations[0]?.line ?? null,
+          locations,
           securitySeverity: score,
           level,
           reason:

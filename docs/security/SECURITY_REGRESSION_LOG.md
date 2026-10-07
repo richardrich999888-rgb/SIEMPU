@@ -23,6 +23,10 @@ These are internal engineering findings, not an independent penetration-test rep
 
 ## Remaining risks
 
+The hosted image scan found inherited OS and bundled package-manager vulnerabilities. The runtime was changed to a pinned official Node Alpine image and unused package managers removed, without vulnerability suppression. A synthetic container acceptance script exercises the actual image's crypto, SQLite-backed release, policy denial and detached evidence verification. The final Trivy result is a separate required gate.
+
+The initial SARIF parser rejected CodeQL query-pack rule references before it could grade findings. The parser now resolves `tool.extensions` and nested component/rule references under SARIF 2.1, rejects ambiguous references, and reports blocked source locations. Targeted fixtures preserve the existing high/critical, error-level and ungraded-security blocking policy. This parser correction does not itself establish a clean application scan.
+
 - Compromised endpoint/client distribution can expose plaintext and private keys.
 - Software keys are not attested hardware. Recipient static keys do not provide forward secrecy.
 - The trusted authority can release wrapped keys maliciously; root-key compromise can forge evidence.

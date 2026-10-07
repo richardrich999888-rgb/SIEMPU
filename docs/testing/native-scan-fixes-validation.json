@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "kind": "native-validation",
+  "startedAt": "2026-10-07T20:31:09.577Z",
+  "gitCommit": "7120ae8fceb96ec27c94c96bd2fafd6423484af3",
+  "workingTreeStatus": " M .github/workflows/quality.yml\n M Dockerfile\n M apps/unit-client/README.md\n M apps/unit-client/app.mjs\n M apps/unit-client/sw.js\n M apps/verifier/verify.mjs\n M docs/DELIVERY_REPORT.md\n M docs/IMPLEMENTATION_STATUS.md\n M docs/ci-cd.md\n M docs/hpsc/evidence-index.md\n M docs/limitations.md\n M docs/performance.md\n M docs/testing.md\n M docs/testing/browser-validation.md\n M scripts/recover-identity.mjs\n M scripts/sbom.mjs\n M services/control/core.mjs\n M services/relay/server.mjs\n M services/web/server.mjs\n M tests/additional-boundaries.test.mjs\n?? apps/unit-client/trust.mjs\n?? apps/unit-client/trust.test.mjs\n?? docs/security/HOSTED_SCAN_REVIEW.md\n?? docs/security/codeql-review-input.json\n?? docs/testing/browser-results-trust-pin.json\n?? services/web/destination.test.mjs\n?? tests/auth-routing.test.mjs\n",
+  "sourceDigest": "77641e381c4cdb5368e1ac2ac1a25dba50c063f42578a54abe3284f2120be965",
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "externalObservations": {
+    "container": "NOT_OBSERVED",
+    "hostedSast": "NOT_OBSERVED",
+    "browser": "NOT_OBSERVED"
+  },
+  "gates": [
+    {
+      "name": "check",
+      "command": ["npm", "run", "check"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T20:31:09.646Z",
+      "finishedAt": "2026-10-07T20:31:16.263Z",
+      "log": "artifacts/validation/check.log"
+    },
+    {
+      "name": "lint",
+      "command": ["npm", "run", "lint"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T20:31:16.264Z",
+      "finishedAt": "2026-10-07T20:31:17.777Z",
+      "log": "artifacts/validation/lint.log"
+    },
+    {
+      "name": "typecheck",
+      "command": ["npm", "run", "typecheck"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T20:31:17.777Z",
+      "finishedAt": "2026-10-07T20:31:19.798Z",
+      "log": "artifacts/validation/typecheck.log"
+    },
+    {
+      "name": "format:check",
+      "command": ["npm", "run", "format:check"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T20:31:19.798Z",
+      "finishedAt": "2026-10-07T20:31:24.208Z",
+      "log": "artifacts/validation/format-check.log"
+    },
+    {
+      "name": "test:coverage",
+      "command": ["npm", "run", "test:coverage"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T20:31:24.208Z",
+      "finishedAt": "2026-10-07T20:32:01.209Z",
+      "log": "artifacts/validation/test-coverage.log"
+    },
+    {
+      "name": "security",
+      "command": ["npm", "run", "security"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T20:32:01.210Z",
+      "finishedAt": "2026-10-07T20:32:01.621Z",
+      "log": "artifacts/validation/security.log"
+    },
+    {
+      "name": "dependency-audit",
+      "command": ["npm", "audit", "--audit-level=high"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T20:32:01.621Z",
+      "finishedAt": "2026-10-07T20:32:10.606Z",
+      "log": "artifacts/validation/dependency-audit.log"
+    },
+    {
+      "name": "build",
+      "command": ["npm", "run", "build"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T20:32:10.606Z",
+      "finishedAt": "2026-10-07T20:32:10.964Z",
+      "log": "artifacts/validation/build.log"
+    },
+    {
+      "name": "sbom",
+      "command": ["npm", "run", "sbom"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T20:32:10.964Z",
+      "finishedAt": "2026-10-07T20:32:11.262Z",
+      "log": "artifacts/validation/sbom.log"
+    },
+    {
+      "name": "demo",
+      "command": ["npm", "run", "demo"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-10-07T20:32:11.262Z",
+      "finishedAt": "2026-10-07T20:32:13.340Z",
+      "log": "artifacts/validation/demo.log"
+    }
+  ],
+  "tests": {
+    "total": 87,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "demo": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "synthetic": true
+  },
+  "sourceDigestAfter": "77641e381c4cdb5368e1ac2ac1a25dba50c063f42578a54abe3284f2120be965",
+  "finishedAt": "2026-10-07T20:32:13.378Z",
+  "outcome": "PASS",
+  "claimsAudit": {
+    "valid": true,
+    "mode": "EXECUTION_EVIDENCE_CHECKED",
+    "claims": 14,
+    "errors": [],
+    "trustBoundary": "Local records are not independent attestation; reviewer must trust the runner and inspect logs."
+  }
+}

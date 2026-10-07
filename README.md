@@ -2,6 +2,8 @@
 
 A working, synthetic-data prototype for secure inter-unit information exchange over an untrusted network. The repository slug is `SIEMPU`; the official challenge acronym is **SIEPMU**.
 
+The [execution checklist](docs/EXECUTION_CHECKLIST.md) maps both implementation briefs to code, evidence and remaining work. The [earlier delivery report](docs/DELIVERY_REPORT.md) records the separately delivered main baseline; [implementation status](docs/IMPLEMENTATION_STATUS.md) records the integrated candidate.
+
 **Status: PROTOTYPE with measured engineering tests.** This is not IAF approved, SAG graded, operationally accredited, externally penetration tested, or a patentability claim. See [implementation status](docs/IMPLEMENTATION_STATUS.md), [limitations](docs/limitations.md) and [claims](docs/claims.md).
 
 The central experiment is **policy-epoch-bound release**: ciphertext can be queued or relayed, but recipient-wrapped key material stays behind an authority check. A transaction revalidates current users, devices, roles, mission membership, destination policy, grant expiry and epoch, then commits one signed issuance and its evidence. Revocation committed first blocks release. An issuance committed first may already be usable and cannot be recalled.

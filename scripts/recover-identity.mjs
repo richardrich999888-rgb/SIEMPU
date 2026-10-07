@@ -8,6 +8,7 @@ import { base32, passwordHash, seal } from '../services/control/primitives.mjs';
 export function recoverIdentity(dir, username, output) {
   let outputFd;
   try {
+    // O_EXCL rejects occupied files and symlinks without a check-then-open race.
     outputFd = openSync(output, 'wx', 0o600);
   } catch (error) {
     if (error.code === 'EEXIST') throw new Error('Recovery output must be a new private file');
@@ -44,6 +45,8 @@ export function recoverIdentity(dir, username, output) {
     );
     fsyncSync(outputFd);
     // Persist the new filename before activating credentials that depend on it.
+    // Directory fsync must be supported; a durability failure stays fail-closed
+    // before the credential transaction and removes the inactive output below.
     const outputDirectoryFd = openSync(dirname(resolve(output)), 'r');
     try {
       fsyncSync(outputDirectoryFd);

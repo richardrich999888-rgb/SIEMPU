@@ -17,7 +17,12 @@ import { element as el, field, button, badge, hint, panel, download, safeName } 
 import { renderAdmin } from '/apps/admin-console/admin.mjs';
 import { commitEncryptedVaultLocked } from './vault-store.mjs';
 import { validateDeviceChallenge, validateReleaseScope } from './challenge.mjs';
-import { authorityPublicJwk } from './authority-pin.mjs';
+import {
+  publicAuthorityKey,
+  authorityFingerprint,
+  publicMetadata,
+  readAuthorityPin,
+} from './trust.mjs';
 
 const VAULT_PREFIX = 'siepmu.vault.v1.';
 const PIN_KEY = 'siepmu.authority.pin.v1';
@@ -25,6 +30,7 @@ const META_KEY = 'siepmu.public-meta.v1';
 const state = {
   meta: null,
   pin: null,
+  pinFingerprint: null,
   token: null,
   user: null,
   device: null,
@@ -107,7 +113,7 @@ async function api(path, method = 'GET', body) {
   return result;
 }
 function requirePin() {
-  if (!state.pin || !state.meta || canonical(state.pin) !== canonical(state.meta.serverPublicKey))
+  if (!state.pin || !state.meta || state.pinFingerprint !== state.meta.serverKeyId)
     throw new Error(
       'The authority signing key is not trusted. Import a trusted profile or confirm its fingerprint first.',
     );
@@ -283,7 +289,7 @@ async function render() {
     );
     return;
   }
-  if (!state.pin || canonical(state.pin) !== canonical(state.meta.serverPublicKey)) {
+  if (!state.pin || state.pinFingerprint !== state.meta.serverKeyId) {
     renderTrust();
     return;
   }
@@ -317,7 +323,7 @@ async function render() {
   else renderExchange();
 }
 function renderTrust() {
-  const mismatch = Boolean(state.pin);
+  const mismatch = Boolean(state.pinFingerprint);
   const fingerprint = el(
     'p',
     { className: 'fingerprint' },
@@ -343,8 +349,9 @@ function renderTrust() {
           ? 'Accept independently verified replacement'
           : 'Trust independently verified authority',
         action(async () => {
-          state.pin = authorityPublicJwk(state.meta.serverPublicKey);
-          localStorage.setItem(PIN_KEY, JSON.stringify(state.pin));
+          state.pin = state.meta.serverPublicKey;
+          state.pinFingerprint = await authorityFingerprint(state.pin);
+          localStorage.setItem(PIN_KEY, JSON.stringify(state.pinFingerprint));
           notify('Authority public key pinned on this browser.');
           await render();
         }),
@@ -369,7 +376,7 @@ function importPanel() {
     placeholder: 'At least 12 characters',
   });
   let profiles;
-  let provisionedAuthorityPublicJwk;
+  let trustedKey;
   input.addEventListener(
     'change',
     action(async () => {
@@ -379,7 +386,7 @@ function importPanel() {
       if (!Array.isArray(data.profiles) || !data.serverPublicKey)
         throw new Error('Expected a generated demo-profiles.json provisioning file.');
       profiles = data.profiles;
-      provisionedAuthorityPublicJwk = authorityPublicJwk(data.serverPublicKey);
+      trustedKey = await publicAuthorityKey(data.serverPublicKey);
       choices.replaceChildren(
         ...profiles.map((p, i) => el('option', { value: String(i) }, p.username)),
       );
@@ -414,10 +421,7 @@ function importPanel() {
             throw new Error('The selected profile has no complete device key pair.');
           if (pass.value.length < 12)
             throw new Error('Use a vault passphrase of at least 12 characters.');
-          if (
-            state.meta &&
-            canonical(provisionedAuthorityPublicJwk) !== canonical(state.meta.serverPublicKey)
-          )
+          if (state.meta && canonical(trustedKey) !== canonical(state.meta.serverPublicKey))
             throw new Error('Provisioned authority key does not match this server.');
           if (state.token && state.user.username !== p.username)
             throw new Error('Sign out before importing a different user’s profile.');
@@ -426,8 +430,9 @@ function importPanel() {
             throw new Error(
               'A vault already exists for this username. Unlock or explicitly remove it before importing again.',
             );
-          state.pin = provisionedAuthorityPublicJwk;
-          localStorage.setItem(PIN_KEY, JSON.stringify(provisionedAuthorityPublicJwk));
+          state.pin = trustedKey;
+          state.pinFingerprint = await authorityFingerprint(trustedKey);
+          localStorage.setItem(PIN_KEY, JSON.stringify(state.pinFingerprint));
           state.passphrase = pass.value;
           state.vaultStored = null;
           state.vault = {
@@ -441,7 +446,7 @@ function importPanel() {
           };
           await persist();
           profiles = null;
-          provisionedAuthorityPublicJwk = null;
+          trustedKey = null;
           input.value = '';
           pass.value = '';
           notify(
@@ -1301,20 +1306,45 @@ async function logout() {
 }
 async function initialize() {
   try {
-    state.pin = authorityPublicJwk(JSON.parse(localStorage.getItem(PIN_KEY) || 'null'));
+    state.pinFingerprint = await readAuthorityPin(
+      JSON.parse(localStorage.getItem(PIN_KEY) || 'null'),
+    );
+    if (state.pinFingerprint) localStorage.setItem(PIN_KEY, JSON.stringify(state.pinFingerprint));
   } catch {
-    state.pin = null;
+    state.pinFingerprint = null;
+    try {
+      localStorage.removeItem(PIN_KEY);
+    } catch {
+      // Blocked storage must not prevent an explicit trust decision in this tab.
+    }
   }
+  let received;
   try {
-    state.meta = await api('/api/meta');
-    localStorage.setItem(META_KEY, JSON.stringify(state.meta));
+    received = await api('/api/meta');
   } catch (error) {
     try {
-      state.meta = JSON.parse(localStorage.getItem(META_KEY) || 'null');
+      received = JSON.parse(localStorage.getItem(META_KEY) || 'null');
     } catch {
-      state.meta = null;
+      received = null;
     }
     notify(error.message, true);
+  }
+  try {
+    state.meta = await publicMetadata(received);
+    state.pin = state.meta.serverPublicKey;
+    try {
+      // Also replace a legacy offline cache with the validated public allowlist.
+      localStorage.setItem(META_KEY, JSON.stringify(state.meta));
+    } catch {
+      notify('Public metadata could not be cached; offline reload may be unavailable.', true);
+    }
+  } catch {
+    state.meta = null;
+    state.pin = null;
+    notify(
+      'No valid public authority metadata is available. Private or unexpected authority-key fields are rejected.',
+      true,
+    );
   }
   await render();
 }

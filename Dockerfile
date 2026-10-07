@@ -25,7 +25,7 @@ COPY --chown=1000:1000 deployment/ ./deployment/
 # The runtime has no npm dependencies; remove bundled package managers and their attack surface.
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-* \
  && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/yarn /usr/local/bin/yarnpkg /usr/local/bin/corepack \
- && node --input-type=module -e "import { DatabaseSync } from 'node:sqlite'; import { randomBytes } from 'node:crypto'; const db = new DatabaseSync(':memory:'); db.exec('CREATE TABLE smoke (id INTEGER)'); db.close(); if (randomBytes(32).length !== 32) process.exit(1);" \
+ && node --input-type=module -e "import { DatabaseSync } from 'node:sqlite'; import { randomBytes } from 'node:crypto'; if (process.config.variables.node_use_quic !== false) throw new Error('QUIC must remain disabled'); const db = new DatabaseSync(':memory:'); db.exec('CREATE TABLE smoke (id INTEGER)'); db.close(); if (randomBytes(32).length !== 32) process.exit(1);" \
  && mkdir -p /var/lib/siepmu/control /var/lib/siepmu/relay /var/lib/siepmu/relay-auth \
  && chown -R 1000:1000 /var/lib/siepmu \
  && chmod 700 /var/lib/siepmu/control /var/lib/siepmu/relay /var/lib/siepmu/relay-auth

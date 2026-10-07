@@ -404,25 +404,25 @@ export async function verifyReleaseReceipt(
 }
 
 async function readJSON(path) {
+  const limit = 64 * 1024 * 1024;
   const file = await open(path, 'r');
   try {
-    const limit = 64 * 1024 * 1024;
-    const info = await file.stat();
-    assert(info.isFile(), 'Verifier input must be a regular file');
-    assert(info.size <= limit, 'Verifier input file exceeds 64 MiB');
+    const metadata = await file.stat();
+    assert(metadata.isFile(), 'Verifier input must be a regular file');
+    assert(metadata.size <= limit, 'Verifier input file exceeds 64 MiB');
     const chunks = [];
-    let size = 0;
-    // Read the same descriptor that was checked. A concurrent writer cannot evade
-    // the bound by growing the file after fstat or swapping the path's target.
-    while (true) {
-      const chunk = Buffer.alloc(Math.min(64 * 1024, limit + 1 - size));
-      const { bytesRead } = await file.read(chunk);
+    let total = 0;
+    // Read the opened descriptor, not a path that can be replaced after the
+    // metadata check. Bound actual bytes as well: an opened file can still grow.
+    for (;;) {
+      const chunk = Buffer.alloc(Math.min(64 * 1024, limit - total + 1));
+      const { bytesRead } = await file.read(chunk, 0, chunk.length, null);
       if (!bytesRead) break;
-      size += bytesRead;
-      assert(size <= limit, 'Verifier input file exceeds 64 MiB');
+      total += bytesRead;
+      assert(total <= limit, 'Verifier input file exceeds 64 MiB');
       chunks.push(chunk.subarray(0, bytesRead));
     }
-    return JSON.parse(Buffer.concat(chunks, size).toString('utf8'));
+    return JSON.parse(Buffer.concat(chunks, total).toString('utf8'));
   } finally {
     await file.close();
   }

@@ -95,9 +95,9 @@ test('gateway restricts origins, hosts, assets and content type; forwards approv
   response = await fetch(base + '/api//evil.invalid', {
     headers: { authorization: 'Bearer synthetic' },
   });
-  assert.equal(response.status, 200);
-  assert.equal((await response.json()).path, '/api//evil.invalid');
-  assert.equal(upstreamRequests, beforeInvalidTargets + 1);
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).code, 'INVALID_API_PATH');
+  assert.equal(upstreamRequests, beforeInvalidTargets);
   response = await fetch(base + '/health/ready');
   assert.equal(response.status, 200);
 });
