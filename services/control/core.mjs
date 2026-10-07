@@ -626,16 +626,14 @@ export class Authority {
     // Priority-sensitive metadata is not revealed through object-ID probe routes.
     if (s.user.dutyRole) {
       const e = parse(r.envelope);
-      const permitted =
-        r.sender_id === s.user_id
-          ? senderDutyAllowed(s.user.role, s.user.dutyRole, e.messagePriority, e.messageDomain)
-          : recipientDutyAllowed(
-              s.user.role,
-              s.user.dutyRole,
-              e.messagePriority,
-              e.messageDomain,
-            );
-      assert(e.schemaVersion === 2 && permitted, 'OBJECT_NOT_FOUND', 404);
+      const checkDuty =
+        r.sender_id === s.user_id ? senderDutyAllowed : recipientDutyAllowed;
+      assert(
+        e.schemaVersion === 2 &&
+          checkDuty(s.user.role, s.user.dutyRole, e.messagePriority, e.messageDomain),
+        'OBJECT_NOT_FOUND',
+        404,
+      );
     }
     return r;
   }
