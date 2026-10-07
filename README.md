@@ -13,7 +13,7 @@ Requires Node **24.19.0**, npm and a current browser with WebCrypto. Runtime ser
 ```sh
 git clone https://github.com/richardrich999888-rgb/SIEMPU.git
 cd SIEMPU
-git switch codex/siepmu-hpsc
+git switch feature/repository-foundation
 npm ci --ignore-scripts
 npm run bootstrap
 npm start
@@ -49,7 +49,7 @@ node apps/verifier/verify.mjs artifacts/demo/evidence.json artifacts/demo/public
 
 `demo.mjs` provisions its own temporary identities and starts all three services on available ports. It exercises real HTTP exchange, a disconnected backlog, recipient revocation, selective release and detached evidence verification. `benchmark.mjs` measures a sequential synthetic loopback workload; it is not a WAN or capacity benchmark. Generated results live in `artifacts/`, outside source control.
 
-Browser acceptance has a separate runner: `node apps/unit-client/browser-check.mjs` against a **fresh running synthetic deployment** after installing its Playwright Chromium runtime. See [client instructions](apps/unit-client/README.md). Container and browser tests have dedicated CI jobs; configuration alone is not a passing result.
+Run the three named HTTP acceptance scenarios with `make e2e`. Browser acceptance provisions and cleans up an isolated deployment with `make browser`, after installing Playwright Chromium. The direct `node apps/unit-client/browser-check.mjs` runner also supports a fresh running deployment. See [client instructions](apps/unit-client/README.md). Container and browser tests have dedicated CI jobs; configuration alone is not a passing result.
 
 ## What is implemented
 
