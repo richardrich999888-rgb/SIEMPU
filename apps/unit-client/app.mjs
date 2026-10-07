@@ -824,6 +824,16 @@ function renderExchange() {
     { 'aria-label': 'Mission' },
     missions.map((m) => el('option', { value: m }, m)),
   );
+  const priority = el(
+    'select',
+    { 'aria-label': 'Message priority' },
+    ['ROUTINE', 'PRIORITY', 'IMMEDIATE', 'FLASH'].map((p) => el('option', { value: p }, p)),
+  );
+  const domain = el(
+    'select',
+    { 'aria-label': 'Message domain' },
+    ['GENERAL', 'INTEL'].map((d) => el('option', { value: d }, d)),
+  );
   const text = el('textarea', {
     name: 'message',
     placeholder: 'Synthetic mission information…',
@@ -867,7 +877,7 @@ function renderExchange() {
           payload = createTextPayload(text.value);
         }
         const context = {
-          schemaVersion: 1,
+          schemaVersion: 2,
           objectId: crypto.randomUUID(),
           senderUserId: state.user.id,
           senderDeviceId: state.device.id,
@@ -878,6 +888,8 @@ function renderExchange() {
           recipientKeyId: await keyId(target.encryptionPublicKey),
           missionId: mission.value,
           classification: 'DEMO',
+          messagePriority: priority.value,
+          messageDomain: domain.value,
           action: 'deliver',
           createdAt: now,
           expiresAt: Math.min(now + 3600000, grantPayload.expiresAt),
@@ -917,6 +929,8 @@ function renderExchange() {
     },
     field('Recipient', recipient),
     field('Mission', mission),
+    field('Priority (synthetic data only)', priority),
+    field('Message domain', domain),
     field('Message', text),
     field('Or attach one file', file),
     hint(

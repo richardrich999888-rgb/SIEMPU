@@ -1,4 +1,5 @@
 import { canonical } from '../protocol/canonical.mjs';
+import { validMissionProfile } from '../mission/policy.mjs';
 
 const utf8 = new TextEncoder();
 const decoder = new TextDecoder('utf-8', { fatal: true });
@@ -7,7 +8,7 @@ const VAULT_ITERATIONS = 600000;
 const MAX_CONTENT_BYTES = 16 * 1024 * 1024;
 const SUITE = 'P256-HKDF-SHA256-AES256GCM';
 const WRAP_INFO = utf8.encode('SIEPMU_WRAP_V1');
-const CONTEXT_KEYS = [
+const CONTEXT_KEYS_V1 = [
   'schemaVersion',
   'objectId',
   'senderUserId',
@@ -26,6 +27,8 @@ const CONTEXT_KEYS = [
   'cryptoSuite',
   'keyVersion',
 ];
+const CONTEXT_KEYS_V2 = [...CONTEXT_KEYS_V1, 'messagePriority', 'messageDomain'];
+const contextKeys = (version) => (version === 2 ? CONTEXT_KEYS_V2 : CONTEXT_KEYS_V1);
 
 export function b64(value) {
   const bytes = asBytes(value);
@@ -165,10 +168,12 @@ export async function verifyPacket(publicKey, packet) {
   }
 }
 function validateContext(context) {
-  sameKeys(context, CONTEXT_KEYS);
+  sameKeys(context, contextKeys(context.schemaVersion));
   canonical(context);
   if (
-    context.schemaVersion !== 1 ||
+    ![1, 2].includes(context.schemaVersion) ||
+    (context.schemaVersion === 2 &&
+      !validMissionProfile(context.messagePriority, context.messageDomain)) ||
     context.keyVersion !== 1 ||
     context.cryptoSuite !== SUITE ||
     context.classification !== 'DEMO' ||
@@ -336,7 +341,12 @@ export async function decryptObject(submission, recipientPrivateJwk, senderPubli
   if (!submission || typeof submission !== 'object')
     throw new TypeError('Invalid encrypted object');
   const { envelope, signature, ciphertext: encoded } = submission;
-  sameKeys(envelope, [...CONTEXT_KEYS, 'ciphertextHash', 'nonce', 'wrappedKey']);
+  sameKeys(envelope, [
+    ...contextKeys(envelope.schemaVersion),
+    'ciphertextHash',
+    'nonce',
+    'wrappedKey',
+  ]);
   const { ciphertextHash, nonce, wrappedKey, ...context } = envelope;
   validateContext(context);
   if (!(await verify(senderPublicJwk, envelope, signature)))

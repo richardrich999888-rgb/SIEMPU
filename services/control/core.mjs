@@ -1,4 +1,11 @@
 import { buildInfo } from './build-info.mjs';
+import {
+  DUTY_ROLES,
+  validMissionProfile,
+  compatibleDutyRole,
+  senderDutyAllowed,
+  recipientDutyAllowed,
+} from '../../packages/mission/policy.mjs';
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync, readdirSync } from 'node:fs';
 import { randomUUID, randomBytes } from 'node:crypto';
@@ -136,6 +143,7 @@ export class Authority {
           username: row.username,
           unitId: row.unit_id,
           role: row.role,
+          dutyRole: row.duty_role ?? null,
           missionIds: parse(row.missions),
           active: !!row.active,
         }
@@ -169,6 +177,8 @@ export class Authority {
       recipientUnitId: e.recipientUnitId,
       missionId: e.missionId,
       classification: e.classification,
+      messagePriority: e.messagePriority ?? null,
+      messageDomain: e.messageDomain ?? null,
       state: row.state,
       reason: row.reason,
       preparedEpoch: row.prepared_epoch,
@@ -419,6 +429,17 @@ export class Authority {
     if (sd?.status !== 'approved' || rd?.status !== 'approved') return 'DEVICE_REVOKED';
     if (sd.user_id !== su.id || rd.user_id !== ru.id) return 'DEVICE_OWNER_MISMATCH';
     if (su.role !== 'operator' || !['operator', 'viewer'].includes(ru.role)) return 'ROLE_DENIED';
+    // Duty roles are an additive, sponsor-unapproved restriction at the release boundary.
+    if (su.duty_role || ru.duty_role) {
+      if (e.schemaVersion !== 2) return 'DUTY_PROFILE_REQUIRES_V2';
+      if (
+        (su.duty_role &&
+          !senderDutyAllowed(su.role, su.duty_role, e.messagePriority, e.messageDomain)) ||
+        (ru.duty_role &&
+          !recipientDutyAllowed(ru.role, ru.duty_role, e.messagePriority, e.messageDomain))
+      )
+        return 'ROLE_PRIORITY_DENIED';
+    }
     if (su.unit_id !== e.senderUnitId || ru.unit_id !== e.recipientUnitId) return 'UNIT_CHANGED';
     if (!parse(su.missions).includes(e.missionId) || !parse(ru.missions).includes(e.missionId))
       return 'MISSION_DENIED';
@@ -440,7 +461,7 @@ export class Authority {
   }
   validateSubmission(s, b) {
     const e = b.envelope;
-    assert(e && e.schemaVersion === 1 && uuid(e.objectId));
+    assert(e && [1, 2].includes(e.schemaVersion) && uuid(e.objectId));
     const expected = [
       'schemaVersion',
       'objectId',
@@ -453,6 +474,7 @@ export class Authority {
       'recipientKeyId',
       'missionId',
       'classification',
+      ...(e.schemaVersion === 2 ? ['messagePriority', 'messageDomain'] : []),
       'action',
       'createdAt',
       'expiresAt',
@@ -486,6 +508,16 @@ export class Authority {
         e.cryptoSuite === 'P256-HKDF-SHA256-AES256GCM' &&
         e.keyVersion === 1,
     );
+    if (e.schemaVersion === 2)
+      assert(validMissionProfile(e.messagePriority, e.messageDomain), 'INVALID_MISSION_PROFILE');
+    if (s.user.dutyRole) {
+      assert(e.schemaVersion === 2, 'DUTY_PROFILE_REQUIRES_V2', 403);
+      assert(
+        senderDutyAllowed(s.user.role, s.user.dutyRole, e.messagePriority, e.messageDomain),
+        'ROLE_PRIORITY_DENIED',
+        403,
+      );
+    }
     assert(
       Number.isSafeInteger(e.createdAt) &&
         Number.isSafeInteger(e.expiresAt) &&
@@ -591,6 +623,17 @@ export class Authority {
       'OBJECT_NOT_FOUND',
       404,
     );
+    // Priority-sensitive metadata is not revealed through object-ID probe routes.
+    if (s.user.dutyRole) {
+      const e = parse(r.envelope);
+      const checkDuty = r.sender_id === s.user_id ? senderDutyAllowed : recipientDutyAllowed;
+      assert(
+        e.schemaVersion === 2 &&
+          checkDuty(s.user.role, s.user.dutyRole, e.messagePriority, e.messageDomain),
+        'OBJECT_NOT_FOUND',
+        404,
+      );
+    }
     return r;
   }
   prepare(s, id) {
@@ -903,7 +946,21 @@ export class Authority {
           'SELECT * FROM objects WHERE sender_id=? OR recipient_id=? ORDER BY created_at DESC',
           s.user_id,
           s.user_id,
-        ).map((x) => this.object(x)),
+        )
+          .filter((x) => {
+            if (!s.user.dutyRole) return true;
+            const e = parse(x.envelope);
+            if (e.schemaVersion !== 2) return false;
+            return x.sender_id === s.user_id
+              ? senderDutyAllowed(s.user.role, s.user.dutyRole, e.messagePriority, e.messageDomain)
+              : recipientDutyAllowed(
+                  s.user.role,
+                  s.user.dutyRole,
+                  e.messagePriority,
+                  e.messageDomain,
+                );
+          })
+          .map((x) => this.object(x)),
       };
     } else if (method === 'POST' && /^\/api\/objects\/[^/]+\/(prepare|claim|ack)$/.test(path)) {
       const [, id, op] = path.match(/^\/api\/objects\/([^/]+)\/(prepare|claim|ack)$/);
@@ -994,6 +1051,8 @@ export class Authority {
           str(b.password, 256) &&
           b.password.length >= 12 &&
           roles.includes(b.role) &&
+          (b.dutyRole === undefined ||
+            (DUTY_ROLES.includes(b.dutyRole) && compatibleDutyRole(b.role, b.dutyRole))) &&
           Array.isArray(b.missionIds) &&
           b.missionIds.length <= 32 &&
           b.missionIds.every(mission),
@@ -1005,7 +1064,7 @@ export class Authority {
         () => {
           const id = randomUUID();
           this.run(
-            'INSERT INTO users(id,username,password,totp,unit_id,role,missions) VALUES(?,?,?,?,?,?,?)',
+            'INSERT INTO users(id,username,password,totp,unit_id,role,missions,duty_role) VALUES(?,?,?,?,?,?,?,?)',
             id,
             b.username,
             passwordHash(b.password),
@@ -1013,6 +1072,7 @@ export class Authority {
             b.unitId,
             b.role,
             canonical(b.missionIds),
+            b.dutyRole ?? null,
           );
           return {
             user: this.user(this.get('SELECT * FROM users WHERE id=?', id)),
@@ -1032,10 +1092,12 @@ export class Authority {
     if (method === 'PATCH' && userMatch) {
       const fields = Object.keys(b).filter((x) => x !== 'proof');
       assert(
-        fields.length > 0 && fields.every((x) => ['active', 'role', 'missionIds'].includes(x)),
+        fields.length > 0 &&
+          fields.every((x) => ['active', 'role', 'missionIds', 'dutyRole'].includes(x)),
       );
       if ('active' in b) assert(typeof b.active === 'boolean');
       if ('role' in b) assert(roles.includes(b.role));
+      if ('dutyRole' in b) assert(DUTY_ROLES.includes(b.dutyRole), 'INVALID_DUTY_ROLE');
       if ('missionIds' in b)
         assert(
           Array.isArray(b.missionIds) && b.missionIds.length <= 32 && b.missionIds.every(mission),
@@ -1046,14 +1108,19 @@ export class Authority {
           const u = this.get('SELECT * FROM users WHERE id=?', userMatch[1]);
           assert(u, 'NOT_FOUND', 404);
           assert(
+            compatibleDutyRole(b.role ?? u.role, b.dutyRole ?? u.duty_role),
+            'DUTY_ROLE_INCOMPATIBLE',
+          );
+          assert(
             !(u.id === s.user_id && (b.active === false || (b.role && b.role !== 'admin'))),
             'SELF_LOCKOUT',
           );
           this.run(
-            'UPDATE users SET active=?,role=?,missions=? WHERE id=?',
+            'UPDATE users SET active=?,role=?,missions=?,duty_role=? WHERE id=?',
             'active' in b ? +b.active : u.active,
             b.role ?? u.role,
             b.missionIds ? canonical(b.missionIds) : u.missions,
+            b.dutyRole ?? u.duty_role,
             u.id,
           );
           return { user: this.user(this.get('SELECT * FROM users WHERE id=?', u.id)) };
