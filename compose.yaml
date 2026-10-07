@@ -1,0 +1,73 @@
+name: syntriass-siepmu
+x-service: &service
+  image: syntriass-siepmu:local
+  build: .
+  restart: unless-stopped
+  init: true
+  user: '1000:1000'
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs: ['/tmp:rw,noexec,nosuid,size=16m']
+  pids_limit: 128
+  mem_limit: 512m
+services:
+  bootstrap:
+    <<: *service
+    profiles: [provision]
+    restart: 'no'
+    network_mode: none
+    command: [node, deployment/bootstrap-container.mjs]
+    environment:
+      SIEPMU_DATA_DIR: /var/lib/siepmu/control
+    volumes:
+      - control-data:/var/lib/siepmu/control
+      - relay-auth:/var/lib/siepmu/relay-auth
+  relay:
+    <<: *service
+    command: [node, services/relay/server.mjs]
+    environment:
+      SIEPMU_RELAY_HOST: 0.0.0.0
+      SIEPMU_ALLOW_REMOTE_HTTP: '1'
+      SIEPMU_RELAY_DATA_DIR: /var/lib/siepmu/relay
+      SIEPMU_RELAY_SECRET_FILE: /var/lib/siepmu/relay-auth/relay.secret
+      SIEPMU_HEALTH_PORT: '8082'
+    volumes:
+      - relay-data:/var/lib/siepmu/relay
+      - relay-auth:/var/lib/siepmu/relay-auth:ro
+    networks: [ciphertext]
+  control:
+    <<: *service
+    command: [node, services/control/server.mjs]
+    environment:
+      SIEPMU_DATA_DIR: /var/lib/siepmu/control
+      SIEPMU_CONTROL_HOST: 0.0.0.0
+      SIEPMU_PUBLIC_ORIGIN: ${SIEPMU_PUBLIC_ORIGIN:-http://localhost:8080}
+      SIEPMU_ALLOW_REMOTE_HTTP: '1'
+      SIEPMU_RELAY_URL: http://relay:8082
+      SIEPMU_HEALTH_PORT: '8081'
+    volumes:
+      - control-data:/var/lib/siepmu/control
+    networks: [authority, ciphertext]
+    depends_on:
+      relay: { condition: service_healthy }
+  web:
+    <<: *service
+    command: [node, services/web/server.mjs]
+    environment:
+      SIEPMU_WEB_HOST: 0.0.0.0
+      SIEPMU_ALLOW_REMOTE_HTTP: '1'
+      SIEPMU_CONTROL_URL: http://control:8081
+      SIEPMU_PUBLIC_ORIGIN: ${SIEPMU_PUBLIC_ORIGIN:-http://localhost:8080}
+      SIEPMU_HEALTH_PORT: '8080'
+    ports: ['127.0.0.1:8080:8080']
+    networks: [authority]
+    depends_on:
+      control: { condition: service_healthy }
+volumes:
+  control-data:
+  relay-data:
+  relay-auth:
+networks:
+  authority: { internal: true }
+  ciphertext: { internal: true }

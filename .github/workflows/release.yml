@@ -1,0 +1,51 @@
+name: Release candidate artifacts
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Exact package.json version for this synthetic release candidate
+        required: true
+        default: 0.1.0
+        type: string
+permissions:
+  contents: read
+  security-events: write
+jobs:
+  quality:
+    uses: ./.github/workflows/quality.yml
+  package:
+    needs: quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24.19.0
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build && npm run sbom
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6, resolved 2026-10-07
+        with:
+          name: image-sbom
+          path: artifacts/release
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6, resolved 2026-10-07
+        with:
+          name: native-evidence
+          path: artifacts/release/evidence/native
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6, resolved 2026-10-07
+        with:
+          name: browser-evidence
+          path: artifacts/release/evidence/browser
+      - run: node scripts/release.mjs "$RELEASE_VERSION"
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: syntriass-siepmu-${{ inputs.version }}
+          path: artifacts/release
+          if-no-files-found: error
+          retention-days: 30

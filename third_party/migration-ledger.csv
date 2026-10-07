@@ -1,0 +1,2 @@
+component,repository,branch,commit,source_path,blob_digest,purpose,security_assessment,tests,licence,ownership,publication_authority,decision
+legacy platform source,not imported,not applicable,not applicable,not applicable,not applicable,clean prototype baseline,requires component-specific review before future reuse,none rerun for import,unverified until import review,unverified until import review,not granted by this ledger,NO_IMPORT
