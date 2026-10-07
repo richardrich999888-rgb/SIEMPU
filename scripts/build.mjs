@@ -10,6 +10,7 @@ const excludedScripts = new Set([
   'scripts/sarif-gate.mjs',
   'scripts/audit-claims.mjs',
   'scripts/validate.mjs',
+  'scripts/browser-e2e.mjs',
   'apps/unit-client/browser-check.mjs',
 ]);
 const files = ['package.json', 'package-lock.json', 'LICENSE', 'README.md'];

@@ -1,44 +1,72 @@
-# CI evidence and delivery gates
+# CI evidence and merge gates
 
-`.github/workflows/quality.yml` runs for main and `codex/**` pushes, pull requests and manual dispatch. It never deploys an operational service or publishes an image.
+`.github/workflows/ci.yml` and `.github/workflows/security.yml` run on pushes to `main`,
+`feature/**`, `security/**`, `release/**`, `hotfix/**` and the inherited `codex/**` branches.
+Both also support pull requests, manual dispatch and reusable calls. No active workflow
+deploys an operational service, publishes an image or creates a release.
 
-| Job            | Actual operation                                                                                                                                                                                                       | Evidence / practical boundary                                                                                                                                                                                                                                                                                                               |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Native         | Node 24.19.0, locked install, syntax/JSON checks, ESLint, Prettier, scoped strict TypeScript checkJs, narrow local security rules, npm audit, full Node test runner with coverage, allowlist package, application SBOM | Coverage output and package hashes. TypeScript checks the actual relay HMAC/client implementations identified in tsconfig.json; other application modules are linted and tested but not type checked. Blocking native coverage floors: 85% lines, 75% branches and 85% functions. Tests/helpers and uninstrumented browser UI are excluded. |
-| Secret scan    | Pinned Gitleaks action against repository history                                                                                                                                                                      | Findings block that job. A personal account can use this action without an organization license; organization migration requires checking upstream license requirements.                                                                                                                                                                    |
-| CodeQL         | Pinned CodeQL action, JavaScript/TypeScript extractor, security-extended queries                                                                                                                                       | SARIF gate blocks security severity >=7, any error-level result and ungraded security results. Missing/malformed outputs fail closed; suppressions do not waive this gate. Lower-severity findings remain review work.                                                                                                                      |
-| Container      | Pinned base image build, Compose config validation, explicit synthetic bootstrap, three healthy services, public metadata request, nonroot UID assertion                                                               | Actual Docker runtime checks on hosted runner. No local Docker execution was available during initial development.                                                                                                                                                                                                                          |
-| Container scan | Pinned Trivy action/tool, image vulnerability scan, HIGH/CRITICAL exit gate, image CycloneDX SBOM                                                                                                                      | This may block on inherited OS vulnerabilities. Do not suppress a finding to obtain a green badge; document disposition or update the base.                                                                                                                                                                                                 |
+| Workflow / check context               | Actual operation                                                                                                                                                                                                           | Evidence and practical boundary                                                                                                                          |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CI / `native`                          | Locked install, syntax/JSON, Prettier, ESLint, strict scoped checkJs, full Node suite with coverage, named HTTP acceptance, synthetic demo, build, application SBOM                                                        | Test output, runtime manifest and SBOM. Floors remain 85% lines, 75% branches, 85% functions; scope is in `package.json`.                                |
+| CI / `container`                       | After native passes: Compose validation, digest-pinned Docker build, explicit bootstrap, three healthy containers, public metadata, denied login, UID and commit identity assertions, Trivy HIGH/CRITICAL gate, image SBOM | Actual Docker execution and scan on the hosted runner; local manifests alone do not prove this.                                                          |
+| CI / `browser`                         | Pinned Playwright/Chromium, isolated fresh stack, actual browser acceptance, cleanup                                                                                                                                       | Selected synthetic screenshots and result text; no user profiles, credential files or browser storage directories.                                       |
+| Security / `dependency-and-regression` | Locked dependency audit, local security rules and security regression tests                                                                                                                                                | Registry advisories and regression behavior; HIGH/CRITICAL dependency findings block.                                                                    |
+| Security / `secret-scan`               | Pinned Gitleaks action/tool with full checkout history available                                                                                                                                                           | Findings block; exact event scan range is reported by Gitleaks. No broad rule/path exemptions.                                                           |
+| Security / `codeql`                    | JavaScript/TypeScript security-extended analysis and executable SARIF gate                                                                                                                                                 | Gate blocks severity >=7, error-level findings and ungraded security results; missing/malformed output fails closed. Lower severities still need review. |
 
-Only narrow artifacts are uploaded. `.data`, database/key files, profiles, passwords and TOTP seeds are never artifact paths. The disposable container deployment is removed with volumes in the final CI cleanup step.
+Actions are pinned to full reviewed commit SHAs. The application runtime is pinned to Node
+24.19.0; Docker also pins the base manifest digest. Pins provide reproducibility, not an
+absence of vulnerabilities. Do not waive scanner findings or weaken tests to obtain green CI.
 
-The browser job installs pinned Playwright and Chromium on the hosted runner, provisions fresh synthetic users, launches the three actual processes and executes `apps/unit-client/browser-check.mjs`. Assertions cover browser MFA/device binding, encrypted exchange, policy change/reconnection, safe rendering, encrypted persistence and real offline app-shell reload. This job must run successfully before browser behavior is called measured. It publishes only selected synthetic screenshots and result text; no profile, credential file or browser storage directory is uploaded.
+Native artifacts are required after successful checks. If an earlier check fails, the final
+upload may publish partial evidence without adding a misleading missing-file failure; the
+original failing step still fails the job. Disposable container volumes are removed in the
+final cleanup step. The isolated browser runner owns its temporary processes and data cleanup.
 
-`release.yml` is manually dispatched and reuses the full quality workflow. It produces a version-matched source archive (including deployment manifests, docs and tests), runtime archive, application/image SBOMs, selected test/browser evidence, a commit-bound release manifest and SHA-256 checksum list. It uploads workflow artifacts only. It does not create a GitHub Release, publish a container, modify a deployment environment, sign an artifact or claim operational approval. A clean committed tree and a genuine image SBOM from the quality run are required by the packaging script. The release depends on the blocking SARIF gate as well as the image/secret gates; lower-severity code-scanning alerts still need review.
+## Local equivalent
 
-The standalone demo and benchmark scripts and browser acceptance runner are repository-only tools; they are excluded from the runtime deployment bundle because they depend on test helpers or development tooling. The source release includes them. Hosted benchmark numbers are optional diagnostic data, not acceptance SLAs or field-performance claims.
+`make ci` / `npm run ci` runs syntax, formatting, lint, scoped type checking, coverage, named
+HTTP acceptance, local security rules, build and application SBOM. `make browser` runs the
+separate isolated Chromium flow after installing its browser. `npm run test:security` runs
+the security-focused regression suite. `make help` and
+[local development](deployment/local-development.md) enumerate the command interface.
 
-## Local commands
+Local CI excludes registry advisory lookup, Gitleaks, CodeQL and Trivy. Those are hosted
+security gates. It also excludes Docker when the host lacks Docker. A local pass must never
+be reported as a hosted pass. `build` creates an allowlisted native JavaScript package and
+SHA-256 file inventory, not transpiled code. The TypeScript checker covers only the modules
+listed in `tsconfig.json`; other modules are linted and tested, not implicitly type checked.
 
-```sh
-npm run check
-npm run lint
-npm run format:check
-npm run typecheck
-npm test
-npm run test:coverage
-npm run security
-npm audit --audit-level=high
-npm run build
-npm run sbom
-```
+## Investigated inherited failures
 
-`npm run verify` chains syntax, lint, format, scoped type checks, tests, local security rules, package and application inventory. It does not run CodeQL, Gitleaks or Trivy locally and does not prove CI success. The package is native JavaScript: `build` is an allowlisted deployment package with SHA-256 file inventory, not a transpiler.
+The actual logs for [run 37675166393](https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/37675166393)
+were inspected during this phase:
 
-Before merging: review actual run status, failing tests, scanner findings, broad release-gate coverage and the claims register. Branch protection and deployment approvals are repository administration choices; no settings were changed by this implementation. Production release signing, release attestations, isolated sovereign build runners and cryptographic provenance for the build are planned external controls.
+| Check       | Observed failure                                                                                                | Current response                                                                                                                                                       |
+| ----------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Native      | Prettier reported `tests/crypto.test.mjs`; the always-upload step then also failed because no artifacts existed | Keep formatting blocking; format source and retain the primary failure in logs. Require evidence explicitly on the success path.                                       |
+| Secret scan | One `generic-api-key` finding in ordinary threat-model prose at a historical commit                             | Preserve the already-reviewed exact `.gitleaksignore` fingerprint; do not exclude the document or rule.                                                                |
+| Container   | Image built and three services were healthy; host `curl` then exited 7                                          | Preserve the existing gateway edge network fix and use explicit IPv4 host transport while retaining the configured Host/Origin checks. Actual rerun remains necessary. |
+| Browser     | `getByLabel('From unit')` timed out                                                                             | Preserve the existing corrected admin label and run the workflow against an isolated, disposable stack. Actual rerun remains necessary.                                |
 
-All action refs were resolved to full release commit SHAs using their upstream Git repositories. Version comments aid review; the SHA is authoritative. Pinning an older reviewed tool is not a claim that it is the newest available tool.
+This historical diagnosis is not a claim that the new workflows have passed. Use the
+candidate commit's actual run conclusions and retained artifacts for that claim.
 
-The SARIF gate is an executable policy, with tests for high/critical findings, suppressions, malformed output, unresolved rules and empty output directories. Local tests validate this gate logic; only an observed hosted CodeQL run establishes scanner findings for a particular commit. A passing threshold does not mean the program is vulnerability free.
+## Protected merge and deferred delivery
 
-Coverage is scoped by the test command to authority, gateway, relay, crypto/protocol, detached verifier and the SARIF policy implementation. It excludes test modules/helpers and does not infer browser UI coverage from Node coverage. The configured aggregate floors passed locally at 93.44% lines, 82.46% branches and 94.94% functions across 57 tests on the measured implementation; coverage is rerun on each commit. Component-specific results, particularly HTTP branch coverage, still require review.
+Work goes through `feature/*`, `security/*`, `release/*` or `hotfix/*`; do not create permanent
+branches without a purpose. The foundation work stays on `feature/repository-foundation`.
+Merge requires successful build, tests, lint, type checks, security checks, browser flow and
+Docker verification, plus review of the exact candidate commit.
+
+The reviewable [.github/rulesets/main.json](../.github/rulesets/main.json) requires those
+checks and a PR, prevents force pushes/deletion and has no bypass actors. It is
+**NOT APPLIED**: the connected integration lacks administration access. A checked-in ruleset
+does not make `main` protected. Confirm actual enforcement before merge.
+
+The old dispatch-only artifact packaging recipe is retained at
+[`deploy/disabled-workflows/release.yml`](../deploy/disabled-workflows/release.yml), outside
+GitHub's active workflow directory. There is no CD workflow. Staging deployment is deferred
+until CI is reliable and its target environment is agreed. Release automation follows that
+work; neither is invented in this phase. The inactive recipe is reference material requiring
+review before reactivation, including all artifact paths and security dependencies.
