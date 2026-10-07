@@ -26,7 +26,7 @@ jobs:
         run: python3 research/trl56/validate.py --self-test
       - name: Validate source-bound claims and implementation
         run: npm run validate
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6, resolved 2026-10-07
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v6, resolved 2026-10-07
         if: always()
         with:
           name: native-evidence
@@ -70,7 +70,7 @@ jobs:
           output: artifacts/codeql
       - name: Block high or critical SAST findings
         run: node scripts/sarif-gate.mjs artifacts/codeql
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: codeql-gate
@@ -126,7 +126,7 @@ jobs:
           output: image.cdx.json
           exit-code: '0'
           scanners: vuln
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6, resolved 2026-10-07
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v6, resolved 2026-10-07
         with:
           name: image-sbom
           path: image.cdx.json
@@ -169,7 +169,7 @@ jobs:
           mkdir -p artifacts/browser
           set -o pipefail
           node apps/unit-client/browser-check.mjs 2>&1 | tee artifacts/browser/results.txt
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: browser-evidence
@@ -219,7 +219,7 @@ jobs:
       - name: Verify all generated checksums
         working-directory: artifacts/release
         run: sha256sum --check SHA256SUMS
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-candidate-${{ github.sha }}
           path: artifacts/release
