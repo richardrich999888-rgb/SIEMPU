@@ -143,6 +143,18 @@ export async function renderAdmin(root, helpers) {
     });
     const unit = select(unitOptions);
     const role = select(['operator', 'viewer', 'auditor', 'admin'].map((r) => [r, r]));
+    const dutyChoices = [
+      ['', 'Unassigned'],
+      ...[
+        'UNIT_COMMANDER',
+        'SIGNALS_OFFICER',
+        'INTELLIGENCE_ANALYST',
+        'FIELD_OPERATOR',
+        'AUDIT_OFFICER',
+        'SYSTEM_ADMIN',
+      ].map((name) => [name, name]),
+    ];
+    const dutyRole = select(dutyChoices);
     const missions = el('input', {
       required: true,
       placeholder: 'DEMO-MISSION',
@@ -179,16 +191,18 @@ export async function renderAdmin(root, helpers) {
         'Users & roles',
         'Role or membership changes increment authority state and affect future release.',
         table(
-          ['User', 'Unit', 'Role', 'State', 'Controls'],
+          ['User', 'Unit', 'Role', 'Duty position', 'State', 'Controls'],
           users.map((u) => {
             const assignedRole = select(
               ['operator', 'viewer', 'auditor', 'admin'].map((r) => [r, r]),
               u.role,
             );
+            const assignedDuty = select(dutyChoices, u.dutyRole || '');
             return [
               u.username,
               nameOfUnit(u.unitId),
               canWrite ? assignedRole : u.role,
+              canWrite ? assignedDuty : u.dutyRole || 'Unassigned',
               badge(u.active ? 'Active' : 'Disabled'),
               canWrite
                 ? el(
@@ -201,6 +215,19 @@ export async function renderAdmin(root, helpers) {
                           role: assignedRole.value,
                         });
                         notify('Role changed.');
+                        await redraw();
+                      }),
+                      'quiet small',
+                    ),
+                    button(
+                      'Apply duty',
+                      action(async () => {
+                        if (!assignedDuty.value)
+                          throw new Error('Select a nonempty duty-position profile.');
+                        await adminMutation(`/api/admin/users/${u.id}`, 'PATCH', {
+                          dutyRole: assignedDuty.value,
+                        });
+                        notify('Duty-role restriction saved; current authority policy updated.');
                         await redraw();
                       }),
                       'quiet small',
@@ -236,6 +263,7 @@ export async function renderAdmin(root, helpers) {
                     password: password.value,
                     unitId: unit.value,
                     role: role.value,
+                    ...(dutyRole.value ? { dutyRole: dutyRole.value } : {}),
                     missionIds: missions.value
                       .split(',')
                       .map((s) => s.trim())
@@ -267,6 +295,7 @@ export async function renderAdmin(root, helpers) {
               field('Initial password (12+ characters)', password),
               field('Unit', unit),
               field('Role', role),
+               field('Filed duty-position profile (synthetic)', dutyRole),
               field('Missions (comma-separated)', missions),
               el(
                 'div',
