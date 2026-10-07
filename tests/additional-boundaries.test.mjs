@@ -3,13 +3,14 @@ import assert from 'node:assert/strict';
 import {
   readFileSync,
   openSync,
-  closeSync,
   fstatSync,
+  closeSync,
+  existsSync,
   writeFileSync,
   symlinkSync,
   ftruncateSync,
 } from 'node:fs';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { coreFixture } from './helpers/fixture.mjs';
@@ -74,13 +75,13 @@ test('offline identity recovery rotates MFA/password and revokes every session',
   const output = join(f.dir, 'private-recovery.json');
   const result = recoverIdentity(f.dir, 'alice', output);
   assert.equal(result.epoch, epoch + 1);
-  const file = openSync(output, 'r');
+  const fd = openSync(output, 'r');
   let material;
   try {
-    assert.equal(fstatSync(file).mode & 0o077, 0);
-    material = JSON.parse(readFileSync(file));
+    assert.equal(fstatSync(fd).mode & 0o077, 0);
+    material = JSON.parse(readFileSync(fd));
   } finally {
-    closeSync(file);
+    closeSync(fd);
   }
   assert.equal((await alice.request('GET', '/api/auth/me')).status, 401);
   assert.notEqual(material.password, f.profiles.alice.password);
@@ -89,6 +90,75 @@ test('offline identity recovery rotates MFA/password and revokes every session',
   await recovered.authenticate();
   assert.equal((await recovered.ok('GET', '/api/auth/me')).user.username, 'alice');
   assert.throws(() => recoverIdentity(f.dir, 'alice', output), /new private/);
+});
+
+test('failed recovery output reservation cannot change credentials, sessions or epoch', async (t) => {
+  const f = await coreFixture(t);
+  await f.clients.alice.authenticate();
+  const before = f.authority.get('SELECT * FROM users WHERE id=?', f.profiles.alice.userId);
+  const epoch = f.authority.epoch().epoch;
+  const existing = join(f.dir, 'existing.json');
+  writeFileSync(existing, 'keep existing bytes', { mode: 0o600 });
+  assert.throws(() => recoverIdentity(f.dir, 'alice', existing), /new private/);
+  assert.equal(readFileSync(existing, 'utf8'), 'keep existing bytes');
+  assert.throws(() => recoverIdentity(f.dir, 'alice', join(f.dir, 'missing', 'output.json')));
+  const rejected = join(f.dir, 'unknown-user.json');
+  assert.throws(() => recoverIdentity(f.dir, 'unknown', rejected), /Unknown recovery identity/);
+  assert.equal(existsSync(rejected), false);
+  assert.deepEqual(
+    f.authority.get('SELECT * FROM users WHERE id=?', f.profiles.alice.userId),
+    before,
+  );
+  assert.equal(f.authority.epoch().epoch, epoch);
+  assert.equal((await f.clients.alice.request('GET', '/api/auth/me')).status, 200);
+});
+
+test('concurrent recovery writers reserve one output and rotate identity exactly once', async (t) => {
+  const f = await coreFixture(t);
+  const output = join(f.dir, 'concurrent-recovery.json');
+  const epoch = f.authority.epoch().epoch;
+  const recoveryModule = new URL('../scripts/recover-identity.mjs', import.meta.url).href;
+  const children = Array.from({ length: 6 }, () => {
+    const child = spawn(
+      process.execPath,
+      [
+        '--input-type=module',
+        '-e',
+        `
+      import { recoverIdentity } from ${JSON.stringify(recoveryModule)};
+      process.on('message', () => {
+        try { recoverIdentity(process.argv[1], 'alice', process.argv[2]); process.exit(0); }
+        catch (error) { process.stderr.write(error.message); process.exit(1); }
+      });
+      process.send('ready');
+    `,
+        f.dir,
+        output,
+      ],
+      { stdio: ['ignore', 'ignore', 'pipe', 'ipc'] },
+    );
+    let error = '';
+    child.stderr.on('data', (chunk) => {
+      error += chunk;
+    });
+    const done = new Promise((resolve, reject) => {
+      child.once('error', reject);
+      child.once('exit', (code) => resolve({ code, error }));
+    });
+    const ready = new Promise((resolve) => child.once('message', resolve));
+    return { child, ready, done };
+  });
+  t.after(() => children.forEach(({ child }) => child.kill()));
+  await Promise.all(children.map(({ ready }) => ready));
+  children.forEach(({ child }) => child.send('recover'));
+  const results = await Promise.all(children.map(({ done }) => done));
+  assert.equal(results.filter(({ code }) => code === 0).length, 1);
+  for (const result of results.filter(({ code }) => code !== 0))
+    assert.match(result.error, /new private file/);
+  assert.equal(f.authority.epoch().epoch, epoch + 1);
+  const material = JSON.parse(readFileSync(output, 'utf8'));
+  const recovered = new ApiClient(f.transport, { ...f.profiles.alice, ...material });
+  await recovered.authenticate();
 });
 
 test('recovery refuses occupied/symlink/unwritable destinations before credential mutation', async (t) => {
@@ -165,4 +235,59 @@ test('SBOM purls encode every reserved package-name character without altering s
     output.components.find((component) => component.name === '@scope/name@extra?#').purl,
     'pkg:npm/%40scope/name%40extra%3F%23@1.0.0%2Bmetadata',
   );
+});
+
+test('recovery durability or evidence failure leaves credentials, sessions and epoch unchanged', async (t) => {
+  const f = await coreFixture(t);
+  await f.clients.alice.authenticate();
+  const before = f.authority.get('SELECT * FROM users WHERE id=?', f.profiles.alice.userId);
+  const epoch = f.authority.epoch().epoch;
+  const recoveryModule = new URL('../scripts/recover-identity.mjs', import.meta.url).href;
+  const authorityModule = new URL('../services/control/core.mjs', import.meta.url).href;
+  for (const failure of ['file-fsync', 'directory-fsync', 'evidence']) {
+    const output = join(f.dir, `${failure}-recovery.json`);
+    const result = spawnSync(
+      process.execPath,
+      [
+        '--input-type=module',
+        '-e',
+        `
+        import fs from 'node:fs';
+        import { syncBuiltinESMExports } from 'node:module';
+        import { Authority } from ${JSON.stringify(authorityModule)};
+        const failure = process.argv[3];
+        const originalFsync = fs.fsyncSync;
+        fs.fsyncSync = (descriptor) => {
+          const directory = fs.fstatSync(descriptor).isDirectory();
+          if ((failure === 'file-fsync' && !directory) ||
+              (failure === 'directory-fsync' && directory)) {
+            throw new Error('Injected recovery durability failure');
+          }
+          return originalFsync(descriptor);
+        };
+        syncBuiltinESMExports();
+        if (failure === 'evidence') Authority.prototype.event = () => {
+          throw new Error('Injected recovery evidence failure');
+        };
+        const { recoverIdentity } = await import(${JSON.stringify(recoveryModule)});
+        try { recoverIdentity(process.argv[1], 'alice', process.argv[2]); }
+        catch (error) { process.stderr.write(error.message); process.exit(1); }
+      `,
+        f.dir,
+        output,
+        failure,
+      ],
+      { encoding: 'utf8', timeout: 10000 },
+    );
+    assert.equal(result.status, 1, result.stderr);
+    assert.match(result.stderr, /Injected recovery (durability|evidence) failure/);
+    assert.equal(existsSync(output), false, failure);
+    assert.deepEqual(
+      f.authority.get('SELECT * FROM users WHERE id=?', f.profiles.alice.userId),
+      before,
+      failure,
+    );
+    assert.equal(f.authority.epoch().epoch, epoch, failure);
+    assert.equal((await f.clients.alice.request('GET', '/api/auth/me')).status, 200, failure);
+  }
 });

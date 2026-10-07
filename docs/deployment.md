@@ -4,7 +4,7 @@ This is a single-host demonstrator. It is not SAG graded, accredited, highly ava
 
 ## Local Node execution
 
-Install Node 24.19.0. The running application has no npm dependencies. Pinned development tools are installed by `npm ci` for linting, formatting and scoped static type checking.
+Use Node 24.21.0 to match hosted CI. Local compatibility has also been tested on 24.19.0. The running application has no npm dependencies. Pinned development tools are installed by `npm ci` for linting, formatting and scoped static type checking.
 
 ```sh
 npm ci --ignore-scripts
@@ -37,7 +37,7 @@ The optional `bootstrap` profile is enabled implicitly by `compose run bootstrap
 
 Each container runs UID/GID 1000, a read-only application filesystem, dropped Linux capabilities, no new privileges, restricted temporary storage and PID/memory limits. The only published port is gateway port 8080 on host loopback. Two internal networks restrict ordinary service reachability; only the gateway also joins an edge bridge for its loopback-published ingress. The gateway therefore has an outbound network path that requires operator egress policy in any managed deployment; Docker host administrators can still cross these boundaries. Internal HTTP is explicitly enabled only for this synthetic local configuration. TLS is not implied by Docker networking.
 
-The image is pinned to `node:24.19.0-bookworm-slim` by registry manifest digest in Dockerfile. Pinning provides reproducibility, not freedom from vulnerabilities. Review security scans and update the pin when required.
+The image is pinned to `node:24.21.0-alpine3.24` by an officially published manifest digest in Dockerfile. Pinning provides reproducibility, not freedom from vulnerabilities. The runtime excludes unused npm/Yarn; the application starts directly with Node. Review security scans and update the pin when required. See [remediation provenance](../security/README.md#container-remediation-evidence).
 
 ## TLS and managed deployment gate
 

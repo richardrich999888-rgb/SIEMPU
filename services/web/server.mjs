@@ -3,6 +3,7 @@ import { request as requestHttps } from 'node:https';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { randomUUID } from 'node:crypto';
 
 const mime = {
   '.html': 'text/html; charset=utf-8',
@@ -101,9 +102,12 @@ export function createWebServer({
   const configuredOrigin = publicOrigin ? new URL(publicOrigin).origin : undefined;
   const expectedHost = publicOrigin ? new URL(publicOrigin).host : undefined;
   const server = createServer(async (req, res) => {
+    const requestId = randomUUID();
+    res.setHeader('X-Request-Id', requestId);
     const send = (status, value) => {
       res.writeHead(status, { ...securityHeaders, 'content-type': 'application/json' });
-      res.end(JSON.stringify(value));
+      const code = value.code ?? value.error ?? 'REQUEST_FAILED';
+      res.end(JSON.stringify(status >= 400 ? { ...value, error: code, code, requestId } : value));
     };
     try {
       if (
@@ -125,6 +129,8 @@ export function createWebServer({
           signal: AbortSignal.timeout(2000),
           redirect: 'error',
         });
+        // Readiness needs only status; release the unused upstream body/socket.
+        await health.body?.cancel();
         send(health.ok ? 200 : 503, {
           status: health.ok ? 'ok' : 'unavailable',
           service: 'web-gateway',
@@ -217,6 +223,10 @@ export function createWebServer({
         res.writeHead(response.status, {
           ...securityHeaders,
           'content-type': 'application/json',
+          'x-request-id':
+            typeof response.headers['x-request-id'] === 'string'
+              ? response.headers['x-request-id']
+              : requestId,
           ...(typeof response.headers['retry-after'] === 'string'
             ? { 'retry-after': response.headers['retry-after'] }
             : {}),

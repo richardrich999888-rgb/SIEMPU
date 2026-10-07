@@ -2,7 +2,7 @@
 
 A working, synthetic-data prototype for secure inter-unit information exchange over an untrusted network. The repository slug is `SIEMPU`; the official challenge acronym is **SIEPMU**.
 
-Start with the [delivery report](docs/DELIVERY_REPORT.md), [both-brief execution checklist](docs/EXECUTION_CHECKLIST.md), [source map](#repository-map) and [tests](tests/). The checklist maps all 90 numbered sections from the two implementation briefs to files, evidence and remaining work.
+The [execution checklist](docs/EXECUTION_CHECKLIST.md) maps both implementation briefs to code, evidence and remaining work. The [earlier delivery report](docs/DELIVERY_REPORT.md) records the separately delivered main baseline; [implementation status](docs/IMPLEMENTATION_STATUS.md) records the integrated candidate.
 
 **Status: PROTOTYPE with measured engineering tests.** This is not IAF approved, SAG graded, operationally accredited, externally penetration tested, or a patentability claim. See [implementation status](docs/IMPLEMENTATION_STATUS.md), [limitations](docs/limitations.md) and [claims](docs/claims.md).
 
@@ -10,11 +10,12 @@ The central experiment is **policy-epoch-bound release**: ciphertext can be queu
 
 ## Run locally
 
-Requires Node **24.19.0**, npm and a current browser with WebCrypto. Runtime services use Node built-ins; npm dependencies are development tools only.
+Requires Node **24.x (>=24.19.0)**, npm and a current browser with WebCrypto. Hosted CI and the container use **24.21.0**; local compatibility has also been tested on **24.19.0**. Runtime services use Node built-ins; npm dependencies are development tools only.
 
 ```sh
 git clone https://github.com/richardrich999888-rgb/SIEMPU.git
 cd SIEMPU
+git switch feature/repository-foundation
 npm ci --ignore-scripts
 npm run bootstrap
 npm start
@@ -50,7 +51,7 @@ node apps/verifier/verify.mjs artifacts/demo/evidence.json artifacts/demo/public
 
 `demo.mjs` provisions its own temporary identities and starts all three services on available ports. It exercises real HTTP exchange, a disconnected backlog, recipient revocation, selective release and detached evidence verification. `benchmark.mjs` measures a sequential synthetic loopback workload; it is not a WAN or capacity benchmark. Generated results live in `artifacts/`, outside source control.
 
-Browser acceptance has a separate runner: `node apps/unit-client/browser-check.mjs` against a **fresh running synthetic deployment** after installing its Playwright Chromium runtime. See [client instructions](apps/unit-client/README.md). Container and browser tests have dedicated CI jobs; configuration alone is not a passing result.
+Run the three named HTTP acceptance scenarios with `make e2e`. Browser acceptance provisions and cleans up an isolated deployment with `make browser`, after installing Playwright Chromium. The direct `node apps/unit-client/browser-check.mjs` runner also supports a fresh running deployment. See [client instructions](apps/unit-client/README.md). Container and browser tests have dedicated CI jobs; configuration alone is not a passing result.
 
 ## What is implemented
 

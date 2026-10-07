@@ -23,6 +23,64 @@ const vaultSecret = randomBytes(24).toString('base64url');
 const artifactDir = resolve(process.env.SIEPMU_BROWSER_ARTIFACTS || 'artifacts/browser');
 await mkdir(artifactDir, { recursive: true });
 
+async function checkTrustStorageRecovery() {
+  const context = await browser.newContext({ serviceWorkers: 'block' });
+  const page = await context.newPage();
+  const startupErrors = [];
+  page.on('pageerror', (error) => startupErrors.push(error.message));
+  try {
+    await context.addInitScript(() => {
+      localStorage.setItem(
+        'siepmu.authority.pin.v1',
+        JSON.stringify({ d: 'synthetic-invalid-pin' }),
+      );
+      localStorage.setItem('siepmu.public-meta.v1', JSON.stringify({ version: 'malformed-cache' }));
+      globalThis.__siepmuStorageFailures = { remove: 0, cache: 0 };
+      const remove = Storage.prototype.removeItem;
+      const set = Storage.prototype.setItem;
+      Storage.prototype.removeItem = function (key) {
+        if (key === 'siepmu.authority.pin.v1') {
+          globalThis.__siepmuStorageFailures.remove++;
+          throw new DOMException('Synthetic storage removal denial', 'SecurityError');
+        }
+        return remove.call(this, key);
+      };
+      Storage.prototype.setItem = function (key, value) {
+        if (key === 'siepmu.public-meta.v1') {
+          globalThis.__siepmuStorageFailures.cache++;
+          throw new DOMException('Synthetic cache write denial', 'SecurityError');
+        }
+        return set.call(this, key, value);
+      };
+    });
+    await context.route('**/api/meta', (route) => route.abort(), { times: 1 });
+    await page.goto(base.href);
+    await page.getByRole('button', { name: 'Retry connection', exact: true }).waitFor();
+    assert.ok((await page.locator('#main').innerText()).includes('Authority unavailable'));
+    await page.getByRole('button', { name: 'Retry connection', exact: true }).click();
+    await page
+      .getByRole('button', { name: 'Trust independently verified authority', exact: true })
+      .waitFor();
+    await page
+      .locator('#notice')
+      .filter({ hasText: 'Public metadata could not be cached' })
+      .waitFor();
+    const failures = await page.evaluate(() => globalThis.__siepmuStorageFailures);
+    assert.ok(failures.remove >= 2, 'Both startup attempts must reach the denied pin removal');
+    assert.equal(failures.cache, 1, 'Live metadata must reach the denied cache write');
+    assert.deepEqual(
+      startupErrors,
+      [],
+      'Storage denial must not cause an uncaught startup failure',
+    );
+    results.push(
+      'Malformed cached trust/metadata and blocked storage removal recover to visible trust UI without uncaught startup errors',
+    );
+  } finally {
+    await context.close();
+  }
+}
+
 async function loginUser(username) {
   const profile = provisioning.profiles.find((p) => p.username === username);
   assert.ok(profile, `Missing ${username} profile`);
@@ -252,6 +310,7 @@ async function exchangeFile(alice, bob) {
 }
 
 try {
+  await checkTrustStorageRecovery();
   const alice = await loginUser('alice');
   const bob = await loginUser('bob');
   const admin = await loginUser('admin');

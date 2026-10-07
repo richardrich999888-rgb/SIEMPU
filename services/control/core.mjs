@@ -4,6 +4,12 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { randomUUID, randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import {
+  envelopeFields,
+  storedEnvelope,
+  storedObjectIntegrityReason,
+} from '../admission/integrity.mjs';
+import { decisionEvidence } from '../evidence/decision.mjs';
+import {
   canonical,
   hash,
   decode,
@@ -157,7 +163,7 @@ export class Authority {
   }
   object(row) {
     if (!row) return null;
-    const e = parse(row.envelope);
+    const e = storedEnvelope(row) ?? {};
     return {
       id: row.id,
       objectId: row.id,
@@ -400,6 +406,15 @@ export class Authority {
     });
   }
   authorityReason(row) {
+    const sender = this.get('SELECT signing_key FROM devices WHERE id=?', row.sender_device);
+    let signingKey;
+    try {
+      signingKey = sender && parse(sender.signing_key);
+    } catch {
+      return 'OBJECT_SIGNATURE_INVALID';
+    }
+    const integrityReason = storedObjectIntegrityReason(row, signingKey);
+    if (integrityReason) return integrityReason;
     const e = parse(row.envelope),
       now = Date.now(),
       g = e.creationGrant?.payload;
@@ -441,30 +456,9 @@ export class Authority {
   validateSubmission(s, b) {
     const e = b.envelope;
     assert(e && e.schemaVersion === 1 && uuid(e.objectId));
-    const expected = [
-      'schemaVersion',
-      'objectId',
-      'senderUserId',
-      'senderDeviceId',
-      'senderUnitId',
-      'recipientUserId',
-      'recipientDeviceId',
-      'recipientUnitId',
-      'recipientKeyId',
-      'missionId',
-      'classification',
-      'action',
-      'createdAt',
-      'expiresAt',
-      'creationGrant',
-      'cryptoSuite',
-      'keyVersion',
-      'ciphertextHash',
-      'nonce',
-      'wrappedKey',
-    ];
     assert(
-      Object.keys(e).length === expected.length && expected.every((k) => Object.hasOwn(e, k)),
+      Object.keys(e).length === envelopeFields.length &&
+        envelopeFields.every((k) => Object.hasOwn(e, k)),
       'ENVELOPE_SCHEMA',
     );
     assert(
@@ -614,12 +608,19 @@ export class Authority {
         epoch,
         id,
       );
-      const receipt = this.event('ADMISSION', s.user_id, {
-        objectId: id,
-        decision: state,
-        reason: reason ?? 'CURRENT_AUTHORITY_VALID',
-        details: { objectDigest: r.digest, preparedEpoch: epoch },
-      });
+      const receipt = this.event(
+        'ADMISSION',
+        s.user_id,
+        decisionEvidence({
+          row: r,
+          authority: this.epoch(),
+          policyDigest: this.policyDigest(),
+          session: s,
+          state,
+          reason,
+          extra: { preparedEpoch: epoch },
+        }),
+      );
       this.count('policyEvaluations');
       if (reason) this.alert('ADMISSION_HELD', s.user_id, reason);
       return { object: this.object(this.get('SELECT * FROM objects WHERE id=?', id)), receipt };
@@ -645,12 +646,19 @@ export class Authority {
           epoch,
           id,
         );
-        const receipt = this.event('RELEASE_DENIED', s.user_id, {
-          objectId: id,
-          decision: 'HELD',
-          reason,
-          details: { objectDigest: r.digest, expectedEpoch, currentEpoch: epoch },
-        });
+        const receipt = this.event(
+          'RELEASE_DENIED',
+          s.user_id,
+          decisionEvidence({
+            row: r,
+            authority: this.epoch(),
+            policyDigest: this.policyDigest(),
+            session: s,
+            state: 'HELD',
+            reason,
+            extra: { expectedEpoch, currentEpoch: epoch },
+          }),
+        );
         this.alert('RELEASE_DENIED', s.user_id, reason);
         this.count('held');
         return {
@@ -663,40 +671,34 @@ export class Authority {
       let receipt;
       if (old) {
         receipt = parse(old.receipt);
-        this.event('RELEASE_RETRY', s.user_id, {
-          objectId: id,
-          decision: 'RELEASED',
-          details: { issuanceEventId: receipt.payload.eventId, currentEpoch: epoch },
-        });
+        this.event(
+          'RELEASE_RETRY',
+          s.user_id,
+          decisionEvidence({
+            row: r,
+            authority: this.epoch(),
+            policyDigest: this.policyDigest(),
+            session: s,
+            state: r.state === 'DELIVERED' ? 'DELIVERED' : 'RELEASED',
+            extra: { issuanceEventId: receipt.payload.eventId, currentEpoch: epoch },
+          }),
+        );
         this.run(
           "UPDATE objects SET reason=NULL,state=CASE WHEN state='DELIVERED' THEN state ELSE 'RELEASED' END WHERE id=?",
           id,
         );
       } else {
-        const e = parse(r.envelope);
-        receipt = this.event('RELEASE_ISSUED', s.user_id, {
-          objectId: id,
-          decision: 'RELEASED',
-          reason: 'CURRENT_AUTHORITY_VALID',
-          details: {
-            objectDigest: r.digest,
-            envelopeDigest: hash(canonical(e)),
-            senderUserId: r.sender_id,
-            senderDeviceId: r.sender_device,
-            recipientUserId: r.recipient_id,
-            recipientDeviceId: r.recipient_device,
-            destinationUnitId: e.recipientUnitId,
-            missionId: e.missionId,
-            action: e.action,
-            creationGrantId: e.creationGrant.payload.grantId,
-            creationEpoch: e.creationGrant.payload.creationEpoch,
+        receipt = this.event(
+          'RELEASE_ISSUED',
+          s.user_id,
+          decisionEvidence({
+            row: r,
+            authority: this.epoch(),
             policyDigest: this.policyDigest(),
-            revocationVersion: this.epoch().revocation_version,
-            authorityEpoch: epoch,
-            deviceEvidence: 'software-proof-of-possession',
-            proofEvidence: s.proofEvidence ?? { source: 'internal-call-no-http-proof' },
-          },
-        });
+            session: s,
+            state: 'RELEASED',
+          }),
+        );
         this.hooks.beforeEvidence?.();
         this.run(
           'INSERT INTO issuances VALUES(?,?,?,?)',
@@ -923,9 +925,9 @@ export class Authority {
               receipt: value.receipt,
             },
           };
-        value.ciphertext = (await this.relay.getBlob(value.object.ciphertextHash)).toString(
-          'base64url',
-        );
+        const ciphertext = await this.relay.getBlob(value.object.ciphertextHash);
+        assert(hash(ciphertext) === value.object.ciphertextHash, 'CIPHERTEXT_DIGEST', 502);
+        value.ciphertext = ciphertext.toString('base64url');
       }
     } else if (path.startsWith('/api/admin/') || path === '/api/integration/validate') {
       s = this.bound(s);

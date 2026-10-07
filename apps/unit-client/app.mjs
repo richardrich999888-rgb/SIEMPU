@@ -1312,13 +1312,15 @@ async function initialize() {
     if (state.pinFingerprint) localStorage.setItem(PIN_KEY, JSON.stringify(state.pinFingerprint));
   } catch {
     state.pinFingerprint = null;
-    localStorage.removeItem(PIN_KEY);
+    try {
+      localStorage.removeItem(PIN_KEY);
+    } catch {
+      // Blocked storage must not prevent an explicit trust decision in this tab.
+    }
   }
   let received;
-  let fresh = false;
   try {
     received = await api('/api/meta');
-    fresh = true;
   } catch (error) {
     try {
       received = JSON.parse(localStorage.getItem(META_KEY) || 'null');
@@ -1330,7 +1332,12 @@ async function initialize() {
   try {
     state.meta = await publicMetadata(received);
     state.pin = state.meta.serverPublicKey;
-    if (fresh) localStorage.setItem(META_KEY, JSON.stringify(state.meta));
+    try {
+      // Also replace a legacy offline cache with the validated public allowlist.
+      localStorage.setItem(META_KEY, JSON.stringify(state.meta));
+    } catch {
+      notify('Public metadata could not be cached; offline reload may be unavailable.', true);
+    }
   } catch {
     state.meta = null;
     state.pin = null;

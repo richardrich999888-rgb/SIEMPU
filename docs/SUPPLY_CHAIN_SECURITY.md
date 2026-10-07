@@ -8,7 +8,7 @@ Controls implemented:
 
 - `npm ci --ignore-scripts` against the committed lockfile; the runtime dependency graph must remain empty. ESLint, Prettier, TypeScript, Node typings, lint globals and Playwright are pinned development dependencies in the same lockfile.
 - Explicit build allowlist. Provisioned identities, databases, secret files, `.env`, test output and uploaded files are excluded from the image context or runtime package.
-- Docker official Node base pinned by immutable manifest digest. The digest was resolved through the Docker registry for `24.19.0-bookworm-slim`.
+- Docker official Node base pinned by immutable manifest digest. The `24.21.0-alpine3.24` manifest digest was verified against immutable official Docker image metadata; [source and rationale](../security/README.md#container-remediation-evidence).
 - GitHub Actions pinned by full commit SHA. Dependabot proposes changes; review remains necessary.
 - Read-only repository permissions by default. CodeQL alone receives `security-events: write`; jobs do not request cloud deployment credentials.
 - ESLint semantic rules, Prettier format checks, strict TypeScript checkJs on the relay authentication/client boundary, local narrow secret/dynamic-code checks, CI Gitleaks history scan, CodeQL security-extended analysis with a local SARIF severity gate, npm audit and Trivy image vulnerability scan.

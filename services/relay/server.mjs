@@ -28,115 +28,118 @@ export function createRelayServer({
     });
     res.end(JSON.stringify(value));
   }
+  function healthRoute(_req, res) {
+    db.prepare('SELECT 1').get();
+    json(res, 200, { status: 'ok', service: 'blind-ciphertext-relay' });
+  }
+  // Authentication is an unconditional workload boundary. Route, Origin and
+  // content checks below cannot select an unauthenticated blob handler. The HMAC
+  // binds the original method, URL and complete bounded body.
+  async function workloadRoute(req, res) {
+    if (Number(req.headers['content-length'] || 0) > maxBytes) {
+      json(res, 413, { error: 'BODY_LIMIT' });
+      req.resume();
+      return;
+    }
+    const chunks = [];
+    let size = 0;
+    for await (const chunk of req) {
+      size += chunk.length;
+      if (size > maxBytes) {
+        json(res, 413, { error: 'BODY_LIMIT' });
+        return;
+      }
+      chunks.push(chunk);
+    }
+    const body = Buffer.concat(chunks);
+    const auth = validateRelayAuthentication(secret, req.method, req.url, body, req.headers, now());
+    if (!auth) {
+      json(res, 401, { error: 'WORKLOAD_AUTHENTICATION' });
+      return;
+    }
+    const match = /^\/blobs\/([a-f0-9]{64})$/.exec(req.url || '');
+    if (!match || !['GET', 'PUT'].includes(req.method)) {
+      json(res, 404, { error: 'NOT_FOUND' });
+      return;
+    }
+    if (req.headers.origin) {
+      json(res, 403, { error: 'WORKLOAD_ONLY' });
+      return;
+    }
+    if (req.method === 'PUT' && req.headers['content-type'] !== 'application/octet-stream') {
+      json(res, 415, { error: 'CONTENT_TYPE' });
+      return;
+    }
+    if (req.method === 'GET' && body.length) {
+      json(res, 400, { error: 'UNEXPECTED_BODY' });
+      return;
+    }
+    if (req.method === 'PUT' && (body.length < 16 || sha256(body) !== match[1])) {
+      json(res, 400, { error: 'CIPHERTEXT_DIGEST' });
+      return;
+    }
+    db.exec('BEGIN IMMEDIATE');
+    let blob;
+    try {
+      db.prepare('DELETE FROM workload_nonces WHERE expires_at < ?').run(now());
+      if (db.prepare('SELECT 1 FROM workload_nonces WHERE nonce=?').get(auth.nonce)) {
+        db.exec('ROLLBACK');
+        json(res, 409, { error: 'WORKLOAD_REPLAY' });
+        return;
+      }
+      db.prepare('INSERT INTO workload_nonces(nonce, expires_at) VALUES (?,?)').run(
+        auth.nonce,
+        auth.expiresAt,
+      );
+      blob = db.prepare('SELECT ciphertext,size FROM blobs WHERE hash=?').get(match[1]);
+      if (req.method === 'PUT' && !blob) {
+        const used = db.prepare('SELECT COALESCE(SUM(size),0) AS bytes FROM blobs').get().bytes;
+        if (used + body.length > maxStorageBytes) {
+          db.exec('COMMIT');
+          json(res, 507, { error: 'RELAY_STORAGE_LIMIT' });
+          return;
+        }
+        db.prepare('INSERT INTO blobs(hash,ciphertext,size,created_at) VALUES (?,?,?,?)').run(
+          match[1],
+          body,
+          body.length,
+          now(),
+        );
+      }
+      db.exec('COMMIT');
+    } catch (error) {
+      try {
+        db.exec('ROLLBACK');
+      } catch {}
+      throw error;
+    }
+    if (req.method === 'PUT') {
+      json(res, blob ? 200 : 201, { hash: match[1], size: body.length });
+      return;
+    }
+    if (!blob) {
+      json(res, 404, { error: 'BLOB_NOT_FOUND' });
+      return;
+    }
+    res.writeHead(200, {
+      'content-type': 'application/octet-stream',
+      'content-length': blob.size,
+      'cache-control': 'no-store',
+      'x-content-type-options': 'nosniff',
+    });
+    res.end(Buffer.from(blob.ciphertext));
+  }
   const server = createServer(async (req, res) => {
     try {
-      if (req.method === 'GET' && ['/health', '/health/live', '/health/ready'].includes(req.url)) {
-        db.prepare('SELECT 1').get();
-        json(res, 200, { status: 'ok', service: 'blind-ciphertext-relay' });
-        return;
-      }
-      if (Number(req.headers['content-length'] || 0) > maxBytes) {
-        json(res, 413, { error: 'BODY_LIMIT' });
-        req.resume();
-        return;
-      }
-      const chunks = [];
-      let size = 0;
-      for await (const chunk of req) {
-        size += chunk.length;
-        if (size > maxBytes) {
-          json(res, 413, { error: 'BODY_LIMIT' });
+      switch (`${req.method} ${req.url}`) {
+        case 'GET /health':
+        case 'GET /health/live':
+        case 'GET /health/ready':
+          healthRoute(req, res);
           return;
-        }
-        chunks.push(chunk);
+        default:
+          await workloadRoute(req, res);
       }
-      const body = Buffer.concat(chunks);
-      if (req.method === 'GET' && body.length) {
-        json(res, 400, { error: 'UNEXPECTED_BODY' });
-        return;
-      }
-      const auth = validateRelayAuthentication(
-        secret,
-        req.method,
-        req.url,
-        body,
-        req.headers,
-        now(),
-      );
-      if (!auth) {
-        json(res, 401, { error: 'WORKLOAD_AUTHENTICATION' });
-        return;
-      }
-      // Every non-health request reaches the cryptographic workload gate before
-      // route/content/origin policy. Client-controlled routing never grants trust.
-      // Authentication binds the original method, URL and complete bounded body.
-      const match = /^\/blobs\/([a-f0-9]{64})$/.exec(req.url || '');
-      if (!match || !['GET', 'PUT'].includes(req.method)) {
-        json(res, 404, { error: 'NOT_FOUND' });
-        return;
-      }
-      if (req.headers.origin) {
-        json(res, 403, { error: 'WORKLOAD_ONLY' });
-        return;
-      }
-      if (req.method === 'PUT' && req.headers['content-type'] !== 'application/octet-stream') {
-        json(res, 415, { error: 'CONTENT_TYPE' });
-        return;
-      }
-      if (req.method === 'PUT' && (body.length < 16 || sha256(body) !== match[1])) {
-        json(res, 400, { error: 'CIPHERTEXT_DIGEST' });
-        return;
-      }
-      db.exec('BEGIN IMMEDIATE');
-      let blob;
-      try {
-        db.prepare('DELETE FROM workload_nonces WHERE expires_at < ?').run(now());
-        if (db.prepare('SELECT 1 FROM workload_nonces WHERE nonce=?').get(auth.nonce)) {
-          db.exec('ROLLBACK');
-          json(res, 409, { error: 'WORKLOAD_REPLAY' });
-          return;
-        }
-        db.prepare('INSERT INTO workload_nonces(nonce, expires_at) VALUES (?,?)').run(
-          auth.nonce,
-          auth.expiresAt,
-        );
-        blob = db.prepare('SELECT ciphertext,size FROM blobs WHERE hash=?').get(match[1]);
-        if (req.method === 'PUT' && !blob) {
-          const used = db.prepare('SELECT COALESCE(SUM(size),0) AS bytes FROM blobs').get().bytes;
-          if (used + body.length > maxStorageBytes) {
-            db.exec('COMMIT');
-            json(res, 507, { error: 'RELAY_STORAGE_LIMIT' });
-            return;
-          }
-          db.prepare('INSERT INTO blobs(hash,ciphertext,size,created_at) VALUES (?,?,?,?)').run(
-            match[1],
-            body,
-            body.length,
-            now(),
-          );
-        }
-        db.exec('COMMIT');
-      } catch (error) {
-        try {
-          db.exec('ROLLBACK');
-        } catch {}
-        throw error;
-      }
-      if (req.method === 'PUT') {
-        json(res, blob ? 200 : 201, { hash: match[1], size: body.length });
-        return;
-      }
-      if (!blob) {
-        json(res, 404, { error: 'BLOB_NOT_FOUND' });
-        return;
-      }
-      res.writeHead(200, {
-        'content-type': 'application/octet-stream',
-        'content-length': blob.size,
-        'cache-control': 'no-store',
-        'x-content-type-options': 'nosniff',
-      });
-      res.end(Buffer.from(blob.ciphertext));
     } catch {
       if (!res.headersSent) json(res, 503, { error: 'RELAY_UNAVAILABLE' });
       else res.destroy();
