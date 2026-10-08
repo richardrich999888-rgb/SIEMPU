@@ -22,6 +22,10 @@ Fresh 32-byte AES content key and 12-byte nonce. Payload AES256-GCM AAD = canoni
 
 Wrap content key using ephemeral P256 ECDH, HKDF-SHA256 with random 32-byte salt and info UTF8 `SIEPMU_WRAP_V1`, AES256-GCM random 12-byte IV, AAD canonical(context). `wrappedKey={ephemeralPublicKey,salt,iv,ciphertext}`. RecipientKeyId=SHA256(canonical(public encryption JWK)). `envelope={...context,ciphertextHash,nonce,wrappedKey}` signed as a whole by sender device. Submission `{envelope,signature,ciphertext}` (base64url ciphertext). Signature authenticates all authority-relevant fields. Authority stores envelope including opaque wrapped key; blind relay receives ciphertext only. Static recipient encryption key gives no forward secrecy. Authority cannot decrypt, but a compromised authority could release a wrapped key contrary to policy.
 
+## Filed duty-role/priority synthetic extension (version 2)
+
+When assigned by an authenticated administrator, `dutyRole` further restricts the original generic `operator`, `viewer`, `admin`, and `auditor` roles without elevating any of them. Message schema v2 adds sender-signed, AEAD-authenticated `messagePriority` (FLASH/IMMEDIATE/PRIORITY/ROUTINE) and `messageDomain` (GENERAL/INTEL). Sender and receiver duty assignments are checked at admission and again in the final transactional release. A duty-profile user cannot release version 1 content by omitting the labels. The recipient's object list hides unauthorised priority metadata. These synthetic labels are not classification markings or approved military entitlement rules.
+
 ## Authority and release
 
 Global monotonically increasing epoch and revocationVersion in authority database. Policy edges bind fromUnit,toUnit,missionId,allow. Users have missionIds and active status. Grant signed packet binds user/device/unit, mission list, creation epoch/policy digest, issuedAt/expiresAt, max sensitivity DEMO. Grant must still be valid at server admission; no assertion that untrusted client timestamp proves pre-expiry creation. Local cached work is allowed only while grant and local rollback floor are valid, no offline peer delivery.

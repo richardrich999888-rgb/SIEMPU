@@ -1,8 +1,12 @@
 /** SIEPMU-CJSON-v1: sorted JSON member names, preserved array order, safe integers.
  * This is a project encoding, not an implementation claim for RFC 8785.
+ * @param {unknown} value
+ * @returns {string}
  */
 export function canonical(value) {
+  /** @type {Set<object>} */
   const ancestors = new Set();
+  /** @param {unknown} v @param {number} depth @returns {string} */
   function encode(v, depth) {
     if (depth > 64) throw new TypeError('Canonical value exceeds depth limit');
     if (v === null || typeof v === 'boolean' || typeof v === 'string') return JSON.stringify(v);

@@ -1,20 +1,10 @@
 import { canonical } from '../../packages/protocol/canonical.mjs';
-import { sha256, unb64 } from '../../packages/crypto/crypto.mjs';
+import { sha256 } from '../../packages/crypto/crypto.mjs';
+import { authorityPublicJwk } from './authority-pin.mjs';
 
 /** Authority trust accepts a public P-256 verification key, never arbitrary key material. */
 export async function publicAuthorityKey(value) {
-  if (
-    !value ||
-    Object.keys(value).sort().join(',') !== 'crv,kty,x,y' ||
-    value.kty !== 'EC' ||
-    value.crv !== 'P-256'
-  )
-    throw new Error(
-      'Expected an exact public P-256 authority key with no private or extra fields.',
-    );
-  if (unb64(value.x).length !== 32 || unb64(value.y).length !== 32)
-    throw new Error('Invalid public authority coordinates.');
-  const projected = { kty: 'EC', crv: 'P-256', x: value.x, y: value.y };
+  const projected = authorityPublicJwk(value);
   await crypto.subtle.importKey('jwk', projected, { name: 'ECDSA', namedCurve: 'P-256' }, false, [
     'verify',
   ]);

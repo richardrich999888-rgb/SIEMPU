@@ -1,7 +1,9 @@
-/** Informational operator-supplied build identifiers; never a code-attestation result. */
+/** Informational operator-supplied build identifiers; never a code-attestation result.
+ * @param {NodeJS.ProcessEnv} [env]
+ */
 export function buildInfo(env = process.env) {
   const revision = /^[a-f0-9]{40}$/i.test(env.SIEPMU_BUILD_REVISION || '')
-    ? env.SIEPMU_BUILD_REVISION.toLowerCase()
+    ? (env.SIEPMU_BUILD_REVISION || '').toLowerCase()
     : null;
   const timestamp = env.SIEPMU_BUILD_TIMESTAMP || '';
   const validDate =

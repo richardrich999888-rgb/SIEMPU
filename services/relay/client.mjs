@@ -1,9 +1,11 @@
+import { requestBytes } from '../../packages/transport/tls.mjs';
 import { relayHeaders, readRelaySecret, sha256 } from './auth.mjs';
 
-/** @param {{baseUrl?: string, secret?: Uint8Array, secretFile?: string, maxBytes?: number}} [options] */
+/** @param {{baseUrl?: string, secret?: Uint8Array, secretFile?: string, maxBytes?: number, tls?: import('node:https').RequestOptions}} [options] */
 export function createRelayClient({
   baseUrl = process.env.SIEPMU_RELAY_URL || 'http://127.0.0.1:8082',
   secret,
+  tls,
   secretFile = process.env.SIEPMU_RELAY_SECRET_FILE,
   maxBytes = 4 * 1024 * 1024,
 } = {}) {
@@ -26,28 +28,29 @@ export function createRelayClient({
     process.env.SIEPMU_ALLOW_REMOTE_HTTP !== '1'
   )
     throw new Error('Remote relay requires TLS or explicit internal-network override');
+  if (tls && url.protocol !== 'https:') throw new Error('Authenticated relay requires HTTPS');
   /** @param {'GET' | 'PUT'} method @param {string} hash @param {Buffer<ArrayBuffer>} [body] */
   async function request(method, hash, body = Buffer.alloc(0)) {
     if (!/^[a-f0-9]{64}$/.test(hash)) throw new Error('Invalid ciphertext hash');
     const path = `/blobs/${hash}`;
-    const response = await fetch(new URL(path, url), {
+    const response = await requestBytes(new URL(path, url), {
+      tls,
+      maxBytes,
       method,
       headers: {
         ...relayHeaders(key, method, path, body),
         ...(method === 'PUT' ? { 'content-type': 'application/octet-stream' } : {}),
       },
       ...(method === 'PUT' ? { body } : {}),
-      signal: AbortSignal.timeout(10_000),
-      redirect: 'error',
     });
-    if (!response.ok)
+    if (response.status < 200 || response.status >= 300)
       throw Object.assign(new Error('Ciphertext relay unavailable or request rejected'), {
         code: 'RELAY_ERROR',
         status: response.status,
       });
     if (method === 'PUT') {
       /** @type {unknown} */
-      const result = await response.json();
+      const result = JSON.parse(response.body.toString('utf8'));
       if (
         !result ||
         typeof result !== 'object' ||
@@ -59,20 +62,7 @@ export function createRelayClient({
         throw new Error('Invalid relay receipt');
       return { hash, size: body.length };
     }
-    const length = Number(response.headers.get('content-length'));
-    if (length > maxBytes) throw new Error('Relay response too large');
-    if (!response.body) throw new Error('Relay response has no body');
-    const chunks = [];
-    let size = 0;
-    for await (const chunk of response.body) {
-      size += chunk.length;
-      if (size > maxBytes) {
-        await response.body.cancel().catch(() => {});
-        throw new Error('Relay response too large');
-      }
-      chunks.push(Buffer.from(chunk));
-    }
-    const ciphertext = Buffer.concat(chunks);
+    const ciphertext = response.body;
     if (sha256(ciphertext) !== hash) throw new Error('Relay ciphertext digest mismatch');
     return ciphertext;
   }
