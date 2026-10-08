@@ -1,0 +1,17 @@
+# Rust reference components for SIEPMU (see docs/decisions/ADR-012-rust-reference-components.md).
+# Each crate reimplements one frozen, language-neutral contract from spec/ and is accepted only
+# by differential tests against the Node reference implementation.
+[workspace]
+resolver = "2"
+members = ["evidence-verify"]
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.85"
+license = "Apache-2.0"
+publish = false
+
+[profile.release]
+overflow-checks = true
+lto = true
+codegen-units = 1

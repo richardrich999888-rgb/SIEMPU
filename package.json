@@ -40,7 +40,11 @@
     "testbed:provision": "node deployment/testbed/provision.mjs",
     "testbed:run": "node deployment/testbed/run.mjs",
     "release:offline": "node scripts/offline-release.mjs",
-    "demo:trust-before-release": "node scripts/trust-before-release.mjs"
+    "demo:trust-before-release": "node scripts/trust-before-release.mjs",
+    "build:native": "cargo build --release --locked --manifest-path native/Cargo.toml",
+    "test:native": "node --test --test-concurrency=1 tests/native/*.check.mjs",
+    "vectors:generate": "node scripts/evidence-vectors.mjs",
+    "vectors:check": "node scripts/evidence-vectors.mjs --check"
   },
   "devDependencies": {
     "@types/node": "24.10.0",

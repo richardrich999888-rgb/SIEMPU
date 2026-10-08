@@ -1,0 +1,98 @@
+{
+  "format": "SIEPMU-CJSON-v1 test vectors",
+  "specification": "spec/SIEPMU-CJSON-v1.md",
+  "reference": "packages/protocol/canonical.mjs applied to JSON.parse(input)",
+  "notes": [
+    "error null means rejection is required but the message is implementation-specific."
+  ],
+  "cases": [
+    {
+      "id": "object-order",
+      "input": "{\"b\":1,\"a\":2,\"c\":{\"z\":null,\"y\":[3,2,1]}}",
+      "canonical": "{\"a\":2,\"b\":1,\"c\":{\"y\":[3,2,1],\"z\":null}}"
+    },
+    {
+      "id": "utf16-order",
+      "input": "{\"\uff61\":1,\"\ud83d\ude00\":2,\"a\":3}",
+      "canonical": "{\"a\":3,\"\ud83d\ude00\":2,\"\uff61\":1}"
+    },
+    {
+      "id": "escapes",
+      "input": "\"\\u0000\\u0008\\t\\n\\u000b\\f\\r\\u001f \\\" \\\\ \\/ \\u007f \\u2028 \\u00e9\"",
+      "canonical": "\"\\u0000\\b\\t\\n\\u000b\\f\\r\\u001f \\\" \\\\ / \u007f \u2028 \u00e9\""
+    },
+    {
+      "id": "non-ascii-literal",
+      "input": "\"\u0939\u093f\u0928\u094d\u0926\u0940 \ud83d\ude00\"",
+      "canonical": "\"\u0939\u093f\u0928\u094d\u0926\u0940 \ud83d\ude00\""
+    },
+    {
+      "id": "integral-lexemes",
+      "input": "[1.0,1e2,-5E0,0.0,10e-1]",
+      "canonical": "[1,100,-5,0,1]"
+    },
+    {
+      "id": "safe-bounds",
+      "input": "[9007199254740991,-9007199254740991]",
+      "canonical": "[9007199254740991,-9007199254740991]"
+    },
+    {
+      "id": "empty-containers",
+      "input": "{\"a\":[],\"b\":{}}",
+      "canonical": "{\"a\":[],\"b\":{}}"
+    },
+    {
+      "id": "scalars",
+      "input": "[true,false,null,\"\"]",
+      "canonical": "[true,false,null,\"\"]"
+    },
+    {
+      "id": "depth-64",
+      "input": "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[1]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]",
+      "canonical": "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[1]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]"
+    },
+    {
+      "id": "reject-fraction",
+      "input": "0.5",
+      "error": "Canonical numbers must be safe integers"
+    },
+    {
+      "id": "reject-unsafe",
+      "input": "9007199254740992",
+      "error": "Canonical numbers must be safe integers"
+    },
+    {
+      "id": "reject-negative-zero",
+      "input": "-0",
+      "error": "Canonical numbers must be safe integers"
+    },
+    {
+      "id": "reject-overflow",
+      "input": "1e400",
+      "error": "Canonical numbers must be safe integers"
+    },
+    {
+      "id": "reject-depth-65",
+      "input": "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[1]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]",
+      "error": "Canonical value exceeds depth limit"
+    },
+    {
+      "id": "divergence-lone-surrogate",
+      "input": "\"\\ud800\"",
+      "error": null,
+      "divergence": "D1",
+      "reference": {
+        "canonical": "\"\\ud800\""
+      }
+    },
+    {
+      "id": "divergence-duplicate-member",
+      "input": "{\"a\":1,\"a\":2}",
+      "error": null,
+      "divergence": "D3",
+      "reference": {
+        "canonical": "{\"a\":2}"
+      }
+    }
+  ]
+}
