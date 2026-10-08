@@ -13,7 +13,13 @@ import {
   nextDue,
   createDelayQueue,
 } from '../deployment/relevant-env/wan-relay.mjs';
-import { syntheticBytes } from '../deployment/relevant-env/payload.mjs';
+import {
+  syntheticBytes,
+  plaintextRepresentations,
+  blockIndex,
+  containsIndexedBlock,
+} from '../deployment/relevant-env/payload.mjs';
+import { createHash } from 'node:crypto';
 import { percentile, summary, PROFILES, LOSS_PROFILES } from '../scripts/trl5-validation.mjs';
 
 test('topology: three namespaces, two links, A and C only reach B', () => {
@@ -149,4 +155,41 @@ test('impairment profiles are those declared in the acceptance matrix', () => {
     assert.doesNotThrow(() =>
       validateProfile({ delayMs: p.delayMs, jitterMs: p.jitterMs, seed: 1 }),
     );
+});
+
+test('plaintext scan: detects any 64-byte window raw, hex or base64 at every offset (positive control)', () => {
+  const plaintext = syntheticBytes(8192, 11);
+  const index = blockIndex(plaintextRepresentations(plaintext));
+  // Deterministic filler that is not synthetic payload.
+  const filler = Buffer.alloc(997, 0x41);
+  for (const offset of [0, 1, 2, 31, 32, 33, 4000, 8192 - 64]) {
+    const window = Buffer.from(plaintext.subarray(offset, offset + 64));
+    for (const encoded of [
+      window,
+      Buffer.from(window.toString('hex')),
+      // base64 of the window embedded in a longer base64 run, as a JSON field would hold it
+      Buffer.from(
+        Buffer.from(plaintext.subarray(offset - (offset % 3), offset + 64)).toString('base64'),
+      ),
+    ]) {
+      const content = Buffer.concat([filler, encoded, filler]);
+      assert.equal(containsIndexedBlock(content, index), true, `offset ${offset}`);
+    }
+  }
+});
+
+test('plaintext scan: no false positive on ciphertext-like or unrelated content (negative control)', () => {
+  const index = blockIndex(plaintextRepresentations(syntheticBytes(65536, 11)));
+  const seeded = Buffer.from(syntheticBytes(65536, 99)).reverse(); // unrelated synthetic content
+  assert.equal(containsIndexedBlock(seeded, index), false);
+  assert.equal(containsIndexedBlock(Buffer.alloc(0), index), false);
+  assert.equal(containsIndexedBlock(Buffer.alloc(31, 1), index), false);
+  // Ciphertext-like bytes (a SHA-256 counter stream; deterministic) and their base64.
+  const stream = Buffer.concat(
+    Array.from({ length: 2048 }, (_, k) => createHash('sha256').update(String(k)).digest()),
+  );
+  assert.equal(
+    containsIndexedBlock(Buffer.concat([stream, Buffer.from(stream.toString('base64'))]), index),
+    false,
+  );
 });

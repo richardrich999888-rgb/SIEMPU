@@ -39,7 +39,12 @@ import {
   stopChild,
   publicDescriptor,
 } from '../deployment/relevant-env/platform.mjs';
-import { syntheticBytes } from '../deployment/relevant-env/payload.mjs';
+import {
+  syntheticBytes,
+  plaintextRepresentations,
+  blockIndex,
+  containsIndexedBlock,
+} from '../deployment/relevant-env/payload.mjs';
 import { generateLabPKI } from '../deployment/secure/lab-pki.mjs';
 import { buildOfflineBundle, installOfflineBundle } from '../packages/release/offline.mjs';
 import { pair } from '../tests/helpers/client.mjs';
@@ -93,20 +98,24 @@ export const LOSS_PROFILES = Object.freeze([
 const untilNextTotpStep = () => 31000 - (Date.now() % 30000);
 
 /** Searches every regular file under `dir` for each needle; returns the files that contain one. */
-function filesContaining(dir, needles) {
+function filesContaining(dir, index) {
   const hits = [];
+  let files = 0;
+  let bytes = 0;
   const walk = (d) => {
     for (const e of readdirSync(d, { withFileTypes: true })) {
       const p = join(d, e.name);
       if (e.isDirectory()) walk(p);
       else if (e.isFile()) {
         const content = readFileSync(p);
-        if (needles.some((n) => content.includes(n))) hits.push(relative(dir, p));
+        files++;
+        bytes += content.length;
+        if (containsIndexedBlock(content, index)) hits.push(relative(dir, p));
       }
     }
   };
   walk(dir);
-  return hits;
+  return { hits, files, bytes };
 }
 
 /** CPU seconds (user+system) and RSS bytes of a process, from /proc. */
@@ -351,14 +360,15 @@ export async function runTrl5Validation() {
     });
 
     await check('T1.6', 'R5, R10', 'No plaintext window in Host B storage', async () => {
-      const needles = [
-        Buffer.from(syntheticBytes(65536, 11).subarray(1000, 1064)),
-        Buffer.from(syntheticBytes(524288, 12).subarray(300000, 300064)),
-      ];
-      const hits = filesContaining(f.dir, needles);
+      // Every 64-byte window of both T1.4 plaintexts, raw, hex and base64 (see blockIndex).
+      const index = blockIndex([
+        ...plaintextRepresentations(syntheticBytes(65536, 11)),
+        ...plaintextRepresentations(syntheticBytes(524288, 12)),
+      ]);
+      const scan = filesContaining(f.dir, index);
       return {
-        pass: hits.length === 0,
-        observed: { filesScanned: 'all files under Host B state', hits },
+        pass: scan.files > 0 && scan.hits.length === 0,
+        observed: { filesScanned: scan.files, bytesScanned: scan.bytes, hits: scan.hits },
       };
     });
 
@@ -628,6 +638,7 @@ export async function runTrl5Validation() {
         return {
           pass:
             !during.ok &&
+            !during.crashed &&
             recoveredAt !== null &&
             recoveredAt - upAt <= RECOVERY_LIMIT_MS &&
             metrics.outage.queuedDelivered,
@@ -913,7 +924,7 @@ export async function runTrl5Validation() {
         restore(join(work, 'backup-old'));
       });
       const send = await A('send', { user: 'alice', to: 'bob', bytes: 2048, seed: 500 });
-      const claimR3 = await C('count', { user: 'rcp3' }).catch(() => ({ ok: false }));
+      const claimR3 = await C('count', { user: 'rcp3' });
       return {
         pass: revoke.ok && !send.ok && send.status === 503 && send.code === 'RECOVERY_QUARANTINED',
         observed: {
@@ -931,7 +942,11 @@ export async function runTrl5Validation() {
         await restartControl(() => restore(join(work, 'backup-latest')));
         const send = await A('send', { user: 'alice', to: 'bob', bytes: 2048, seed: 501 });
         const revoked = await C('count', { user: 'rcp3' });
-        return { pass: send.ok && !revoked.ok, observed: { send: send.ok, revokedUser: revoked } };
+        // The revoked user must be refused BY THE AUTHORITY for the revocation, not by any fault.
+        return {
+          pass: send.ok && revoked.status === 401 && revoked.code === 'USER_REVOKED',
+          observed: { send: send.ok, revokedUser: revoked },
+        };
       },
     );
 
@@ -978,24 +993,42 @@ export async function runTrl5Validation() {
             trustedKey: keys.publicKey,
             initialize: true,
           });
-          cpSync(bundle, join(work, 'tampered'), { recursive: true });
-          const file = join(work, 'tampered', 'files', 'app', 'services', 'control', 'core.mjs');
-          writeFileSync(file, readFileSync(file, 'utf8') + '\n// altered\n');
-          let tamper = 'ACCEPTED';
-          try {
-            installOfflineBundle({
-              bundle: join(work, 'tampered'),
-              destination: join(states.b, 'install2'),
-              ledger: join(work, 'ledger2.json'),
-              trustedKey: keys.publicKey,
-              initialize: true,
-            });
-          } catch (error) {
-            tamper = error.message;
-          }
+          // Two tamperings: an appended line (size changes) and a same-length byte flip (only the
+          // signed digest can detect it). Both must be refused.
+          const tamperWith = (name, alter) => {
+            cpSync(bundle, join(work, name), { recursive: true });
+            const file = join(work, name, 'files', 'app', 'services', 'control', 'core.mjs');
+            writeFileSync(file, alter(readFileSync(file)));
+            try {
+              installOfflineBundle({
+                bundle: join(work, name),
+                destination: join(states.b, `install-${name}`),
+                ledger: join(work, `ledger-${name}.json`),
+                trustedKey: keys.publicKey,
+                initialize: true,
+              });
+              return 'ACCEPTED';
+            } catch (error) {
+              return error.message;
+            }
+          };
+          const appended = tamperWith('tampered-append', (b) =>
+            Buffer.concat([b, Buffer.from('\n// altered\n')]),
+          );
+          const flipped = tamperWith('tampered-flip', (b) => {
+            const copy = Buffer.from(b);
+            copy[copy.length >> 1] ^= 0x01;
+            return copy;
+          });
           return {
-            pass: installed.status === 'INSTALLED' && tamper !== 'ACCEPTED',
-            observed: { files: m.payload.files.length, installed: installed.status, tamper },
+            pass:
+              installed.status === 'INSTALLED' && appended !== 'ACCEPTED' && flipped !== 'ACCEPTED',
+            observed: {
+              files: m.payload.files.length,
+              installed: installed.status,
+              tamperAppended: appended,
+              tamperSameLength: flipped,
+            },
           };
         } finally {
           execFileSync('git', ['worktree', 'remove', '--force', tree], { stdio: 'pipe' });

@@ -48,6 +48,31 @@ export class AppError extends Error {
     this.extra = extra;
   }
 }
+// Transport-level failures reaching the ciphertext relay. They are availability faults: the
+// caller gets 503 RELAY_UNAVAILABLE (retryable), not 500. Relay integrity failures (digest or
+// receipt mismatch) are not in this set and keep their own handling.
+const RELAY_TRANSPORT_FAILURES = new Set([
+  'ECONNREFUSED',
+  'ECONNRESET',
+  'ETIMEDOUT',
+  'EHOSTUNREACH',
+  'ENETUNREACH',
+  'EPIPE',
+]);
+/** True when an error from the relay client means the relay could not be reached or served 5xx. */
+export const relayUnavailable = (error) =>
+  RELAY_TRANSPORT_FAILURES.has(error?.code) ||
+  error?.message === 'Transport deadline exceeded' ||
+  (error?.code === 'RELAY_ERROR' && error.status >= 500);
+/** Runs a relay operation, mapping unavailability to AppError(503, 'RELAY_UNAVAILABLE'). */
+async function viaRelay(operation) {
+  try {
+    return await operation();
+  } catch (error) {
+    if (relayUnavailable(error)) throw new AppError(503, 'RELAY_UNAVAILABLE');
+    throw error;
+  }
+}
 export const fail = (status, code, message, extra) => {
   throw new AppError(status, code, message, extra);
 };
@@ -607,7 +632,7 @@ export class Authority {
     s = this.bound(s);
     this.role(s, ['operator']);
     const bytes = this.validateSubmission(s, b);
-    await this.relay.putBlob(b.envelope.ciphertextHash, bytes);
+    await viaRelay(() => this.relay.putBlob(b.envelope.ciphertextHash, bytes));
     return this.tx(() => {
       s = this.bound(s);
       this.role(s, ['operator']);
@@ -1242,7 +1267,7 @@ export class Authority {
             receipt: value.receipt,
           },
         };
-      const ciphertext = await this.relay.getBlob(value.object.ciphertextHash);
+      const ciphertext = await viaRelay(() => this.relay.getBlob(value.object.ciphertextHash));
       assert(hash(ciphertext) === value.object.ciphertextHash, 'CIPHERTEXT_DIGEST', 502);
       value.ciphertext = ciphertext.toString('base64url');
     } else if (method === 'POST' && path === '/api/crypto/keys') {

@@ -67,6 +67,48 @@ test('relay outage and evidence write failure never create an issuance; retry re
   delete f.authority.hooks.beforeEvidence;
   assert.equal((await bob.claim(obj.envelope.objectId, epoch)).status, 200);
 });
+test('unreachable relay is a retryable 503 RELAY_UNAVAILABLE, never 500; integrity faults are not masked', async (t) => {
+  // Regression: the three-host run (T5.3) observed HTTP 500 INTERNAL_ERROR while the relay was down.
+  const f = await coreFixture(t),
+    { alice, bob } = f.clients;
+  await alice.authenticate();
+  await bob.authenticate();
+  const obj = createObject(f.profiles.alice, f.profiles.bob, await alice.grant()),
+    { putBlob, getBlob } = f.authority.relay;
+  const refused = () => {
+    throw Object.assign(new Error('connect ECONNREFUSED 127.0.0.1:8442'), { code: 'ECONNREFUSED' });
+  };
+  f.authority.relay.putBlob = refused;
+  const down = await alice.request('POST', '/api/objects', {
+    ...obj,
+    proof: await alice.proof('submit', obj),
+  });
+  assert.equal(down.status, 503);
+  assert.equal(down.body.code, 'RELAY_UNAVAILABLE');
+  assert.equal(f.authority.get('SELECT count(*) n FROM objects').n, 0);
+  f.authority.relay.putBlob = putBlob;
+  await alice.submit(obj);
+  const epoch = f.authority.epoch().epoch;
+  // Claiming while the relay cannot serve the ciphertext is also 503.
+  f.authority.relay.getBlob = async () => {
+    throw Object.assign(new Error('Ciphertext relay unavailable or request rejected'), {
+      code: 'RELAY_ERROR',
+      status: 503,
+    });
+  };
+  const unavailable = await bob.claim(obj.envelope.objectId, epoch);
+  assert.equal(unavailable.status, 503);
+  assert.equal(unavailable.body.code, 'RELAY_UNAVAILABLE');
+  // An integrity failure from the relay client is NOT reported as unavailability.
+  f.authority.relay.getBlob = async () => {
+    throw new Error('Relay ciphertext digest mismatch');
+  };
+  const corrupt = await bob.claim(obj.envelope.objectId, epoch);
+  assert.notEqual(corrupt.status, 503);
+  assert.ok(corrupt.status >= 500);
+  f.authority.relay.getBlob = getBlob;
+  assert.equal((await bob.claim(obj.envelope.objectId, epoch)).status, 200);
+});
 test('offline identity recovery rotates MFA/password and revokes every session', async (t) => {
   const f = await coreFixture(t),
     alice = f.clients.alice;

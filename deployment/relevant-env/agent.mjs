@@ -344,8 +344,12 @@ const commands = {
 
   /** Current signed control epoch as seen by a unit. */
   async epoch({ user }) {
-    const endpoint = await unit(user);
-    return { ok: true, epoch: (await endpoint.signed('/api/control')).payload.epoch };
+    try {
+      const endpoint = await unit(user);
+      return { ok: true, epoch: (await endpoint.signed('/api/control')).payload.epoch };
+    } catch (error) {
+      return refusal(error);
+    }
   },
 
   /** Submits a synthetic document through the local adapter with a named client identity. */
@@ -438,8 +442,12 @@ const commands = {
 
   /** Number of objects this user can see (to prove nothing half-written appears). */
   async count({ user }) {
-    const endpoint = await unit(user);
-    return { ok: true, objects: (await endpoint.listObjects()).length };
+    try {
+      const endpoint = await unit(user);
+      return { ok: true, objects: (await endpoint.listObjects()).length };
+    } catch (error) {
+      return refusal(error);
+    }
   },
 
   /** Operator view of the independent collector (Host B), with a named client identity. */
