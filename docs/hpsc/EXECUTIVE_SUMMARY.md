@@ -23,8 +23,15 @@ A key already issued cannot be recalled, and we say so.
 
 **Readiness.** Provisional **TRL 4**, internal self-assessment.
 
-- Four elements are TRL 5 validation candidates: release, relay, offline queue and evidence
-  custody.
+- A 33-test TRL 5 advancement matrix, declared before execution, passed on a three-host laboratory
+  topology (network namespaces on one machine). The hosted run added packet loss and passed 35/35.
+  Evidence: `docs/trl5/`.
+- The same campaign found an open scaling defect. The custody check re-verifies the full audit
+  chain on each request, which limits throughput to about 1.6 exchanges/s and degrades over time.
+  The fix is designed and is the first funded task.
+- TRL 4 is retained until the sponsor defines the relevant environment, the defect is fixed, and a
+  witnessed multi-machine run passes. Release, relay and offline queue are TRL 5 validation
+  candidates.
 - There is no IAF approval, SAG grading, independent assessment or operational deployment.
 
 **PS-69 fit.**

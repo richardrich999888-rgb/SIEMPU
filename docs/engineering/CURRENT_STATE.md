@@ -1,9 +1,48 @@
 # Current engineering state (single authoritative handover file)
 
-**Review date:** 2026-10-08. **Branch:** `claude/siepmu-trl56-recovery-9o6qet` (stacked on PR #17's
-branch `claude/siepmu-engineering-recovery-3nwgc8` at `e3174fe`; not merged into `main`).
+**Review date:** 2026-10-08. **Active branch:** `claude/siepmu-trl5-24h-validation`, created from PR #18's head
+`4190797`, which contains PR #17's head `12989fb`. Not merged into `main`. The sections below this sprint's section
+describe earlier branches and are kept for provenance.
 Update this file from executed results whenever major work completes, and before ending a session.
 Never copy a result forward to a new SHA.
+
+## TRL 5 advancement sprint (branch `claude/siepmu-trl5-24h-validation`)
+
+| SHA       | Content                                                                             | Result                                                                                                                                                     |
+| --------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `4190797` | Phase A baseline (PR #18 head)                                                      | Local: validate PASS, `test:security` 123/123, `test:e2e` 3/3, `test:native` 3/3, `test:mission` PASS, `demo:hpsc` PASS                                    |
+| `8dda0a1` | Acceptance matrix declared **before** execution                                     | CI 37795100462 PASS; Security 37795100418 PASS                                                                                                             |
+| `1bdd79e` | Three-namespace harness (`deployment/relevant-env/`, `scripts/trl5-validation.mjs`) | Local 33/33 (first clean run)                                                                                                                              |
+| `e05e1c8` | Relay-down 503 fix (P-1); harness assertions tightened                              | Local 33/33 clean                                                                                                                                          |
+| `1348b86` | CI `relevant-env` job (kernel netem); scaling measurements                          | **Local 33/33 clean** (evidence frozen in `docs/trl5/evidence/1348b86/`); **CI 37800666173 PASS, all 8 jobs**, `relevant-env` 35/35 incl. 1 % and 3 % loss |
+
+Further local checks on the current tree: `npm run validate` PASS (289 tests, 97.54 % lines); `test:security` 124/124;
+`formal:check` faithful 3,837,180 states, no error, both mutants violate; `test:browser:isolated` PASS.
+
+**Decision:** TRL 4 retained, with the TRL 5 advancement tests completed and gates outstanding
+(`docs/trl5/READINESS_DECISION.md`). The guard `tests/trl-matrix.test.mjs` is unchanged, and it now
+also verifies the frozen evidence byte for byte.
+
+**Open defects:**
+
+- **D-T5-01, custody scaling.** The recovery guard ships and re-verifies the full evidence chain
+  twice per request, serialised: 0.144 ms per record per authorisation. Throughput is about
+  1.6 exchanges/s. The fix (incremental checkpoints) needs an ADR and negative tests for rollback,
+  fork, gap, reorder and stale anchor.
+- **E-1.** Profiles are provisioned by the conductor, not by per-device enrolment.
+- **E-2.** The hosts share one kernel.
+
+**Next executable task:** write the ADR for incremental custody checkpoints, then implement it in
+`services/evidence/custody.mjs`, `services/control/core.mjs dispatch` and `apps/verifier` (partial
+chain from an anchored head). Then re-run `node scripts/custody-scaling.mjs` and
+`sudo npm run trl5:validate`, and require a flat per-request cost.
+
+**Environment notes for this container:**
+
+- No KVM or Docker daemon. iproute2 was installed with apt.
+- Local kernel has no `sch_netem`; TBF is available.
+- `/trl5-dbg` and `/run.log` at the file-system root are leftovers from a debug run (an empty
+  shell variable). They are outside the repository and safe to delete.
 
 ## Current head and hosted evidence
 

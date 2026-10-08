@@ -382,13 +382,29 @@
   ],
   "systemAssessment": {
     "provisionalTrl": 4,
-    "statement": "Integrated laboratory prototype: the full exchange workflow runs end to end across separate service processes with automated and scripted evidence on a pinned revision. Three elements (monitoring, existing-system integration, crypto-provider agility toward a graded provider) are at TRL 3 because their sponsor-relevant form is not yet implemented. Release, relay, offline queue and evidence custody are TRL 5 validation candidates once a relevant environment is defined.",
+    "statement": "Integrated laboratory prototype: the full exchange workflow runs end to end across separate service processes with automated and scripted evidence on a pinned revision. Three elements (monitoring, existing-system integration, crypto-provider agility toward a graded provider) are at TRL 3 because their sponsor-relevant form is not yet implemented. Release, relay and offline queue are TRL 5 validation candidates once a relevant environment is defined; evidence custody additionally requires the D-T5-01 scaling fix (docs/trl5/PERFORMANCE_REPORT.md).",
     "notClaimed": [
       "TRL 5 or 6",
       "IAF approval",
       "SAG grading",
       "independent assessment",
       "operational deployment"
-    ]
+    ],
+    "advancementTests": {
+      "decision": "TRL 4 validated laboratory prototype with completed TRL 5 advancement tests and outstanding gates",
+      "matrix": "docs/trl5/ACCEPTANCE_MATRIX.md",
+      "decisionRecord": "docs/trl5/READINESS_DECISION.md",
+      "evidence": "docs/trl5/evidence/1348b86/test-results.json",
+      "revision": "1348b868df832b46820796af7733ecfe3540f3ac",
+      "result": "33/33 PASS on an applicant-defined three-namespace environment (one kernel); not a sponsor-defined relevant environment; no independent witness",
+      "openGates": [
+        "G1 sponsor-defined relevant environment",
+        "G2 custody scaling fix (D-T5-01)",
+        "G3 separate machines or VMs",
+        "G4 hosted netem job green on candidate",
+        "G5 independent witness",
+        "G6 per-device enrolment"
+      ]
+    }
   }
 }

@@ -92,6 +92,8 @@ npm run test:browser:isolated   # Chromium; needs Playwright browser
 python3 research/trl56/validate.py --self-test
 npm run build:native && npm run test:native   # Rust verifier vs Node: vectors, real evidence, mutations
 npm run test:mission      # 18-step Core Mission Workflow, classical + lab PQC (needs build:native)
+sudo npm run trl5:validate     # three-namespace TRL 5 advancement matrix (root; needs build:native)
+node scripts/custody-scaling.mjs # custody authorisation cost vs evidence-chain length
 SIEPMU_TLA2TOOLS=/path/tla2tools.jar npm run formal:check   # TLC; faithful passes, mutants fail
 (cd native && cargo fmt --check && cargo clippy --all-targets --locked -- -D warnings && cargo test --locked)
 ```

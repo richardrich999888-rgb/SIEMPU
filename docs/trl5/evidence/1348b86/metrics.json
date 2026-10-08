@@ -1,0 +1,426 @@
+{
+  "impairment": [
+    {
+      "profile": {
+        "id": "P0",
+        "label": "baseline",
+        "delayMs": 0,
+        "jitterMs": 0,
+        "rateKbit": null
+      },
+      "appliedQdiscOnHostA": "qdisc noqueue 0: root refcnt 2",
+      "relayProfile": {
+        "delayMs": 0,
+        "jitterMs": 0,
+        "seed": 69
+      },
+      "controlRequestMs": {
+        "n": 3,
+        "p50": 213,
+        "p95": 224,
+        "p99": null,
+        "max": 224
+      },
+      "exchangeMs": {
+        "n": 5,
+        "p50": 1303,
+        "p95": 1341,
+        "p99": null,
+        "max": 1341
+      },
+      "intact": 5
+    },
+    {
+      "profile": {
+        "id": "P1",
+        "label": "100 ms ± 20 ms",
+        "delayMs": 100,
+        "jitterMs": 20,
+        "rateKbit": null
+      },
+      "appliedQdiscOnHostA": "qdisc noqueue 0: root refcnt 2",
+      "relayProfile": {
+        "delayMs": 100,
+        "jitterMs": 20,
+        "seed": 69
+      },
+      "controlRequestMs": {
+        "n": 3,
+        "p50": 592,
+        "p95": 621,
+        "p99": null,
+        "max": 621
+      },
+      "exchangeMs": {
+        "n": 5,
+        "p50": 3004,
+        "p95": 3092,
+        "p99": null,
+        "max": 3092
+      },
+      "intact": 5
+    },
+    {
+      "profile": {
+        "id": "P2",
+        "label": "300 ms ± 100 ms",
+        "delayMs": 300,
+        "jitterMs": 100,
+        "rateKbit": null
+      },
+      "appliedQdiscOnHostA": "qdisc noqueue 0: root refcnt 2",
+      "relayProfile": {
+        "delayMs": 300,
+        "jitterMs": 100,
+        "seed": 69
+      },
+      "controlRequestMs": {
+        "n": 3,
+        "p50": 1405,
+        "p95": 1499,
+        "p99": null,
+        "max": 1499
+      },
+      "exchangeMs": {
+        "n": 5,
+        "p50": 6502,
+        "p95": 6793,
+        "p99": null,
+        "max": 6793
+      },
+      "intact": 5
+    },
+    {
+      "profile": {
+        "id": "P3",
+        "label": "1 Mbit/s",
+        "delayMs": 0,
+        "jitterMs": 0,
+        "rateKbit": 1000
+      },
+      "appliedQdiscOnHostA": "qdisc tbf 8025: root refcnt 5 rate 1Mbit burst 4Kb lat 400ms",
+      "relayProfile": {
+        "delayMs": 0,
+        "jitterMs": 0,
+        "seed": 69
+      },
+      "controlRequestMs": {
+        "n": 3,
+        "p50": 223,
+        "p95": 236,
+        "p99": null,
+        "max": 236
+      },
+      "exchangeMs": {
+        "n": 5,
+        "p50": 2548,
+        "p95": 2681,
+        "p99": null,
+        "max": 2681
+      },
+      "intact": 5
+    },
+    {
+      "profile": {
+        "id": "P4",
+        "label": "200 ms ± 50 ms + 2 Mbit/s",
+        "delayMs": 200,
+        "jitterMs": 50,
+        "rateKbit": 2000
+      },
+      "appliedQdiscOnHostA": "qdisc tbf 8027: root refcnt 5 rate 2Mbit burst 4Kb lat 400ms",
+      "relayProfile": {
+        "delayMs": 200,
+        "jitterMs": 50,
+        "seed": 69
+      },
+      "controlRequestMs": {
+        "n": 3,
+        "p50": 1009,
+        "p95": 1049,
+        "p99": null,
+        "max": 1049
+      },
+      "exchangeMs": {
+        "n": 5,
+        "p50": 5266,
+        "p95": 5336,
+        "p99": null,
+        "max": 5336
+      },
+      "intact": 5
+    }
+  ],
+  "outage": {
+    "outageMs": 20011,
+    "recoveryMs": 269,
+    "requestDuringOutage": {
+      "ok": false,
+      "status": null,
+      "code": "ECONNRESET"
+    },
+    "queuedDelivered": true
+  },
+  "load": {
+    "senders": 4,
+    "workersPerSender": 2,
+    "payloadBytes": 4096,
+    "sendPhase": {
+      "seconds": 34.672,
+      "sent": 54,
+      "refused": 0,
+      "exchangesPerSecond": 1.56,
+      "latencyMs": {
+        "n": 54,
+        "p50": 5046.53,
+        "p95": 5172.3,
+        "p99": null,
+        "max": 5250.53
+      }
+    },
+    "receivePhase": {
+      "seconds": 53.469,
+      "delivered": 54,
+      "mismatched": 0,
+      "failed": 0,
+      "claimsPerSecond": 1.01,
+      "latencyMs": {
+        "n": 54,
+        "p50": 3759.91,
+        "p95": 4142.5,
+        "p99": null,
+        "max": 4168.08
+      }
+    },
+    "hostB": {
+      "processes": {
+        "collector": {
+          "avgCpuPercent": 8.5,
+          "peakRssMiB": 126
+        },
+        "checkpoint": {
+          "avgCpuPercent": 72.3,
+          "peakRssMiB": 236
+        },
+        "relay": {
+          "avgCpuPercent": 0.6,
+          "peakRssMiB": 72
+        },
+        "control": {
+          "avgCpuPercent": 32.4,
+          "peakRssMiB": 261
+        },
+        "web": {
+          "avgCpuPercent": 3.5,
+          "peakRssMiB": 98
+        }
+      },
+      "linkAB": {
+        "rxBytes": 1051488,
+        "txBytes": 972607
+      },
+      "databaseGrowthBytes": 8099024,
+      "databaseBytesPerExchange": 149982
+    }
+  },
+  "race": {
+    "trials": 20,
+    "released": 11,
+    "refused": 9,
+    "authorityChanges": 40,
+    "violations": 0,
+    "outcomes": [
+      {
+        "withdrawDelayMs": 0,
+        "released": false,
+        "status": 409
+      },
+      {
+        "withdrawDelayMs": 50,
+        "released": false,
+        "status": 409
+      },
+      {
+        "withdrawDelayMs": 100,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 150,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 200,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 0,
+        "released": false,
+        "status": 409
+      },
+      {
+        "withdrawDelayMs": 50,
+        "released": false,
+        "status": 409
+      },
+      {
+        "withdrawDelayMs": 100,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 150,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 200,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 0,
+        "released": false,
+        "status": 409
+      },
+      {
+        "withdrawDelayMs": 50,
+        "released": false,
+        "status": 409
+      },
+      {
+        "withdrawDelayMs": 100,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 150,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 200,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 0,
+        "released": false,
+        "status": 409
+      },
+      {
+        "withdrawDelayMs": 50,
+        "released": false,
+        "status": 409
+      },
+      {
+        "withdrawDelayMs": 100,
+        "released": false,
+        "status": 409
+      },
+      {
+        "withdrawDelayMs": 150,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 200,
+        "released": true,
+        "status": null
+      }
+    ]
+  },
+  "timings": {},
+  "controlLatencyBySegment": [
+    {
+      "fromRequest": 0,
+      "n": 200,
+      "p50": 61.04,
+      "p95": 106.76,
+      "p99": 129.27,
+      "max": 228.49
+    },
+    {
+      "fromRequest": 200,
+      "n": 200,
+      "p50": 97.98,
+      "p95": 187.76,
+      "p99": 200.95,
+      "max": 213.62
+    },
+    {
+      "fromRequest": 400,
+      "n": 200,
+      "p50": 125.22,
+      "p95": 160.04,
+      "p99": 195.78,
+      "max": 204.93
+    },
+    {
+      "fromRequest": 600,
+      "n": 200,
+      "p50": 165.39,
+      "p95": 1286.21,
+      "p99": 1302.7,
+      "max": 1322.11
+    },
+    {
+      "fromRequest": 800,
+      "n": 200,
+      "p50": 1242.97,
+      "p95": 1444.59,
+      "p99": 1521.74,
+      "max": 1554.71
+    },
+    {
+      "fromRequest": 1000,
+      "n": 200,
+      "p50": 795.97,
+      "p95": 889.76,
+      "p99": 1032.8,
+      "max": 1073.69
+    },
+    {
+      "fromRequest": 1200,
+      "n": 29,
+      "p50": 657.49,
+      "p95": 843.97,
+      "p99": null,
+      "max": 882.78
+    }
+  ],
+  "custodyScaling": {
+    "schemaVersion": 1,
+    "note": "In-process lower bound; deployed path adds two mTLS round trips per authorisation",
+    "authorisationsPerRequest": 2,
+    "repeats": 5,
+    "rows": [
+      {
+        "records": 250,
+        "authorizeMsMedian": 43.3
+      },
+      {
+        "records": 500,
+        "authorizeMsMedian": 88.2
+      },
+      {
+        "records": 1000,
+        "authorizeMsMedian": 177.9
+      },
+      {
+        "records": 2000,
+        "authorizeMsMedian": 315.7
+      },
+      {
+        "records": 4000,
+        "authorizeMsMedian": 587.8
+      }
+    ],
+    "fit": {
+      "msPerRecord": 0.1436,
+      "fixedMs": 20
+    }
+  }
+}
