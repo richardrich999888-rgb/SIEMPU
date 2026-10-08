@@ -53,7 +53,7 @@ Recipient claim requires session bound to recipient device + proof challenge, ex
 - POST /api/objects/:id/claim {expectedEpoch,proof} -> {object,envelope,signature,ciphertext,senderSigningPublicKey,receipt} or 409 {error,code,object,receipt}
 - POST /api/objects/:id/ack {receiptId,proof} -> {object,receipt}
 - GET /api/admin/overview -> {units,users,devices,sessions,policies,objects,epoch,revocationVersion,alerts,metrics} (redacted)
-- POST /api/admin/units {name}; POST /api/admin/users {username,password,unitId,role,missionIds} -> {user,totpSecret,otpauthUri} (one-time enrollment)
+- POST /api/admin/units {name}; POST /api/admin/users {username,unitId,role,missionIds,dutyRole?} -> {user,initialPassword,totpSecret,otpauthUri} (one-time enrollment; the authority generates the 144-bit initial password, and a client-supplied `password` is rejected with `PASSWORD_SERVER_GENERATED` so no password ever enters an operation-proof request hash)
 - PATCH /api/admin/users/:id {active?,role?,missionIds?}; POST /api/admin/devices/:id/approve {}; POST /api/admin/devices/:id/revoke {}; POST /api/admin/sessions/:id/revoke {}; PUT /api/admin/policies {fromUnit,toUnit,missionId,allow}
 - GET /api/evidence/export -> {records,checkpoint} (auditor/admin); GET /api/evidence/checkpoint -> signed checkpoint; GET /api/metrics -> JSON; GET /health
 - POST /api/integration/validate {schemaVersion:1,externalId,objectId,destinationUnitId,missionId} -> validation receipt only (admin; synthetic adapter, no AFNET access)

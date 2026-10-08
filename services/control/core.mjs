@@ -80,6 +80,8 @@ const publicLogin = (authority, body, context) => ({
   status: 200,
   body: authority.login(body, context.ip ?? 'local'),
 });
+/** 18 random bytes = 144 bits, 24 base64url characters. */
+const INITIAL_PASSWORD_BYTES = 18;
 export class Authority {
   constructor({
     dbPath,
@@ -1292,10 +1294,12 @@ export class Authority {
       );
     }
     if (method === 'POST' && path === '/api/admin/users') {
+      // The authority generates the initial password and returns it once, like the TOTP
+      // seed. A client-chosen password would otherwise enter the operation-proof request
+      // hash (unsalted SHA-256, persisted in the challenge row) and bypass scrypt's cost.
+      assert(!Object.hasOwn(b, 'password'), 'PASSWORD_SERVER_GENERATED');
       assert(
         /^[a-zA-Z0-9_.-]{3,80}$/.test(b.username) &&
-          str(b.password, 256) &&
-          b.password.length >= 12 &&
           roles.includes(b.role) &&
           (b.dutyRole === undefined ||
             (DUTY_ROLES.includes(b.dutyRole) && compatibleDutyRole(b.role, b.dutyRole))) &&
@@ -1305,6 +1309,7 @@ export class Authority {
       );
       assert(this.get('SELECT id FROM units WHERE id=?', b.unitId));
       const secret = base32(randomBytes(20));
+      const initialPassword = randomBytes(INITIAL_PASSWORD_BYTES).toString('base64url');
       return this.change(
         s,
         () => {
@@ -1313,7 +1318,7 @@ export class Authority {
             'INSERT INTO users(id,username,password,totp,unit_id,role,missions,duty_role) VALUES(?,?,?,?,?,?,?,?)',
             id,
             b.username,
-            passwordHash(b.password),
+            passwordHash(initialPassword),
             seal(secret, this.masterKey),
             b.unitId,
             b.role,
@@ -1322,6 +1327,7 @@ export class Authority {
           );
           return {
             user: this.user(this.get('SELECT * FROM users WHERE id=?', id)),
+            initialPassword,
             totpSecret: secret,
             otpauthUri:
               'otpauth://totp/SIEPMU:' +

@@ -165,12 +165,6 @@ export async function renderAdmin(root, helpers) {
       placeholder: 'Synthetic unit name',
     });
     const username = el('input', { required: true, autoComplete: 'off', maxLength: 100 });
-    const password = el('input', {
-      type: 'password',
-      required: true,
-      minLength: 12,
-      autoComplete: 'new-password',
-    });
     const unit = select(unitOptions);
     const role = select(['operator', 'viewer', 'auditor', 'admin'].map((r) => [r, r]));
     const dutyChoices = [
@@ -276,7 +270,7 @@ export async function renderAdmin(root, helpers) {
       canWrite
         ? panel(
             'Create user',
-            'Enroll the TOTP secret through a trusted separate channel. It is shown once in this view.',
+            'The authority generates the initial password and TOTP secret; both are shown once in this view. Transfer them through a trusted separate channel.',
             el(
               'form',
               {
@@ -284,7 +278,6 @@ export async function renderAdmin(root, helpers) {
                 onSubmit: action(async () => {
                   const result = await adminMutation('/api/admin/users', 'POST', {
                     username: username.value.trim(),
-                    password: password.value,
                     unitId: unit.value,
                     role: role.value,
                     ...(dutyRole.value ? { dutyRole: dutyRole.value } : {}),
@@ -293,12 +286,14 @@ export async function renderAdmin(root, helpers) {
                       .map((s) => s.trim())
                       .filter(Boolean),
                   });
-                  password.value = '';
                   enrollment.replaceChildren(
                     el(
                       'div',
                       { className: 'secret-output section-gap' },
                       el('strong', {}, `Enroll MFA for ${result.user.username}`),
+                      el('span', {}, 'Initial password (authority-generated, shown once)'),
+                      el('code', {}, result.initialPassword),
+                      el('span', {}, 'TOTP secret'),
                       el('code', {}, result.totpSecret),
                       hint(
                         'This secret is sensitive. Transfer it through the approved enrollment channel, then clear this view.',
@@ -316,7 +311,6 @@ export async function renderAdmin(root, helpers) {
                 }),
               },
               field('Username', username),
-              field('Initial password (12+ characters)', password),
               field('Unit', unit),
               field('Role', role),
               field('Filed duty-position profile (synthetic)', dutyRole),
