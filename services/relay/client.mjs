@@ -1,11 +1,12 @@
 import { relayHeaders, readRelaySecret, sha256 } from './auth.mjs';
 
-/** @param {{baseUrl?: string, secret?: Uint8Array, secretFile?: string, maxBytes?: number}} [options] */
+/** @param {{baseUrl?: string, secret?: Uint8Array, secretFile?: string, maxBytes?: number, fetchImpl?: (input: URL, init: RequestInit) => Promise<Response>}} [options] */
 export function createRelayClient({
   baseUrl = process.env.SIEPMU_RELAY_URL || 'http://127.0.0.1:8082',
   secret,
   secretFile = process.env.SIEPMU_RELAY_SECRET_FILE,
   maxBytes = 4 * 1024 * 1024,
+  fetchImpl = fetch,
 } = {}) {
   const key =
     secret ||
@@ -30,7 +31,7 @@ export function createRelayClient({
   async function request(method, hash, body = Buffer.alloc(0)) {
     if (!/^[a-f0-9]{64}$/.test(hash)) throw new Error('Invalid ciphertext hash');
     const path = `/blobs/${hash}`;
-    const response = await fetch(new URL(path, url), {
+    const response = await fetchImpl(new URL(path, url), {
       method,
       headers: {
         ...relayHeaders(key, method, path, body),

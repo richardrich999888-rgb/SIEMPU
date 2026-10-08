@@ -1,5 +1,7 @@
 # Hosted scan review
 
+Historical review of the earlier main implementation. The integrated candidate uses the digest-pinned Node 24.21.0 image documented in [CI gates](../ci-cd.md); current findings require its exact-head scanner artifacts.
+
 Input: [Actions run 37681479182](https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/37681479182), implementation commit `7120ae8fceb96ec27c94c96bd2fafd6423484af3`, 7 October 2026. The [captured CodeQL gate output](codeql-review-input.json) contains ten blocking findings. This is a historical review input, not the final scan verdict. The full SARIF is retained in that run's `codeql-gate` artifact.
 
 | Finding                                           | Review and correction                                                                                                                                                                                                                                                                                                                      |

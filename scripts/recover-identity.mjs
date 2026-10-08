@@ -1,32 +1,35 @@
 /** Offline administrator recovery. Requires the authority's local secret files. */
-import { readFileSync, writeFileSync, openSync, closeSync, fsyncSync } from 'node:fs';
-import { resolve, join, dirname } from 'node:path';
+import { readFileSync, writeFileSync, openSync, closeSync, fsyncSync, unlinkSync } from 'node:fs';
+import { dirname, resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { randomBytes } from 'node:crypto';
 import { Authority } from '../services/control/core.mjs';
 import { base32, passwordHash, seal } from '../services/control/primitives.mjs';
 export function recoverIdentity(dir, username, output) {
-  const a = new Authority({
-    dbPath: join(dir, 'control.sqlite'),
-    signingKey: JSON.parse(readFileSync(join(dir, 'server-key.json'))),
-    masterKey: readFileSync(join(dir, 'master.key')),
-  });
-  let outputDescriptor;
+  let outputFd;
   try {
+    // O_EXCL rejects occupied files and symlinks without a check-then-open race.
+    outputFd = openSync(output, 'wx', 0o600);
+  } catch (error) {
+    if (error.code === 'EEXIST') throw new Error('Recovery output must be a new private file');
+    throw error;
+  }
+  let a;
+  let committed = false;
+  try {
+    a = new Authority({
+      dbPath: join(dir, 'control.sqlite'),
+      signingKey: JSON.parse(readFileSync(join(dir, 'server-key.json'))),
+      masterKey: readFileSync(join(dir, 'master.key')),
+    });
     const user = a.get('SELECT * FROM users WHERE username=?', username);
     if (!user) throw new Error('Unknown recovery identity');
     const password = randomBytes(24).toString('base64url'),
       totpSecret = base32(randomBytes(20));
-    // Atomically reserve a new private output before changing credentials.
-    // O_EXCL rejects existing files/symlinks without a check-then-open race.
-    try {
-      outputDescriptor = openSync(output, 'wx', 0o600);
-    } catch (error) {
-      if (error.code === 'EEXIST') throw new Error('Recovery output must be a new private file');
-      throw error;
-    }
+    // Reserve and durably write the private output before changing identity state.
+    // Concurrent recovery to the same output fails before any database mutation.
     writeFileSync(
-      outputDescriptor,
+      outputFd,
       JSON.stringify(
         {
           username,
@@ -34,24 +37,21 @@ export function recoverIdentity(dir, username, output) {
           totpSecret,
           userId: user.id,
           warning:
-            'Private recovery material. Credentials activate only if recovery succeeds. Import MFA securely; destroy this file afterward.',
+            'Private recovery material. Valid only after recovery reports success; import MFA securely and destroy this file afterward.',
         },
         null,
         2,
       ),
     );
-    // A write/durability failure leaves current credentials unchanged. A later
-    // database failure can leave an inactive recovery file, never a secret lost
-    // because credentials committed before the output was created.
-    fsyncSync(outputDescriptor);
-    // Persist the new directory entry before credentials become active. This
-    // controlled-maintenance utility requires a filesystem supporting fsync
-    // on directories; failure is fail-closed before the database transaction.
-    const directoryDescriptor = openSync(dirname(resolve(output)), 'r');
+    fsyncSync(outputFd);
+    // Persist the new filename before activating credentials that depend on it.
+    // Directory fsync must be supported; a durability failure stays fail-closed
+    // before the credential transaction and removes the inactive output below.
+    const outputDirectoryFd = openSync(dirname(resolve(output)), 'r');
     try {
-      fsyncSync(directoryDescriptor);
+      fsyncSync(outputDirectoryFd);
     } finally {
-      closeSync(directoryDescriptor);
+      closeSync(outputDirectoryFd);
     }
     a.tx(() => {
       a.run(
@@ -69,12 +69,14 @@ export function recoverIdentity(dir, username, output) {
       });
       a.alert('IDENTITY_RECOVERY', user.id, 'OFFLINE_ADMINISTRATOR_RECOVERY');
     });
+    committed = true;
     return { username, allSessionsRevoked: true, epoch: a.epoch().epoch };
   } finally {
     try {
-      if (outputDescriptor !== undefined) closeSync(outputDescriptor);
+      a?.close();
     } finally {
-      a.close();
+      closeSync(outputFd);
+      if (!committed) unlinkSync(output);
     }
   }
 }

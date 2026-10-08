@@ -9,10 +9,10 @@ Current status is **PROTOTYPE with measured engineering tests**, not production-
 - Released keys/plaintext cannot be recalled. Revocation protects subsequent issuance/redisclosure; it does not make disconnected endpoints instantly aware.
 - Identity/routing metadata remain visible; the directory exposes active users/devices to bound users. Traffic-analysis resistance is not implemented.
 - No production IdP/PKI adapter, endpoint key rotation/escrow, self-service recovery, approved military duty-role matrix or multi-admin approval ceremony. Offline administrator password/MFA recovery is implemented and tested.
-- File validation is not malware scanning/sanitisation. The recorded Chromium run exercised exact-byte file download, unsafe filename rejection and MIME coercion, plus fresh enrollment/approval, substituted enrollment-key rejection and stale-tab concurrency. This does not establish safe handling of every file format or all browser engines.
+- File validation is not malware scanning/sanitisation. The current 14-check Chromium run covers attachment encryption, recipient download with exact bytes and filename, and unsafe-name rejection, alongside enrollment/approval and stale-tab checks. This does not establish production attachment management or coverage of other browser engines.
 - No offline peer delivery, air-gap media transfer, cross-domain guard, tactical cloud, AI detector, PQC suite or Kafka dependency.
 - Restore is tested on synthetic local state; whole-database anti-rollback needs independent checkpoints and authority revalidation. Historic storage retention/compaction and disaster recovery require an operator policy.
-- Type checking currently covers relay authentication/client modules; full JavaScript source is syntax/lint checked but not all statically typed.
+- Strict type checking covers eight runtime modules plus wire declarations listed in `tsconfig.json`. Core authority, independent verifier and the complete frontend are not all statically checked; full JavaScript source is syntax/lint checked.
 - Observability has structured logs, alerts and counters; no distributed-trace collector, SIEM integration or measured anomaly-model efficacy.
 - The sequential loopback benchmark does not establish WAN performance, maximum capacity, large files/fanout or server resource cost. No professional prior-art/FTO review.
 

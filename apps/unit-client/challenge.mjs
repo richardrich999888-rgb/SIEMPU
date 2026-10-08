@@ -1,7 +1,12 @@
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const digest = /^[0-9a-f]{64}$/;
 
-/** Never let the authority turn a device challenge into an arbitrary signing request. */
+/** Never let the authority turn a device challenge into an arbitrary signing request.
+ * @param {{challengeId: string, challenge: import('../../packages/object-format/types.js').DeviceChallenge}} reply
+ * @param {import('../../packages/object-format/types.js').ChallengeExpectation} expected
+ * @param {number} [now]
+ * @returns {import('../../packages/object-format/types.js').DeviceChallenge}
+ */
 export function validateDeviceChallenge(reply, expected, now = Date.now()) {
   const invalid = () => {
     throw new Error('Device challenge does not match the locally intended operation.');
@@ -28,13 +33,20 @@ export function validateDeviceChallenge(reply, expected, now = Date.now()) {
     invalid();
   if (!Number.isSafeInteger(c.expiresAt) || c.expiresAt <= now || c.expiresAt > now + 90000)
     invalid();
-  if ('deviceId' in c && (!uuid.test(c.deviceId) || c.deviceId !== expected.deviceId)) invalid();
+  if ('deviceId' in c && (!uuid.test(c.deviceId || '') || c.deviceId !== expected.deviceId))
+    invalid();
   if ('operation' in c && c.operation !== expected.operation) invalid();
-  if ('requestHash' in c && (!digest.test(c.requestHash) || c.requestHash !== expected.requestHash))
+  if (
+    'requestHash' in c &&
+    (!digest.test(c.requestHash || '') || c.requestHash !== expected.requestHash)
+  )
     invalid();
   return c;
 }
 
+/** @param {import('../../packages/object-format/types.js').ReleaseScope} receipt
+ * @param {{userId: string, deviceId: string, objectId: string}} expected
+ */
 export function validateReleaseScope(receipt, expected) {
   if (
     receipt.eventType !== 'RELEASE_ISSUED' ||

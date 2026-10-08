@@ -12,7 +12,9 @@ export async function renderAdmin(root, helpers) {
   const sessions = overview.sessions || [];
   const policies = overview.policies || [];
   const objects = overview.objects || [];
-  const alerts = overview.alerts || [];
+  const alerts = [...(overview.alerts || [])].sort((a, b) => b.timestamp - a.timestamp);
+  const counters = overview.metrics?.counters || {};
+  const objectCounts = overview.metrics?.objects || {};
   const nameOfUnit = (id) => units.find((u) => u.id === id)?.name || id || '—';
   const nameOfUser = (id) => users.find((u) => u.id === id)?.username || id || '—';
   const redraw = async () => {
@@ -40,7 +42,7 @@ export async function renderAdmin(root, helpers) {
         [
           ['Units', units.length],
           ['Active users', users.filter((u) => u.active).length],
-          ['Held objects', objects.filter((o) => o.state === 'HELD').length],
+          ['Held objects', objectCounts.HELD || 0],
           ['Authority epoch', overview.epoch],
         ].map(([label, value]) =>
           el('div', { className: 'stat' }, el('strong', {}, value), el('span', {}, label)),
@@ -51,19 +53,18 @@ export async function renderAdmin(root, helpers) {
         { className: 'grid' },
         panel(
           'Security events',
-          'Local authority events and alerts. External SIEM integration and endpoint detection remain deployment work.',
+          'Latest 25 returned alerts, newest first. The authority retains a bounded recent-alert sample; these are not all-time totals.',
           alerts.length
             ? el(
                 'div',
                 { className: 'alert-list' },
-                [...alerts]
-                  .slice(-25)
-                  .reverse()
+                alerts
+                  .slice(0, 25)
                   .map((a) =>
                     el(
                       'div',
                       { className: 'alert-row' },
-                      a.type || a.eventType || a.code || 'Security event',
+                      a.kind || a.type || a.eventType || a.code || 'Security event',
                       el('small', {}, a.reason || a.message || a.details?.reason || ''),
                       el(
                         'small',
@@ -110,16 +111,45 @@ export async function renderAdmin(root, helpers) {
         ),
       ),
       panel(
-        'Exchange activity',
-        'Content remains outside the administrative dashboard.',
+        'Release and security observations',
+        'Authority counters are cumulative for this database. Alert counts below cover only the returned recent sample.',
         table(
-          ['Object', 'State', 'Mission', 'Sender', 'Recipient'],
-          objects
-            .slice(-30)
-            .reverse()
+          ['Observation', 'Measured value'],
+          [
+            ['Pending objects', objectCounts.PENDING || 0],
+            ['Ready objects', objectCounts.READY || 0],
+            ['Held objects', objectCounts.HELD || 0],
+            ['Key releases committed', counters.released || 0],
+            ['Policy evaluations', counters.policyEvaluations || 0],
+            ['HTTP request errors', counters.requestErrors || 0],
+            [
+              'Authentication failures in recent sample',
+              alerts.filter((a) => a.kind === 'AUTH_FAILURE').length,
+            ],
+            [
+              'Authority changes in recent sample',
+              alerts.filter((a) => a.kind === 'AUTHORITY_CHANGED').length,
+            ],
+            ['Approved software devices', devices.filter((d) => d.status === 'approved').length],
+            ['Revoked devices', devices.filter((d) => d.status === 'revoked').length],
+          ],
+        ),
+        hint(
+          'Device approval records authorization of registered keys; it is not hardware attestation. Endpoint queue and network-recovery state are held by each endpoint and are not reported here.',
+        ),
+      ),
+      panel(
+        'Exchange activity',
+        'Latest 30 of at most 1,000 returned object summaries. Protected message content and recipient key material are not included.',
+        table(
+          ['Object', 'State / reason', 'Priority', 'Mission', 'Sender', 'Recipient'],
+          [...objects]
+            .sort((a, b) => b.createdAt - a.createdAt)
+            .slice(0, 30)
             .map((o) => [
               (o.id || o.objectId || '').slice(0, 18),
-              badge(o.state),
+              el('div', {}, badge(o.state), o.reason ? hint(o.reason) : null),
+              o.messagePriority || 'Legacy v1',
               o.missionId,
               nameOfUser(o.senderUserId),
               nameOfUser(o.recipientUserId),
@@ -143,6 +173,18 @@ export async function renderAdmin(root, helpers) {
     });
     const unit = select(unitOptions);
     const role = select(['operator', 'viewer', 'auditor', 'admin'].map((r) => [r, r]));
+    const dutyChoices = [
+      ['', 'Unassigned'],
+      ...[
+        'UNIT_COMMANDER',
+        'SIGNALS_OFFICER',
+        'INTELLIGENCE_ANALYST',
+        'FIELD_OPERATOR',
+        'AUDIT_OFFICER',
+        'SYSTEM_ADMIN',
+      ].map((name) => [name, name]),
+    ];
+    const dutyRole = select(dutyChoices);
     const missions = el('input', {
       required: true,
       placeholder: 'DEMO-MISSION',
@@ -179,28 +221,37 @@ export async function renderAdmin(root, helpers) {
         'Users & roles',
         'Role or membership changes increment authority state and affect future release.',
         table(
-          ['User', 'Unit', 'Role', 'State', 'Controls'],
+          ['User', 'Unit', 'Role', 'Duty position', 'State', 'Controls'],
           users.map((u) => {
             const assignedRole = select(
               ['operator', 'viewer', 'auditor', 'admin'].map((r) => [r, r]),
               u.role,
             );
+            assignedRole.setAttribute('aria-label', `Generic role for ${u.username}`);
+            const assignedDuty = select(dutyChoices, u.dutyRole || '');
+            assignedDuty.setAttribute('aria-label', `Duty position for ${u.username}`);
             return [
               u.username,
               nameOfUnit(u.unitId),
               canWrite ? assignedRole : u.role,
+              canWrite ? assignedDuty : u.dutyRole || 'Unassigned',
               badge(u.active ? 'Active' : 'Disabled'),
               canWrite
                 ? el(
                     'div',
                     { className: 'row' },
                     button(
-                      'Apply role',
+                      'Apply roles',
                       action(async () => {
+                        if (u.dutyRole && !assignedDuty.value)
+                          throw new Error(
+                            'An assigned duty-position restriction cannot be removed. Select a compatible duty position.',
+                          );
                         await adminMutation(`/api/admin/users/${u.id}`, 'PATCH', {
                           role: assignedRole.value,
+                          ...(assignedDuty.value ? { dutyRole: assignedDuty.value } : {}),
                         });
-                        notify('Role changed.');
+                        notify('Role and duty-position selections saved atomically.');
                         await redraw();
                       }),
                       'quiet small',
@@ -236,6 +287,7 @@ export async function renderAdmin(root, helpers) {
                     password: password.value,
                     unitId: unit.value,
                     role: role.value,
+                    ...(dutyRole.value ? { dutyRole: dutyRole.value } : {}),
                     missionIds: missions.value
                       .split(',')
                       .map((s) => s.trim())
@@ -267,6 +319,7 @@ export async function renderAdmin(root, helpers) {
               field('Initial password (12+ characters)', password),
               field('Unit', unit),
               field('Role', role),
+              field('Filed duty-position profile (synthetic)', dutyRole),
               field('Missions (comma-separated)', missions),
               el(
                 'div',
@@ -423,6 +476,11 @@ export async function renderAdmin(root, helpers) {
   }
   function evidenceView() {
     const integrationOutput = el('div');
+    const checkpointStatus = el(
+      'p',
+      { role: 'status', className: 'hint' },
+      'No checkpoint signature checked in this view.',
+    );
     const external = el('input', { required: true, value: `synthetic-${Date.now()}` });
     const object = el('input', { required: true, placeholder: 'Existing synthetic object UUID' });
     const destination = select(unitOptions);
@@ -452,7 +510,8 @@ export async function renderAdmin(root, helpers) {
             'Save external checkpoint',
             action(async () => {
               const checkpoint = await api('/api/evidence/checkpoint');
-              await verified(checkpoint, 'Evidence checkpoint');
+              const payload = await verified(checkpoint, 'Evidence checkpoint');
+              checkpointStatus.textContent = `Checkpoint signature verified with the pinned authority key: sequence ${payload.sequence}, issued ${new Date(payload.issuedAt).toLocaleString()}. Full-chain and independent-custody checks remain external.`;
               download(checkpoint, `siepmu-checkpoint-${Date.now()}.json`);
               notify(
                 'Checkpoint downloaded. Retain it independently to detect later suffix truncation.',
@@ -466,6 +525,7 @@ export async function renderAdmin(root, helpers) {
             'quiet',
           ),
         ),
+        checkpointStatus,
         el('div', { className: 'divider' }),
         el(
           'pre',

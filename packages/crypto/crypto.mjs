@@ -1,4 +1,10 @@
 import { canonical } from '../protocol/canonical.mjs';
+/** @typedef {import('../object-format/types.js').PublicP256Jwk} PublicP256Jwk */
+/** @typedef {import('../object-format/types.js').PrivateP256Jwk} PrivateP256Jwk */
+/** @typedef {import('../object-format/types.js').ObjectContext} ObjectContext */
+/** @typedef {import('../object-format/types.js').Payload} Payload */
+/** @typedef {import('../object-format/types.js').EncryptedObject} EncryptedObject */
+/** @typedef {ArrayBuffer | ArrayBufferView<ArrayBuffer>} ByteInput */
 
 const utf8 = new TextEncoder();
 const decoder = new TextDecoder('utf-8', { fatal: true });
@@ -7,7 +13,13 @@ const VAULT_ITERATIONS = 600000;
 const MAX_CONTENT_BYTES = 16 * 1024 * 1024;
 const SUITE = 'P256-HKDF-SHA256-AES256GCM';
 const WRAP_INFO = utf8.encode('SIEPMU_WRAP_V1');
-const CONTEXT_KEYS = [
+
+// The shared wire contract stays in this already-cached browser asset. Older
+// network-first service workers may mix asset generations during an interrupted
+// upgrade; crypto must therefore depend only on the stable canonical() export.
+// Server admission and mission policy use these same pure contract helpers.
+// Do not import mission policy or provider implementations here (would cycle).
+const CONTEXT_V1 = Object.freeze([
   'schemaVersion',
   'objectId',
   'senderUserId',
@@ -25,8 +37,72 @@ const CONTEXT_KEYS = [
   'creationGrant',
   'cryptoSuite',
   'keyVersion',
-];
+]);
+const CONTEXT_V2 = Object.freeze([...CONTEXT_V1, 'messagePriority', 'messageDomain']);
+const CONTEXT_V3 = Object.freeze([
+  ...CONTEXT_V2,
+  'providerId',
+  'suiteVersion',
+  'senderCryptoKeyId',
+  'suitePolicyRevision',
+]);
+const ENVELOPE_V1 = Object.freeze([...CONTEXT_V1, 'ciphertextHash', 'nonce', 'wrappedKey']);
+const ENVELOPE_V2 = Object.freeze([...CONTEXT_V2, 'ciphertextHash', 'nonce', 'wrappedKey']);
+const ENVELOPE_V3 = Object.freeze([
+  ...CONTEXT_V3,
+  'ciphertextHash',
+  'nonce',
+  'wrappedKey',
+  'providerSignature',
+]);
 
+/** Exact version selection: an unknown version never falls back to a legacy schema.
+ * @param {unknown} version @returns {readonly string[]}
+ */
+export function contextFields(version) {
+  if (version === 1) return CONTEXT_V1;
+  if (version === 2) return CONTEXT_V2;
+  if (version === 3) return CONTEXT_V3;
+  throw new TypeError('Unsupported envelope schema version');
+}
+
+/** @param {unknown} version @returns {readonly string[]} */
+export function envelopeFields(version) {
+  if (version === 1) return ENVELOPE_V1;
+  if (version === 2) return ENVELOPE_V2;
+  if (version === 3) return ENVELOPE_V3;
+  throw new TypeError('Unsupported envelope schema version');
+}
+
+/** @param {unknown} value @returns {boolean} */
+export function hasEnvelopeShape(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const envelope = /** @type {Record<string, unknown>} */ (value);
+  try {
+    const expected = envelopeFields(envelope.schemaVersion);
+    return (
+      Object.keys(envelope).length === expected.length &&
+      expected.every((field) => Object.hasOwn(envelope, field))
+    );
+  } catch {
+    return false;
+  }
+}
+
+export const MESSAGE_PRIORITIES = Object.freeze(['FLASH', 'IMMEDIATE', 'PRIORITY', 'ROUTINE']);
+export const MESSAGE_DOMAINS = Object.freeze(['GENERAL', 'INTEL']);
+
+/** @param {unknown} priority @param {unknown} domain @returns {boolean} */
+export function validMissionProfile(priority, domain) {
+  return (
+    typeof priority === 'string' &&
+    MESSAGE_PRIORITIES.includes(priority) &&
+    typeof domain === 'string' &&
+    MESSAGE_DOMAINS.includes(domain)
+  );
+}
+
+/** @param {ByteInput} value @returns {string} */
 export function b64(value) {
   const bytes = asBytes(value);
   let s = '';
@@ -34,6 +110,7 @@ export function b64(value) {
     s += String.fromCharCode(...bytes.subarray(i, i + 16384));
   return btoa(s).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
 }
+/** @param {unknown} value @returns {Uint8Array<ArrayBuffer>} */
 export function unb64(value) {
   if (typeof value !== 'string' || !/^[A-Za-z0-9_-]*$/.test(value) || value.length % 4 === 1)
     throw new TypeError('Invalid base64url');
@@ -42,16 +119,19 @@ export function unb64(value) {
   if (b64(bytes) !== value) throw new TypeError('Noncanonical base64url');
   return bytes;
 }
+/** @param {ByteInput} value @returns {Uint8Array<ArrayBuffer>} */
 function asBytes(value) {
-  if (value instanceof Uint8Array) return value;
+  if (value instanceof Uint8Array) return /** @type {Uint8Array<ArrayBuffer>} */ (value);
   if (value instanceof ArrayBuffer) return new Uint8Array(value);
   if (ArrayBuffer.isView(value))
     return new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
   throw new TypeError('Expected bytes');
 }
+/** @param {number} size @returns {Uint8Array<ArrayBuffer>} */
 function random(size) {
   return crypto.getRandomValues(new Uint8Array(size));
 }
+/** @param {unknown} value @param {readonly string[]} names */
 function sameKeys(value, names) {
   if (
     !value ||
@@ -61,11 +141,13 @@ function sameKeys(value, names) {
   )
     throw new TypeError('Unexpected or missing object members');
 }
+/** @param {unknown} value @param {number} size @param {string} label */
 function sized(value, size, label) {
   const bytes = unb64(value);
   if (bytes.length !== size) throw new TypeError(`Invalid ${label} size`);
   return bytes;
 }
+/** @param {string | ByteInput} value @returns {Promise<string>} */
 export async function sha256(value) {
   const bytes = typeof value === 'string' ? utf8.encode(value) : asBytes(value);
   return Array.from(new Uint8Array(await subtle.digest('SHA-256', bytes)), (n) =>
@@ -76,10 +158,12 @@ export async function sha256(value) {
 /** Minimal JWKs are the generated wire format. Use this before provisioning keys.
  * keyId hashes the exact supplied public JWK, so provision it consistently.
  */
+/** @param {JsonWebKey} jwk @returns {PublicP256Jwk} */
 export function publicJwk(jwk) {
   validateJwk(jwk, 'd' in (jwk || {}));
   return { kty: 'EC', crv: 'P-256', x: jwk.x, y: jwk.y };
 }
+/** @param {JsonWebKey} jwk @param {boolean} [privateRequired] @returns {asserts jwk is PublicP256Jwk & { d?: string }} */
 function validateJwk(jwk, privateRequired = false) {
   if (
     !jwk ||
@@ -95,6 +179,7 @@ function validateJwk(jwk, privateRequired = false) {
   else if ('d' in jwk) throw new TypeError('Public key must not contain private material');
   canonical(jwk);
 }
+/** @param {JsonWebKey} jwk @param {"sign" | "verify" | "deriveBits" | "ecdhPublic"} usage @returns {Promise<CryptoKey>} */
 function importJwk(jwk, usage) {
   const isPrivate = usage === 'sign' || usage === 'deriveBits';
   validateJwk(jwk, isPrivate);
@@ -112,6 +197,7 @@ function importJwk(jwk, usage) {
   return subtle.importKey('jwk', minimal, alg, false, usage === 'ecdhPublic' ? [] : [usage]);
 }
 export async function generateDeviceKeys() {
+  /** @param {"ECDSA" | "ECDH"} name @param {KeyUsage[]} usages */
   async function generate(name, usages) {
     const keys = await subtle.generateKey({ name, namedCurve: 'P-256' }, true, usages);
     const pub = publicJwk(await subtle.exportKey('jwk', keys.publicKey));
@@ -123,12 +209,14 @@ export async function generateDeviceKeys() {
     encryption: await generate('ECDH', ['deriveBits']),
   };
 }
+/** @param {JsonWebKey} privateJwk @param {unknown} value @returns {Promise<string>} */
 export async function sign(privateJwk, value) {
   const key = await importJwk(privateJwk, 'sign');
   return b64(
     await subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, key, utf8.encode(canonical(value))),
   );
 }
+/** @param {JsonWebKey} publicKey @param {unknown} value @param {unknown} signature @returns {Promise<boolean>} */
 export async function verify(publicKey, value, signature) {
   try {
     const key = await importJwk(publicKey, 'verify');
@@ -142,10 +230,12 @@ export async function verify(publicKey, value, signature) {
     return false;
   }
 }
+/** @param {JsonWebKey} publicKey @returns {Promise<string>} */
 export async function keyId(publicKey) {
   validateJwk(publicKey);
   return sha256(canonical(publicKey));
 }
+/** @template T @param {JsonWebKey} privateJwk @param {T} payload @returns {Promise<import("../object-format/types.js").SignedPacket<T>>} */
 export async function signPacket(privateJwk, payload) {
   return {
     payload,
@@ -153,6 +243,7 @@ export async function signPacket(privateJwk, payload) {
     keyId: await keyId(publicJwk(privateJwk)),
   };
 }
+/** @param {JsonWebKey} publicKey @param {import("../object-format/types.js").SignedPacket<unknown>} packet @returns {Promise<boolean>} */
 export async function verifyPacket(publicKey, packet) {
   try {
     sameKeys(packet, ['payload', 'signature', 'keyId']);
@@ -164,11 +255,14 @@ export async function verifyPacket(publicKey, packet) {
     return false;
   }
 }
+/** @param {ObjectContext} context */
 function validateContext(context) {
-  sameKeys(context, CONTEXT_KEYS);
+  sameKeys(context, contextFields(context.schemaVersion));
   canonical(context);
   if (
-    context.schemaVersion !== 1 ||
+    ![1, 2].includes(context.schemaVersion) ||
+    (context.schemaVersion === 2 &&
+      !validMissionProfile(context.messagePriority, context.messageDomain)) ||
     context.keyVersion !== 1 ||
     context.cryptoSuite !== SUITE ||
     context.classification !== 'DEMO' ||
@@ -177,7 +271,8 @@ function validateContext(context) {
     throw new TypeError('Unsupported object context');
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(context.objectId))
     throw new TypeError('Object ID must be a UUID');
-  for (const k of [
+  /** @type {(keyof Pick<ObjectContext, 'senderUserId' | 'senderDeviceId' | 'senderUnitId' | 'recipientUserId' | 'recipientDeviceId' | 'recipientUnitId' | 'missionId'>)[]} */
+  const identifiers = [
     'senderUserId',
     'senderDeviceId',
     'senderUnitId',
@@ -185,7 +280,8 @@ function validateContext(context) {
     'recipientDeviceId',
     'recipientUnitId',
     'missionId',
-  ]) {
+  ];
+  for (const k of identifiers) {
     if (typeof context[k] !== 'string' || !/^[A-Za-z0-9._:-]{1,128}$/.test(context[k]))
       throw new TypeError(`Invalid ${k}`);
   }
@@ -209,6 +305,7 @@ function validateContext(context) {
   if (!/^[0-9a-f]{64}$/.test(context.creationGrant.keyId))
     throw new TypeError('Invalid grant key ID');
 }
+/** @param {JsonWebKey} privateKey @param {JsonWebKey} publicKey @param {Uint8Array<ArrayBuffer>} salt @returns {Promise<CryptoKey>} */
 async function wrappingKey(privateKey, publicKey, salt) {
   const privateCrypto = await importJwk(privateKey, 'deriveBits');
   const publicCrypto = await importJwk(publicKey, 'ecdhPublic');
@@ -228,6 +325,7 @@ async function wrappingKey(privateKey, publicKey, salt) {
     secret.fill(0);
   }
 }
+/** @param {Payload} payload @returns {Payload} */
 export function validatePayload(payload) {
   sameKeys(payload, ['kind', 'name', 'mime', 'data']);
   if (!['text', 'file'].includes(payload.kind)) throw new TypeError('Unsupported payload kind');
@@ -254,6 +352,7 @@ export function validatePayload(payload) {
   }
   return payload;
 }
+/** @param {string} text @returns {Payload} */
 export function createTextPayload(text) {
   if (typeof text !== 'string') throw new TypeError('Expected text');
   return validatePayload({
@@ -263,6 +362,7 @@ export function createTextPayload(text) {
     data: b64(utf8.encode(text)),
   });
 }
+/** @param {string} name @param {string} mime @param {ByteInput} bytes @returns {Payload} */
 export function createFilePayload(name, mime, bytes) {
   return validatePayload({
     kind: 'file',
@@ -271,6 +371,7 @@ export function createFilePayload(name, mime, bytes) {
     data: b64(bytes),
   });
 }
+/** @param {Payload} payload */
 export function unpackPayload(payload) {
   validatePayload(payload);
   const bytes = unb64(payload.data);
@@ -282,6 +383,7 @@ export function unpackPayload(payload) {
     ...(payload.kind === 'text' ? { text: decoder.decode(bytes) } : {}),
   };
 }
+/** @param {ObjectContext} context @param {Payload} payload @param {JsonWebKey} recipientPublicJwk @param {JsonWebKey} senderPrivateJwk @returns {Promise<EncryptedObject>} */
 export async function encryptObject(context, payload, recipientPublicJwk, senderPrivateJwk) {
   validateContext(context);
   validatePayload(payload);
@@ -332,11 +434,12 @@ export async function encryptObject(context, payload, recipientPublicJwk, sender
     contentBytes.fill(0);
   }
 }
+/** @param {EncryptedObject} submission @param {JsonWebKey} recipientPrivateJwk @param {JsonWebKey} senderPublicJwk @returns {Promise<Payload>} */
 export async function decryptObject(submission, recipientPrivateJwk, senderPublicJwk) {
   if (!submission || typeof submission !== 'object')
     throw new TypeError('Invalid encrypted object');
   const { envelope, signature, ciphertext: encoded } = submission;
-  sameKeys(envelope, [...CONTEXT_KEYS, 'ciphertextHash', 'nonce', 'wrappedKey']);
+  sameKeys(envelope, envelopeFields(envelope.schemaVersion));
   const { ciphertextHash, nonce, wrappedKey, ...context } = envelope;
   validateContext(context);
   if (!(await verify(senderPublicJwk, envelope, signature)))
@@ -389,6 +492,7 @@ export async function decryptObject(submission, recipientPrivateJwk, senderPubli
     if (contentBytes) contentBytes.fill(0);
   }
 }
+/** @param {string} passphrase @param {Uint8Array<ArrayBuffer>} salt @param {KeyUsage[]} usages @returns {Promise<CryptoKey>} */
 async function vaultKey(passphrase, salt, usages) {
   if (typeof passphrase !== 'string' || passphrase.length < 12 || passphrase.length > 1024)
     throw new TypeError('Vault passphrase must contain 12–1024 characters');
@@ -403,6 +507,7 @@ async function vaultKey(passphrase, salt, usages) {
     usages,
   );
 }
+/** @param {unknown} value @param {string} passphrase @returns {Promise<import("../object-format/types.js").VaultPacket>} */
 export async function sealVault(value, passphrase) {
   const salt = random(32),
     iv = random(12);
@@ -421,6 +526,7 @@ export async function sealVault(value, passphrase) {
   );
   return { ...metadata, ciphertext: b64(ciphertext) };
 }
+/** @param {import("../object-format/types.js").VaultPacket} packet @param {string} passphrase @returns {Promise<unknown>} */
 export async function openVault(packet, passphrase) {
   sameKeys(packet, ['version', 'kdf', 'iterations', 'salt', 'iv', 'ciphertext']);
   const { ciphertext, ...metadata } = packet;

@@ -1,5 +1,7 @@
 # SIEPMU TRL 5/6 research and execution plan
 
+The [quantum-agile execution addendum](20-q-agile-execution.md) records the fresh `ad80210a0bc0185d74887b34e4d213350a86e4c3` starting baseline and subsequent work. The historical tables below retain their explicitly frozen revisions; they are not evidence for the combined candidate.
+
 Reconciled 8 October 2026 (India) against delivered `main` commit `49774e2111197412efb31d459317c0df23a838af`, the official PS-69 text, and the user-provided DISC-14 Annexures 1, 2 and 3. This is an engineering plan, not an IAF/SAG approval or TRL award.
 
 **Decision:** keep the working information-exchange prototype and its transactional release boundary. Next prove authenticated transport, independently operated unit zones, network impairment, checkpoint custody and recovery. Resolve the filed-proposal differences before presenting unsupported capabilities as delivered.
