@@ -113,6 +113,8 @@ need typecheck evaluation.
 | `85e4c7d`          | CI 37754418709; Security 37754418448 (pull_request)                                    | **ALL PASS**: native (incl. Trust Before Release), pqc-lab, browser, container, testbed; Security                                                     |
 | `aa1ab91`          | Security 37755304070 / 37755313266                                                     | secret-scan FAIL: gitleaks `generic-api-key` on a public HKDF known-answer constant; exact fingerprint added (documented exception policy)            |
 | `ec0ea61`          | CI 37755495149 / 37755500534; Security 37755495108 / 37755500358 (push / pull_request) | **ALL PASS** incl. secret-scan, testbed, Trust Before Release; PR #17 mergeable (clean)                                                               |
+| `ecc5b51`          | CI/Security on PR #17 (merge of Rust verifier `4af847b`)                               | ALL PASS (check suite completed, no failures)                                                                                                         |
+| `0e8d1b9`          | CI 37761613000 / 37761620422; Security 37761613051 / 37761620429 (push / pull_request) | **ALL PASS** incl. rust-native, Demos 3 and 4, testbed. **Frozen HPSC demonstration baseline** (`docs/hpsc/FROZEN_BASELINE.md`)                       |
 
 Resolved: the testbed failed exactly one netem profile (15 of 75) here and on PR #15's own SHA.
 N8 targeted the interface named `eth1`, whose network depends on Docker's attachment order; it
@@ -120,9 +122,11 @@ is now selected by address (`f7b94bd`, hosted 75/75).
 
 ### Local verification (Node 24.21.0, Linux container)
 
-- `npm run validate` PASS on `aa1ab91` content: 237/237 tests, 97.5 % lines.
-- `npm run test:e2e` 3/3; PQC lab 7/7 (incl. X-Wing end-to-end); Chromium shell-upgrade 3/3.
-- Trust Before Release 14/14 (`docs/engineering/TRUST_BEFORE_RELEASE.md`).
+- Frozen code `0e8d1b9`: `npm run validate` PASS 249/249 tests, 97.5 % lines; `test:e2e` 3/3; `npm run demo` 9/9;
+  Trust Before Release 14/14; Demo 3 10/10; Demo 4 11/11 (Rust verifier ACCEPT genuine / REJECT tampered).
+- Rust (cargo 1.97.0) on the merge `ecc5b51`: fmt, clippy `-D warnings`, 26 unit + 2 vector tests, vectors:check,
+  differential check 3/3.
+- Signed offline bundle built and installed from a clean worktree at `0e8d1b9` (manifest SHA-256 `5fd7b76d…`).
 
 ### Defects found and fixed on this branch
 
@@ -146,6 +150,9 @@ is now selected by address (`f7b94bd`, hosted 75/75).
 11. Testbed N8 severed the enclave link on some Docker engines (`f7b94bd`).
 12. Browser acceptance race: a stale READY badge could satisfy the wait for a new object (`7d0f568`).
 13. Coverage teardown race: SIGKILL of an exiting worker truncated its V8 coverage file (`17fe1bf`).
+14. Telemetry stall: re-exported alerts were stamped with the export-time epoch; after any authority change the
+    collector rejected every batch as a conflict and monitoring stopped silently (present since PR #15).
+    Migration 006 records the epoch at alert time (`0e8d1b9`); regression test reproduces the old failure.
 
 ### Implemented (engineering axis) — see WORK_PACKAGE_REGISTER.md
 
@@ -183,10 +190,24 @@ authorisation, formal TRL assignment.
 
 PR #17 (draft) from this branch to `main`. Not to be merged automatically.
 
+### HPSC package (13 October 2026)
+
+Index: `docs/hpsc/EXECUTIVE_SUMMARY.md`. Deck `HPSC_DECK.md`, demos `demo-runbook.md` (Demos 1-4 via
+`npm run demo`, `demo:trust-before-release`, `demo:documents`, `demo:monitoring`), Q&A
+`evaluator-questions.md`, TRL `docs/trl/` (provisional TRL 4, guarded by `tests/trl-matrix.test.mjs`),
+PS-69 matrix `PS69_COMPLIANCE.md`, funding `FUNDING_PLAN.md` (model `scripts/hpsc-budget.mjs`),
+external approvals `EXTERNAL_APPROVALS.md`, claims C15-C22 in `CLAIMS_REGISTER.yaml`.
+Founder inputs still required: team, traction, IP numbers, matching contribution, quotations,
+PDB scope decision (₹1.62 cr estimate vs ₹3.0 cr for the full ₹1.5 cr grant), own release key.
+
 ### Next executable tasks
 
-1. Re-retrieve `research/defence-comparison/sources.json` D04-D15 (needs network access to the
+1. Founder: fill the FOUNDER fields, approve budget inputs, rebuild the offline bundle with the
+   founder's release key, rehearse the four demonstrations on the presentation laptop.
+2. Re-verify the iDEX rules (`research/hpsc/idex-grant-rules.md`) against the live official pages.
+3. Re-retrieve `research/defence-comparison/sources.json` D04-D15 (needs network access to the
    original sources; not reachable from this environment).
-2. Re-check `HPKE_PQ_EVALUATION.md` against the published `draft-ietf-hpke-pq` revision (IETF
-   hosts blocked here); then prototype wrap v3 behind ADR-011's gates.
-3. Engage an independent cryptographic assessor with `V3_COMPOSITION.md` (external).
+4. Re-check `HPKE_PQ_EVALUATION.md` against the published `draft-ietf-hpke-pq` revision.
+5. Engage an independent cryptographic assessor with `V3_COMPOSITION.md` (external).
+6. Gateway readiness does not aggregate relay health (found in Demo 4); decide whether `/health/ready`
+   should include it (changes container health semantics; needs an ADR).

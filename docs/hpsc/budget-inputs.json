@@ -1,0 +1,187 @@
+{
+  "schemaVersion": 1,
+  "currency": "INR",
+  "status": "ENGINEERING ESTIMATE FOR FOUNDER REVIEW. Not a quotation, not a sanctioned budget, not a filed figure. Every rate is an assumption to be replaced by payroll records or written quotations before submission.",
+  "durationMonths": 12,
+  "durationSource": "Filed application duration (docs/application/DISC14_PS69_FILED_BASELINE.md).",
+  "idexRules": {
+    "source": "research/hpsc/idex-grant-rules.md (official-domain search excerpts, not fetched; re-verify)",
+    "grantCeiling": 15000000,
+    "maxGrantShareOfPdb": 0.5,
+    "minMatchingShareOfPdb": 0.5,
+    "ipMatchingCapShare": 0.2,
+    "ipMatchingCapAbsolute": 2500000,
+    "trancheShares": [0.1, 0.2, 0.2, 0.2, 0.2, 0.1]
+  },
+  "lines": [
+    {
+      "id": "L01",
+      "category": "Security and cryptography engineering",
+      "item": "Security/crypto engineering lead",
+      "unit": "person-month",
+      "quantity": 12,
+      "rate": 250000,
+      "basis": "ESTIMATE"
+    },
+    {
+      "id": "L02",
+      "category": "Security and cryptography engineering",
+      "item": "Distributed-systems / authority engineer",
+      "unit": "person-month",
+      "quantity": 12,
+      "rate": 180000,
+      "basis": "ESTIMATE"
+    },
+    {
+      "id": "L03",
+      "category": "Interoperability",
+      "item": "Integration engineer (adapters, sponsor interface)",
+      "unit": "person-month",
+      "quantity": 6,
+      "rate": 180000,
+      "basis": "ESTIMATE"
+    },
+    {
+      "id": "L04",
+      "category": "UI/UX",
+      "item": "Frontend/UX engineer (operator workflows, TypeScript)",
+      "unit": "person-month",
+      "quantity": 6,
+      "rate": 150000,
+      "basis": "ESTIMATE"
+    },
+    {
+      "id": "L05",
+      "category": "Deployment and documentation",
+      "item": "DevSecOps / deployment engineer",
+      "unit": "person-month",
+      "quantity": 9,
+      "rate": 160000,
+      "basis": "ESTIMATE"
+    },
+    {
+      "id": "L06",
+      "category": "Relevant-environment testing",
+      "item": "Test and evidence engineer",
+      "unit": "person-month",
+      "quantity": 9,
+      "rate": 120000,
+      "basis": "ESTIMATE"
+    },
+    {
+      "id": "H01",
+      "category": "Cloud/private infrastructure",
+      "item": "On-premises server nodes for multi-host representative deployment",
+      "unit": "node",
+      "quantity": 3,
+      "rate": 350000,
+      "basis": "QUOTE_REQUIRED"
+    },
+    {
+      "id": "H02",
+      "category": "Test facilities and equipment",
+      "item": "Managed endpoints (TPM-equipped laptops)",
+      "unit": "device",
+      "quantity": 6,
+      "rate": 90000,
+      "basis": "QUOTE_REQUIRED"
+    },
+    {
+      "id": "H03",
+      "category": "Test facilities and equipment",
+      "item": "Isolated network lab: firewall, managed switch, impairment host",
+      "unit": "set",
+      "quantity": 1,
+      "rate": 400000,
+      "basis": "QUOTE_REQUIRED"
+    },
+    {
+      "id": "H04",
+      "category": "Hardware trust",
+      "item": "FIDO2 security keys for device-binding trial",
+      "unit": "key",
+      "quantity": 10,
+      "rate": 6000,
+      "basis": "QUOTE_REQUIRED"
+    },
+    {
+      "id": "H05",
+      "category": "Hardware trust",
+      "item": "HSM / PKCS#11 evaluation unit (purchase or vendor loan)",
+      "unit": "unit",
+      "quantity": 1,
+      "rate": 800000,
+      "basis": "QUOTE_REQUIRED"
+    },
+    {
+      "id": "H06",
+      "category": "Test facilities and equipment",
+      "item": "UPS and offline backup media",
+      "unit": "set",
+      "quantity": 1,
+      "rate": 150000,
+      "basis": "QUOTE_REQUIRED"
+    },
+    {
+      "id": "S01",
+      "category": "Independent security review",
+      "item": "Independent VAPT and secure code review (scoped RFP)",
+      "unit": "engagement",
+      "quantity": 1,
+      "rate": 1200000,
+      "basis": "QUOTE_REQUIRED"
+    },
+    {
+      "id": "S02",
+      "category": "Independent security review",
+      "item": "Independent cryptographic composition review",
+      "unit": "engagement",
+      "quantity": 1,
+      "rate": 600000,
+      "basis": "QUOTE_REQUIRED"
+    },
+    {
+      "id": "S03",
+      "category": "Indian crypto-provider qualification",
+      "item": "Vendor evaluation licence, integration support and interoperability testing",
+      "unit": "engagement",
+      "quantity": 1,
+      "rate": 600000,
+      "basis": "QUOTE_REQUIRED"
+    },
+    {
+      "id": "S04",
+      "category": "Relevant-environment testing",
+      "item": "Test-facility access, travel and witnessed trials (sponsor-directed)",
+      "unit": "lot",
+      "quantity": 1,
+      "rate": 500000,
+      "basis": "ESTIMATE"
+    },
+    {
+      "id": "S05",
+      "category": "Cloud/private infrastructure",
+      "item": "CI runners, artifact storage and lab hosting",
+      "unit": "month",
+      "quantity": 12,
+      "rate": 25000,
+      "basis": "ESTIMATE"
+    },
+    {
+      "id": "S06",
+      "category": "Deployment and documentation",
+      "item": "Operator documentation, training material and offline packaging",
+      "unit": "lot",
+      "quantity": 1,
+      "rate": 300000,
+      "basis": "ESTIMATE"
+    }
+  ],
+  "matchingContribution": {
+    "note": "FOUNDER INPUT REQUIRED. Values are placeholders set to zero; the model reports the minimum matching contribution the rules require.",
+    "cash": 0,
+    "pastExpenditure": 0,
+    "inKind": 0,
+    "intellectualProperty": 0
+  }
+}

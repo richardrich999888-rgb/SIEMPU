@@ -29,6 +29,7 @@ Every decision is a signed, hash-chained evidence record checked by an independe
 
 ```text
 apps/unit-client/      browser endpoint, encrypted vault, service worker (sw.js)
+apps/document-system/  synthetic document-management emulator (HPSC Demo 3; not an IAF interface)
 apps/admin-console/    role-gated operator console      apps/verifier/  independent CLI
 services/control/      authority: identity, policy, admission, release, evidence (core.mjs)
 services/relay/        ciphertext-only blob service     services/web/  TLS gateway, same-origin proxy
@@ -48,6 +49,9 @@ formal/                TLA+ model of release/revocation/recovery (faithful + mut
 ```
 
 Details: `.claude/skills/siepmu-architecture/`.
+
+HPSC (13 Oct 2026) package: `docs/hpsc/EXECUTIVE_SUMMARY.md`; TRL self-assessment: `docs/trl/` (provisional
+TRL 4, guarded by `tests/trl-matrix.test.mjs`; never raise a level without a defined relevant environment).
 
 ## Non-negotiable invariants
 

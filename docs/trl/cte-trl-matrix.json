@@ -1,0 +1,394 @@
+{
+  "schemaVersion": 1,
+  "title": "SIEPMU critical technology elements: provisional TRL self-assessment",
+  "assessmentDate": "2026-10-08",
+  "assessor": "Internal engineering self-assessment (Claude Code session on behalf of SYNTRIASS). Not an independent Technology Readiness Assessment.",
+  "branch": "claude/siepmu-engineering-recovery-3nwgc8",
+  "codeRevision": "0e8d1b9e50594fc87e07856a99673473c6b5445f",
+  "evidenceRule": "A level is supported only by executed results on the stated revision. Hosted CI run IDs are recorded in docs/engineering/CURRENT_STATE.md. No result is copied forward from another revision.",
+  "scale": {
+    "source": "Common nine-level TRL scale, software interpretation (paraphrased from the US DoD Technology Readiness Assessment Guidebook and NASA NPR 7123.1 software TRL definitions; not retrieved in this session).",
+    "levels": {
+      "3": "Analytical and experimental proof of concept of critical function; algorithms implemented and exercised on representative data.",
+      "4": "Component and/or breadboard validation in a laboratory environment; key components integrated and tested together with low-fidelity or synthetic inputs.",
+      "5": "Component validation in a relevant environment; realistic interfaces, data and conditions agreed with the sponsor; higher-fidelity integration.",
+      "6": "System/subsystem prototype demonstrated in a relevant environment, representative of the intended deployment.",
+      "7": "System prototype demonstration in an operational environment."
+    },
+    "relevantEnvironmentStatus": "NOT DEFINED. The sponsor has not specified the relevant environment, interfaces, classification boundary, scale or acceptance criteria. No element can be placed at TRL 5 until those are agreed and an evaluation is run against them."
+  },
+  "statusAxes": [
+    "engineering-implementation",
+    "local-laboratory-testing",
+    "hosted-ci-validation",
+    "relevant-environment-validation",
+    "independent-assessment",
+    "sponsor-acceptance",
+    "operational-qualification"
+  ],
+  "elements": [
+    {
+      "id": "CTE-01",
+      "name": "Endpoint encryption",
+      "implemented": "Browser and Node endpoint E2EE: P-256 ECDH + HKDF-SHA256 + AES-256-GCM content and key wrap, signed context (schema v1/v2), encrypted local vault. Laboratory schema-v3 ML-KEM/ML-DSA path behind a closed-by-default gate.",
+      "sourceFiles": [
+        "packages/crypto/crypto.mjs",
+        "packages/crypto-provider/",
+        "apps/unit-client/vault-store.mjs",
+        "packages/pqc-lab/envelope.mjs"
+      ],
+      "tests": [
+        "tests/crypto.test.mjs",
+        "tests/crypto-provider.test.mjs",
+        "tests/crypto-agility/providers.test.mjs",
+        "tests/crypto-agility/wrap-derivation.test.mjs",
+        "tests/versioned-envelope.test.mjs",
+        "apps/unit-client/vault-store.test.mjs",
+        "tests/pqc/end-to-end.test.mjs"
+      ],
+      "environment": "Node 24.21.0 on Linux (local and GitHub-hosted ubuntu-24.04); Chromium (Playwright) for browser crypto.",
+      "measuredResults": "Native and browser interoperability tests pass; relay and authority stores contain no plaintext canaries in tested scopes; endpoint seal/open p50 ~15-17 ms for 16 KiB on the Trust Before Release host.",
+      "failureConditions": "Compromised endpoint or trusted key directory discloses plaintext; no forward secrecy claim; software keys.",
+      "limitations": [
+        "Classical suite is not SAG graded",
+        "PQC composition laboratory-only and unreviewed",
+        "No hardware key custody"
+      ],
+      "axes": {
+        "engineering-implementation": "DONE",
+        "local-laboratory-testing": "PASS",
+        "hosted-ci-validation": "PASS",
+        "relevant-environment-validation": "NOT_STARTED",
+        "independent-assessment": "NOT_ENGAGED",
+        "sponsor-acceptance": "NOT_ENGAGED",
+        "operational-qualification": "NOT_ENGAGED"
+      },
+      "provisionalTrl": 4,
+      "nextMilestone": "Sponsor-confirmed cryptographic suite and SAG route; integrate an approved provider through the provider port; independent cryptographic review of the composition."
+    },
+    {
+      "id": "CTE-02",
+      "name": "Identity and device security",
+      "implemented": "Password (scrypt) + RFC 6238 TOTP with replay floor; device enrolment with administrator approval; per-operation device proofs bound to request hash; session and device revocation; server-generated initial passwords.",
+      "sourceFiles": [
+        "services/control/core.mjs",
+        "services/control/primitives.mjs",
+        "apps/unit-client/challenge.mjs"
+      ],
+      "tests": [
+        "tests/authority.test.mjs",
+        "tests/http.test.mjs",
+        "tests/auth-routing.test.mjs",
+        "tests/initial-password.test.mjs",
+        "apps/unit-client/challenge.test.mjs"
+      ],
+      "environment": "Node 24.21.0; five-process TLS 1.3 / mTLS secure stack; Chromium.",
+      "measuredResults": "Wrong and replayed OTP refused (401); revoked device refused at next request (Demo 4).",
+      "failureConditions": "Stolen software device key plus credentials; no hardware attestation; prototype identity authority.",
+      "limitations": [
+        "No IAF PKI/LDAP federation",
+        "No TPM/FIDO2/smart-card binding",
+        "Identity proofing is an operator responsibility"
+      ],
+      "axes": {
+        "engineering-implementation": "DONE",
+        "local-laboratory-testing": "PASS",
+        "hosted-ci-validation": "PASS",
+        "relevant-environment-validation": "NOT_STARTED",
+        "independent-assessment": "NOT_ENGAGED",
+        "sponsor-acceptance": "NOT_ENGAGED",
+        "operational-qualification": "NOT_ENGAGED"
+      },
+      "provisionalTrl": 4,
+      "nextMilestone": "Hardware-backed device keys (TPM/FIDO2) trial and sponsor identity/PKI interface definition."
+    },
+    {
+      "id": "CTE-03",
+      "name": "Dynamic authorization and release (policy-epoch-bound)",
+      "implemented": "Release of a wrapped key only inside one SQLite authority transaction that re-checks current user, device, role, duty role, unit/mission policy, grant expiry, global epoch, FLASH dual approval and crypto policy; signed hash-chained decision evidence in the same transaction; concealment after commit.",
+      "sourceFiles": [
+        "services/control/core.mjs",
+        "packages/mission/policy.mjs",
+        "services/crypto-policy/registry.mjs"
+      ],
+      "tests": [
+        "tests/authority.test.mjs",
+        "tests/additional-boundaries.test.mjs",
+        "tests/flash-approval.test.mjs",
+        "tests/filed-mission-authority.test.mjs",
+        "tests/filed-mission-policy.test.mjs",
+        "tests/protocol-reconciliation.test.mjs",
+        "tests/acceptance/revocation/revocation.test.mjs",
+        "tests/trust-before-release.test.mjs"
+      ],
+      "environment": "Node 24.21.0; separate-process race/crash tests; five-process secure stack; 10-zone Docker netem testbed (hosted).",
+      "measuredResults": "Both commit orders of revoke-vs-issue tested; revocation committed first blocks issuance; retry after restart returns the identical issuance (Demo 4); Trust Before Release 14/14 steps; testbed 75/75 exchanges under recorded netem profiles (hosted, 17fe1bf onward).",
+      "failureConditions": "Issuance committed before revocation cannot be recalled; single authority database (no HA); a malicious authority can sign false decisions.",
+      "limitations": [
+        "Duty roles and FLASH dual control are provisional applicant policy",
+        "Single-host authority",
+        "No formal proof of the invariant"
+      ],
+      "axes": {
+        "engineering-implementation": "DONE",
+        "local-laboratory-testing": "PASS",
+        "hosted-ci-validation": "PASS",
+        "relevant-environment-validation": "NOT_STARTED",
+        "independent-assessment": "NOT_ENGAGED",
+        "sponsor-acceptance": "NOT_ENGAGED",
+        "operational-qualification": "NOT_ENGAGED"
+      },
+      "provisionalTrl": 4,
+      "trl5Candidate": true,
+      "nextMilestone": "Sponsor-agreed relevant-environment test (multi-host, representative network, agreed outage/revocation scenarios) with independent witness."
+    },
+    {
+      "id": "CTE-04",
+      "name": "Ciphertext relay",
+      "implemented": "Separate relay process storing ciphertext by digest with HMAC-authenticated, replay-protected requests over mTLS; no access to identity, keys or plaintext.",
+      "sourceFiles": ["services/relay/server.mjs", "services/relay/client.mjs"],
+      "tests": [
+        "services/relay/relay.test.mjs",
+        "tests/transport/secure-stack.test.mjs",
+        "tests/independent-services.test.mjs"
+      ],
+      "environment": "Node 24.21.0; secure stack; container job (three services) on hosted runner.",
+      "measuredResults": "Relay outage: submission refused with no half-written object; recovery on restart (Demo 4).",
+      "failureConditions": "Relay sees metadata and sizes; availability depends on a single relay; gateway readiness does not report relay health.",
+      "limitations": ["No replication", "Metadata not concealed"],
+      "axes": {
+        "engineering-implementation": "DONE",
+        "local-laboratory-testing": "PASS",
+        "hosted-ci-validation": "PASS",
+        "relevant-environment-validation": "NOT_STARTED",
+        "independent-assessment": "NOT_ENGAGED",
+        "sponsor-acceptance": "NOT_ENGAGED",
+        "operational-qualification": "NOT_ENGAGED"
+      },
+      "provisionalTrl": 4,
+      "trl5Candidate": true,
+      "nextMilestone": "Multi-host deployment with relay health aggregation and storage-failure tests."
+    },
+    {
+      "id": "CTE-05",
+      "name": "Offline queue and reconnection",
+      "implemented": "Encrypted endpoint vault and outbox; objects sealed offline under a cached creation grant; on reconnection the authority re-checks current policy before any release.",
+      "sourceFiles": [
+        "apps/unit-client/vault-store.mjs",
+        "apps/unit-client/sw.js",
+        "packages/integration/client.mjs"
+      ],
+      "tests": [
+        "tests/network-failure/recovery.test.mjs",
+        "tests/acceptance/authorized-backlog/authorized-backlog.test.mjs",
+        "apps/unit-client/vault-store.test.mjs",
+        "tests/integration-adapter.test.mjs"
+      ],
+      "environment": "Userspace fault proxy on the secure stack; real Chromium offline/reload; netem testbed.",
+      "measuredResults": "Revocation during disconnection holds the affected object with a signed decision while an eligible object is released (Trust Before Release steps 7-10); browser shell-upgrade offline start 3/3.",
+      "failureConditions": "An offline endpoint cannot learn of revocation until it reconnects; creation is not permission to deliver.",
+      "limitations": ["Fault proxy and netem, not radio/SATCOM/WAN", "Single host"],
+      "axes": {
+        "engineering-implementation": "DONE",
+        "local-laboratory-testing": "PASS",
+        "hosted-ci-validation": "PASS",
+        "relevant-environment-validation": "NOT_STARTED",
+        "independent-assessment": "NOT_ENGAGED",
+        "sponsor-acceptance": "NOT_ENGAGED",
+        "operational-qualification": "NOT_ENGAGED"
+      },
+      "provisionalTrl": 4,
+      "trl5Candidate": true,
+      "nextMilestone": "Sponsor-defined outage profiles on representative links with agreed queue durations."
+    },
+    {
+      "id": "CTE-06",
+      "name": "Evidence and audit custody",
+      "implemented": "Signed, hash-chained decision evidence; independent checkpoint custodian; recovery quarantine against rollback; detached verifiers in Node and Rust (differentially tested against 63 evidence and 16 canonical vectors and 400 seeded mutations).",
+      "sourceFiles": [
+        "services/evidence/",
+        "apps/verifier/verify.mjs",
+        "native/evidence-verify/",
+        "spec/SIEPMU-EVIDENCE-v1.md"
+      ],
+      "tests": [
+        "tests/checkpoint-custody.test.mjs",
+        "tests/recovery.test.mjs",
+        "tests/verifier-replay.test.mjs",
+        "tests/native/evidence-differential.check.mjs",
+        "native/evidence-verify/tests/vectors.rs"
+      ],
+      "environment": "Node 24.21.0; Rust 1.97.0; secure stack; hosted rust-native job.",
+      "measuredResults": "Tampered evidence rejected by both verifiers (Demos 3 and 4); Rust verifier 1.6-5.7x lower peak memory, 0.54-0.89x Node speed (measured on the Rust branch host, 4af847b).",
+      "failureConditions": "A malicious signer can sign false assertions; unanchored tail truncation is undetectable without an independently held checkpoint.",
+      "limitations": [
+        "Custodian runs on the same host in the lab",
+        "Trust root distribution is manual"
+      ],
+      "axes": {
+        "engineering-implementation": "DONE",
+        "local-laboratory-testing": "PASS",
+        "hosted-ci-validation": "PASS",
+        "relevant-environment-validation": "NOT_STARTED",
+        "independent-assessment": "NOT_ENGAGED",
+        "sponsor-acceptance": "NOT_ENGAGED",
+        "operational-qualification": "NOT_ENGAGED"
+      },
+      "provisionalTrl": 4,
+      "trl5Candidate": true,
+      "nextMilestone": "Custodian on separately administered infrastructure; sponsor-agreed retention and audit access."
+    },
+    {
+      "id": "CTE-07",
+      "name": "Threat monitoring",
+      "implemented": "Rule-based alerts (AUTH_FAILURE, REQUEST_DENIED, ACCESS_DENIED with actor attribution, ADMISSION_HELD, RELEASE_DENIED, AUTHORITY_CHANGED); signed, redacted telemetry to an independent mTLS collector; operator acknowledgement.",
+      "sourceFiles": [
+        "services/control/core.mjs",
+        "services/monitoring/collector.mjs",
+        "services/monitoring/exporter.mjs",
+        "services/monitoring/server.mjs"
+      ],
+      "tests": [
+        "tests/monitoring.test.mjs",
+        "tests/access-alerts.test.mjs",
+        "tests/independent-services.test.mjs"
+      ],
+      "environment": "Secure stack, Demo 4.",
+      "measuredResults": "Demo 4: all four alert kinds reach the collector after policy changes; no content in telemetry; operator ack 200; non-operator read 403. Defect found and fixed in 0e8d1b9: telemetry stopped after the first epoch change.",
+      "failureConditions": "Detection limited to implemented rules; no behavioural analytics; collector is a lab sink.",
+      "limitations": [
+        "No SIEM/SOC integration",
+        "No calibrated anomaly detection",
+        "No paging/escalation"
+      ],
+      "axes": {
+        "engineering-implementation": "PARTIAL",
+        "local-laboratory-testing": "PASS",
+        "hosted-ci-validation": "PASS",
+        "relevant-environment-validation": "NOT_STARTED",
+        "independent-assessment": "NOT_ENGAGED",
+        "sponsor-acceptance": "NOT_ENGAGED",
+        "operational-qualification": "NOT_ENGAGED"
+      },
+      "provisionalTrl": 3,
+      "nextMilestone": "Sponsor-defined detection use cases and SOC/SIEM interface; replay/flood simulations with measured detection latency."
+    },
+    {
+      "id": "CTE-08",
+      "name": "Existing-system integration",
+      "implemented": "Versioned adapter with mTLS-pinned source identity, strict schema, freshness, sender/destination scope, durable idempotency and capacity, status query; synthetic document-management emulator (Demo 3).",
+      "sourceFiles": [
+        "services/integration/",
+        "packages/integration/client.mjs",
+        "apps/document-system/"
+      ],
+      "tests": [
+        "tests/integration-adapter.test.mjs",
+        "tests/document-system.test.mjs",
+        "tests/independent-services.test.mjs"
+      ],
+      "environment": "Secure stack; adapter as separate process.",
+      "measuredResults": "Demo 3 10/10: authorised document delivered with signed acknowledgement; duplicate, replay, unauthorised destination and unpinned source refused; no plaintext in adapter store or logs.",
+      "failureConditions": "Only the synthetic contract is supported; no real military interface specification is available.",
+      "limitations": [
+        "No AFNET, e-Office or IAF C2 connectivity",
+        "Synthetic schema invented in the lab"
+      ],
+      "axes": {
+        "engineering-implementation": "DONE_FOR_SYNTHETIC",
+        "local-laboratory-testing": "PASS",
+        "hosted-ci-validation": "PASS",
+        "relevant-environment-validation": "BLOCKED_EXTERNAL",
+        "independent-assessment": "NOT_ENGAGED",
+        "sponsor-acceptance": "NOT_ENGAGED",
+        "operational-qualification": "NOT_ENGAGED"
+      },
+      "provisionalTrl": 3,
+      "nextMilestone": "Sponsor-supplied interface specification and test endpoint; adapter for that contract tested against a sponsor emulator."
+    },
+    {
+      "id": "CTE-09",
+      "name": "Crypto-provider agility",
+      "implemented": "Provider port and engine with suite policy, key lifecycle, fail-closed provider failure, no fallback; authority crypto-policy registry checked at submission and release; laboratory ML-KEM-768/1024, ML-DSA-65 and X-Wing providers isolated from release artefacts.",
+      "sourceFiles": [
+        "packages/crypto-provider/",
+        "services/crypto-policy/registry.mjs",
+        "packages/pqc-lab/"
+      ],
+      "tests": [
+        "tests/crypto-agility/providers.test.mjs",
+        "tests/crypto-agility/wrap-derivation.test.mjs",
+        "tests/pqc/end-to-end.test.mjs",
+        "tests/pqc/native-provider.test.mjs",
+        "packages/pqc-lab/laboratory.check.mjs"
+      ],
+      "environment": "Node 24.21.0 / OpenSSL 3.5; hosted pqc-lab job.",
+      "measuredResults": "NIST ML-KEM/ML-DSA vectors and X-Wing author vectors pass; downgrade and suite substitution rejected at authority and endpoint.",
+      "failureConditions": "No SAG-graded or Indian provider integrated; PQC composition unreviewed.",
+      "limitations": [
+        "Laboratory suites disabled by default",
+        "No HSM/PKCS#11 provider",
+        "Indian provider interfaces not public"
+      ],
+      "axes": {
+        "engineering-implementation": "DONE_FOR_LAB",
+        "local-laboratory-testing": "PASS",
+        "hosted-ci-validation": "PASS",
+        "relevant-environment-validation": "NOT_STARTED",
+        "independent-assessment": "NOT_ENGAGED",
+        "sponsor-acceptance": "NOT_ENGAGED",
+        "operational-qualification": "NOT_ENGAGED"
+      },
+      "provisionalTrl": 3,
+      "nextMilestone": "Integrate one independently qualified provider (vendor-supplied interface) behind the port; SAG route defined by sponsor."
+    },
+    {
+      "id": "CTE-10",
+      "name": "Secure sovereign deployment",
+      "implemented": "TLS 1.3 gateway, mTLS service identities with pins and CRLs, lab PKI with expiry/revocation, hardened containers (UID 1000, read-only root, dropped capabilities), 10-zone netem testbed, signed offline release bundles with rollback protection, operator-controlled roots.",
+      "sourceFiles": [
+        "packages/transport/tls.mjs",
+        "deployment/",
+        "Dockerfile",
+        "compose.yaml",
+        "packages/release/offline.mjs"
+      ],
+      "tests": [
+        "tests/transport/tls.test.mjs",
+        "tests/transport/secure-stack.test.mjs",
+        "tests/offline-release.test.mjs",
+        "tests/routing-boundary.test.mjs"
+      ],
+      "environment": "Hosted container and testbed jobs (Docker on ubuntu-24.04); local secure stack.",
+      "measuredResults": "Container job: build, three-service run, in-container crypto/policy checks, image scan and SBOM pass; testbed 75/75.",
+      "failureConditions": "Docker host administrator is trusted; lab PKI only; no HA.",
+      "limitations": [
+        "No sponsor-approved hosting",
+        "No real PKI/OCSP",
+        "Air-gap transfer procedure not authorised"
+      ],
+      "axes": {
+        "engineering-implementation": "DONE",
+        "local-laboratory-testing": "PASS",
+        "hosted-ci-validation": "PASS",
+        "relevant-environment-validation": "NOT_STARTED",
+        "independent-assessment": "NOT_ENGAGED",
+        "sponsor-acceptance": "NOT_ENGAGED",
+        "operational-qualification": "NOT_ENGAGED"
+      },
+      "provisionalTrl": 4,
+      "nextMilestone": "Multi-host deployment on operator-controlled hardware with real PKI and an authorised offline transfer procedure."
+    }
+  ],
+  "systemAssessment": {
+    "provisionalTrl": 4,
+    "statement": "Integrated laboratory prototype: the full exchange workflow runs end to end across separate service processes with automated and scripted evidence on a pinned revision. Three elements (monitoring, existing-system integration, crypto-provider agility toward a graded provider) are at TRL 3 because their sponsor-relevant form is not yet implemented. Release, relay, offline queue and evidence custody are TRL 5 validation candidates once a relevant environment is defined.",
+    "notClaimed": [
+      "TRL 5 or 6",
+      "IAF approval",
+      "SAG grading",
+      "independent assessment",
+      "operational deployment"
+    ]
+  }
+}

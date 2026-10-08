@@ -109,18 +109,18 @@
     {
       "CLAIM_ID": "C09",
       "CLAIM_TEXT": "Browser encrypted vault, queue and offline reload logic are implemented.",
-      "STATUS": "IMPLEMENTED_UNVERIFIED",
+      "STATUS": "TESTED",
       "SOURCE": "docs/requirements/README.md and docs/protocols/IMPLEMENTATION_CONTRACT.md",
       "IMPLEMENTATION": [
         "apps/unit-client/app.mjs",
         "apps/unit-client/vault-store.mjs",
         "apps/unit-client/browser-check.mjs"
       ],
-      "COMMIT": "Resolved from artifacts/validation/report.json gitCommit plus sourceDigest; a dirty tree is explicitly recorded.",
+      "COMMIT": "0e8d1b9e50594fc87e07856a99673473c6b5445f (hosted CI 37761613000/37761620422, Security 37761613051/37761620429, all PASS)",
       "TEST": ["apps/unit-client/vault-store.test.mjs"],
-      "RESULT": "No stronger execution or assurance assertion is made.",
+      "RESULT": "Vault unit tests pass; hosted browser job (Chromium, isolated) passes on the stated revision, including shell-upgrade offline start.",
       "EVIDENCE": "artifacts/validation/report.json and its named logs; run npm run validate before external use.",
-      "DATE": "Execution time is recorded in artifacts/validation/report.json finishedAt.",
+      "DATE": "2026-10-08 (hosted runs on the stated revision)",
       "LIMITATION": "Native validator does not execute a browser; separate dated browser results have their own scope. Browser code and software key custody are trusted."
     },
     {
@@ -139,14 +139,14 @@
     {
       "CLAIM_ID": "C11",
       "CLAIM_TEXT": "Container deployment configuration and CI scanner gates are supplied.",
-      "STATUS": "IMPLEMENTED_UNVERIFIED",
+      "STATUS": "TESTED",
       "SOURCE": "docs/requirements/README.md and docs/protocols/IMPLEMENTATION_CONTRACT.md",
       "IMPLEMENTATION": ["Dockerfile", "compose.yaml", "scripts/sarif-gate.mjs"],
-      "COMMIT": "Resolved from artifacts/validation/report.json gitCommit plus sourceDigest; a dirty tree is explicitly recorded.",
+      "COMMIT": "0e8d1b9e50594fc87e07856a99673473c6b5445f (hosted CI 37761613000/37761620422, Security 37761613051/37761620429, all PASS)",
       "TEST": ["scripts/sarif-gate.test.mjs"],
-      "RESULT": "No stronger execution or assurance assertion is made.",
+      "RESULT": "Hosted container job builds the image, runs the three-service synthetic deployment, checks crypto/policy in containers, scans the image and generates an SBOM.",
       "EVIDENCE": "artifacts/validation/report.json and its named logs; run npm run validate before external use.",
-      "DATE": "Execution time is recorded in artifacts/validation/report.json finishedAt.",
+      "DATE": "2026-10-08 (hosted runs on the stated revision)",
       "LIMITATION": "Native validation does not execute container runtime or hosted SAST. Configuration presence is not scanner or deployment success."
     },
     {
@@ -164,7 +164,7 @@
     },
     {
       "CLAIM_ID": "C13",
-      "CLAIM_TEXT": "Hardware-backed identity, PQC, air-gap transfer and cross-domain release.",
+      "CLAIM_TEXT": "Hardware-backed identity, operational (non-laboratory) post-quantum cryptography, authorised air-gap transfer and cross-domain release.",
       "STATUS": "NOT_SUPPORTED",
       "SOURCE": "docs/requirements/README.md and docs/protocols/IMPLEMENTATION_CONTRACT.md",
       "IMPLEMENTATION": [],
@@ -173,7 +173,7 @@
       "RESULT": "No stronger execution or assurance assertion is made.",
       "EVIDENCE": "artifacts/validation/report.json and its named logs; run npm run validate before external use.",
       "DATE": "Execution time is recorded in artifacts/validation/report.json finishedAt.",
-      "LIMITATION": "These capabilities are outside this prototype and must not appear as delivered functionality."
+      "LIMITATION": "Laboratory ML-KEM/ML-DSA suites exist (C19) but are disabled by default, unreviewed and not approved for operational use."
     },
     {
       "CLAIM_ID": "C14",
@@ -187,6 +187,135 @@
       "EVIDENCE": "artifacts/validation/report.json and its named logs; run npm run validate before external use.",
       "DATE": "Execution time is recorded in artifacts/validation/report.json finishedAt.",
       "LIMITATION": "No legal novelty conclusion or patentability claim; professional prior-art and claim review remains required."
+    },
+    {
+      "CLAIM_ID": "C15",
+      "CLAIM_TEXT": "Trust Before Release: objects queued during an outage are released only if current policy still permits it; an object for a recipient revoked during the outage is held with a signed decision.",
+      "STATUS": "TESTED",
+      "SOURCE": "docs/hpsc/HPSC_DECK.md",
+      "IMPLEMENTATION": ["scripts/trust-before-release.mjs", "services/control/core.mjs"],
+      "COMMIT": "0e8d1b9e50594fc87e07856a99673473c6b5445f (hosted CI 37761613000/37761620422, Security 37761613051/37761620429, all PASS)",
+      "TEST": ["tests/trust-before-release.test.mjs", "tests/network-failure/recovery.test.mjs"],
+      "RESULT": "14/14 scripted steps PASS in the hosted native job on the stated revision.",
+      "EVIDENCE": "artifacts/trust-before-release/report.json (CI native-evidence artefact)",
+      "DATE": "2026-10-08 (hosted runs on the stated revision)",
+      "LIMITATION": "Single host; fault proxy, not a WAN; keys issued before revocation cannot be recalled.",
+      "SLIDES": [5, 6],
+      "PERMITTED_WORDING": "Tested laboratory demonstration of current-authority release after reconnection."
+    },
+    {
+      "CLAIM_ID": "C16",
+      "CLAIM_TEXT": "A separate synthetic document system exchanges documents through the authenticated integration adapter, with refusal of duplicate, replay, unauthorised destination and unpinned source.",
+      "STATUS": "SIMULATED",
+      "SOURCE": "docs/hpsc/HPSC_DECK.md",
+      "IMPLEMENTATION": [
+        "apps/document-system/document.mjs",
+        "apps/document-system/outbox.mjs",
+        "apps/document-system/inbox.mjs",
+        "services/integration/adapter.mjs"
+      ],
+      "COMMIT": "0e8d1b9e50594fc87e07856a99673473c6b5445f (hosted CI 37761613000/37761620422, Security 37761613051/37761620429, all PASS)",
+      "TEST": ["tests/document-system.test.mjs", "tests/integration-adapter.test.mjs"],
+      "RESULT": "Demo 3 10/10 steps PASS in the hosted native job.",
+      "EVIDENCE": "artifacts/demo-document-exchange/report.json",
+      "DATE": "2026-10-08 (hosted runs on the stated revision)",
+      "LIMITATION": "Synthetic contract only; no AFNET, e-Office or IAF interface is connected or modelled.",
+      "SLIDES": [9],
+      "PERMITTED_WORDING": "Synthetic existing-system integration demonstrated in the laboratory."
+    },
+    {
+      "CLAIM_ID": "C17",
+      "CLAIM_TEXT": "Security events (failed MFA, wrong-role access, release denial, authority change) reach an independent collector as signed, redacted telemetry with operator acknowledgement, and services recover from relay and authority restarts.",
+      "STATUS": "TESTED",
+      "SOURCE": "docs/hpsc/HPSC_DECK.md",
+      "IMPLEMENTATION": [
+        "services/monitoring/collector.mjs",
+        "services/monitoring/exporter.mjs",
+        "scripts/demo-monitoring-recovery.mjs"
+      ],
+      "COMMIT": "0e8d1b9e50594fc87e07856a99673473c6b5445f (hosted CI 37761613000/37761620422, Security 37761613051/37761620429, all PASS)",
+      "TEST": ["tests/monitoring.test.mjs", "tests/access-alerts.test.mjs"],
+      "RESULT": "Demo 4 11/11 steps PASS in the hosted native job; telemetry-after-epoch-change regression test passes.",
+      "EVIDENCE": "artifacts/demo-monitoring-recovery/report.json",
+      "DATE": "2026-10-08 (hosted runs on the stated revision)",
+      "LIMITATION": "Rule-based alerts only; no analytics, SIEM or SOC integration; lab collector.",
+      "SLIDES": [6],
+      "PERMITTED_WORDING": "Rule-based security monitoring with an independent collector, tested in the laboratory."
+    },
+    {
+      "CLAIM_ID": "C18",
+      "CLAIM_TEXT": "Signed decision evidence is verified by two independent implementations (Node and Rust) that agree on shared vectors and reject tampering.",
+      "STATUS": "TESTED",
+      "SOURCE": "docs/hpsc/HPSC_DECK.md",
+      "IMPLEMENTATION": ["apps/verifier/verify.mjs", "native/evidence-verify/src/evidence.rs"],
+      "COMMIT": "0e8d1b9e50594fc87e07856a99673473c6b5445f (hosted CI 37761613000/37761620422, Security 37761613051/37761620429, all PASS)",
+      "TEST": ["tests/native/evidence-differential.check.mjs", "tests/verifier-replay.test.mjs"],
+      "RESULT": "Hosted rust-native job PASS (fmt, clippy, tests, cargo audit, vector drift, differential check).",
+      "EVIDENCE": "CI rust-native-evidence artefact",
+      "DATE": "2026-10-08 (hosted runs on the stated revision)",
+      "LIMITATION": "A malicious signer can sign false assertions; truncation needs an independently held checkpoint.",
+      "SLIDES": [6],
+      "PERMITTED_WORDING": "Independent verification of signed evidence in two implementations."
+    },
+    {
+      "CLAIM_ID": "C19",
+      "CLAIM_TEXT": "Laboratory post-quantum suites (ML-KEM-768/1024 with ML-DSA-65) pass through the same release transaction, disabled unless explicitly enabled, with downgrade rejection.",
+      "STATUS": "TESTED",
+      "SOURCE": "docs/hpsc/HPSC_DECK.md",
+      "IMPLEMENTATION": ["packages/pqc-lab/envelope.mjs", "services/crypto-policy/registry.mjs"],
+      "COMMIT": "0e8d1b9e50594fc87e07856a99673473c6b5445f (hosted CI 37761613000/37761620422, Security 37761613051/37761620429, all PASS)",
+      "TEST": ["tests/pqc/end-to-end.test.mjs", "tests/crypto-agility/wrap-derivation.test.mjs"],
+      "RESULT": "Hosted native and pqc-lab jobs PASS; NIST and X-Wing author vectors pass.",
+      "EVIDENCE": "research/cryptographic-standards/V3_COMPOSITION.md",
+      "DATE": "2026-10-08 (hosted runs on the stated revision)",
+      "LIMITATION": "Laboratory composition awaiting independent review; not SAG graded; never enabled in releases.",
+      "SLIDES": [8],
+      "PERMITTED_WORDING": "Post-quantum research implementation behind a crypto-agile provider boundary."
+    },
+    {
+      "CLAIM_ID": "C20",
+      "CLAIM_TEXT": "Provisional TRL 4 by internal self-assessment, with four elements identified as TRL 5 validation candidates.",
+      "STATUS": "IMPLEMENTED_UNVERIFIED",
+      "SOURCE": "docs/hpsc/HPSC_DECK.md",
+      "IMPLEMENTATION": ["docs/trl/cte-trl-matrix.json"],
+      "COMMIT": "0e8d1b9e50594fc87e07856a99673473c6b5445f (hosted CI 37761613000/37761620422, Security 37761613051/37761620429, all PASS)",
+      "TEST": ["tests/trl-matrix.test.mjs"],
+      "RESULT": "Matrix guard tests pass; no external assessment.",
+      "EVIDENCE": "docs/trl/TRL_ASSESSMENT.md",
+      "DATE": "2026-10-08 (hosted runs on the stated revision)",
+      "LIMITATION": "Self-assessment; relevant environment undefined; not an independent TRA.",
+      "SLIDES": [7],
+      "PERMITTED_WORDING": "Provisional TRL 4 (internal self-assessment); TRL 5 validation candidate subsystems."
+    },
+    {
+      "CLAIM_ID": "C21",
+      "CLAIM_TEXT": "Twelve-month maturation plan toward TRL 5 validation and a TRL 6 representative prototype.",
+      "STATUS": "PLANNED",
+      "SOURCE": "docs/hpsc/HPSC_DECK.md",
+      "IMPLEMENTATION": ["docs/hpsc/FUNDING_PLAN.md", "scripts/hpsc-budget.mjs"],
+      "COMMIT": "0e8d1b9e50594fc87e07856a99673473c6b5445f (hosted CI 37761613000/37761620422, Security 37761613051/37761620429, all PASS)",
+      "TEST": ["tests/hpsc-budget.test.mjs"],
+      "RESULT": "Plan and budget model only; budget arithmetic tested.",
+      "EVIDENCE": "docs/hpsc/FUNDING_PLAN.md",
+      "DATE": "2026-10-08 (hosted runs on the stated revision)",
+      "LIMITATION": "Internal milestones; not iDEX-approved milestones; budget figures are estimates for founder approval.",
+      "SLIDES": [10, 11],
+      "PERMITTED_WORDING": "Proposed milestone plan, subject to programme agreement."
+    },
+    {
+      "CLAIM_ID": "C22",
+      "CLAIM_TEXT": "Formal TRL 5 or 6 achieved, operational deployment, confirmed investor funding or guaranteed procurement.",
+      "STATUS": "NOT_SUPPORTED",
+      "SOURCE": "docs/hpsc/HPSC_DECK.md",
+      "IMPLEMENTATION": ["docs/trl/TRL_ASSESSMENT.md"],
+      "COMMIT": "0e8d1b9e50594fc87e07856a99673473c6b5445f (hosted CI 37761613000/37761620422, Security 37761613051/37761620429, all PASS)",
+      "TEST": [],
+      "RESULT": "No evidence exists for any of these.",
+      "EVIDENCE": "docs/hpsc/EXTERNAL_APPROVALS.md",
+      "DATE": "2026-10-08 (hosted runs on the stated revision)",
+      "LIMITATION": "Do not state or imply.",
+      "SLIDES": [7, 12],
+      "PERMITTED_WORDING": "Do not use."
     }
   ]
 }
