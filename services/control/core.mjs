@@ -221,12 +221,13 @@ export class Authority {
   }
   alert(kind, actor, reason) {
     this.run(
-      'INSERT INTO alerts VALUES(?,?,?,?,?)',
+      'INSERT INTO alerts(id,kind,actor_id,timestamp,reason,epoch) VALUES(?,?,?,?,?,?)',
       randomUUID(),
       kind,
       actor ?? null,
       Date.now(),
       reason,
+      this.epoch().epoch,
     );
     this.count('securityEvents');
   }

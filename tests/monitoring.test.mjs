@@ -64,3 +64,51 @@ test('independent collector authenticates, redacts, deduplicates, acknowledges a
   assert.throws(() => tiny.ingest(signed, now + 1000), /CAPACITY/);
   assert.equal(tiny.list().length, 0);
 });
+
+test('alert telemetry stays identical across exports after an epoch change', async (t) => {
+  // Regression: alert events carried the authority's current epoch at export time, so the
+  // same eventId changed digest after any epoch change and the collector rejected every later
+  // batch with TELEMETRY_CONFLICT (found by the Core Mission Workflow positive controls).
+  const f = await coreFixture(t),
+    keys = pair(),
+    now = Date.now();
+  const collector = new SecurityCollector({
+    database: ':memory:',
+    sourceKey: f.provisioned.serverPublicKey,
+    signingKey: keys.privateKey,
+  });
+  t.after(() => collector.close());
+  f.authority.tx(() => f.authority.alert('REQUEST_DENIED', null, 'CREDENTIAL_REJECTED'));
+  const before = redactSecurityEvents(f.authority);
+  collector.ingest(packet(f.authority.key, before), now + 1000);
+  f.authority.tx(() =>
+    f.authority.run('UPDATE authority SET epoch=epoch+1,revocation_version=revocation_version+1'),
+  );
+  const after = redactSecurityEvents(f.authority);
+  const alertId = before.events.find((e) => e.eventType === 'REQUEST_DENIED').eventId;
+  assert.deepEqual(
+    after.events.find((e) => e.eventId === alertId),
+    before.events.find((e) => e.eventId === alertId),
+  );
+  assert.doesNotThrow(() => collector.ingest(packet(f.authority.key, after), now + 1000));
+});
+
+test('alert epoch migration backfills legacy rows once with a fixed epoch', async () => {
+  const { DatabaseSync } = await import('node:sqlite');
+  const { readFileSync } = await import('node:fs');
+  const db = new DatabaseSync(':memory:');
+  try {
+    db.exec(`CREATE TABLE authority(id INTEGER PRIMARY KEY, epoch INTEGER NOT NULL);
+      INSERT INTO authority VALUES(1, 7);
+      CREATE TABLE alerts(id TEXT PRIMARY KEY, kind TEXT NOT NULL, actor_id TEXT,
+        timestamp INTEGER NOT NULL, reason TEXT NOT NULL);
+      INSERT INTO alerts VALUES('legacy', 'REQUEST_DENIED', NULL, 1, 'CREDENTIAL_REJECTED');`);
+    db.exec(
+      readFileSync(new URL('../database/migrations/006-alert-epoch.sql', import.meta.url), 'utf8'),
+    );
+    db.exec('UPDATE authority SET epoch=8');
+    assert.equal(db.prepare("SELECT epoch FROM alerts WHERE id='legacy'").get().epoch, 7);
+  } finally {
+    db.close();
+  }
+});
