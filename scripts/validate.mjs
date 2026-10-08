@@ -12,6 +12,28 @@ export function gateEnvironment(name, root = process.cwd(), environment = proces
   };
 }
 
+// Bounds for the failure excerpt echoed to the job log. Hosted artefacts can be
+// unreachable for the reviewer, so the decisive lines must also appear in stdout.
+const EXCERPT_MAX_LINES = 120;
+const EXCERPT_MAX_CHARS = 16 * 1024;
+
+/**
+ * Returns the node:test "failing tests" section if present, otherwise the log tail.
+ * Stack frames are dropped; output is bounded. Callers must sanitize the input first.
+ * @param {string} output
+ */
+export function failureExcerpt(output) {
+  const marker = output.lastIndexOf('failing tests:');
+  const section = marker >= 0 ? output.slice(output.lastIndexOf('\n', marker) + 1) : output;
+  const lines = section.split('\n').filter((line) => !/^\s+at /.test(line));
+  const selected =
+    marker >= 0 ? lines.slice(0, EXCERPT_MAX_LINES) : lines.slice(-EXCERPT_MAX_LINES);
+  const text = selected.join('\n');
+  return text.length > EXCERPT_MAX_CHARS
+    ? text.slice(0, EXCERPT_MAX_CHARS) + '\n[truncated]'
+    : text;
+}
+
 export async function validate() {
   const root = process.cwd();
   const destination = resolve(root, 'artifacts/validation');
@@ -95,6 +117,8 @@ export async function validate() {
       };
     }
     console.log(`${name}: ${exitCode === 0 ? 'PASS' : 'FAIL'} (exit ${exitCode}; ${log})`);
+    if (exitCode !== 0)
+      console.log(`--- ${name} failure excerpt ---\n${failureExcerpt(sanitize(output))}\n---`);
   }
   try {
     const demo = JSON.parse(

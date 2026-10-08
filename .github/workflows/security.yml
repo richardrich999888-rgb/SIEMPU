@@ -1,7 +1,8 @@
 name: Security
 on:
   push:
-    branches: [main, 'feature/**', 'security/**', 'release/**', 'hotfix/**', 'codex/**']
+    branches:
+      [main, 'feature/**', 'security/**', 'release/**', 'hotfix/**', 'codex/**', 'claude/**']
   pull_request:
   workflow_dispatch:
   workflow_call:
