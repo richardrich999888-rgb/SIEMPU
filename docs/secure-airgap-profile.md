@@ -1,0 +1,9 @@
+# Secure and air-gap-native laboratory profile
+
+The `secure` and `isolated` profiles require TLS 1.3. Control-to-relay, control-to-checkpoint, control-to-collector, and adapter-to-gateway connections use mutual TLS with a trusted CA, explicit certificate identity pins, optional CRLs, and no session-ticket reuse. The public gateway uses a server certificate and an authenticated TLS connection to the authority. Development remains a separately selected local HTTP profile.
+
+The testbed places the authority, ciphertext relay, checkpoint custodian, monitoring collector, adapter, and three unit environments in distinct container zones and storage mounts. The web gateway has the authority network and unit networks; the relay has only the ciphertext network; custody and monitoring are separate internal networks. Containers run as UID 1000, with read-only roots, dropped capabilities, a no-new-privileges policy, bounded memory and process counts, and an executable temporary filesystem with `noexec`.
+
+Air-gap operation means that a complete local enclave can continue local authentication, authorization, encrypted storage, queueing, event processing, and evidence collection while its external path is unavailable. The reconnection procedure validates the current authority state with the independent checkpoint custodian before a new release is allowed. A stale cached grant can create a local encrypted queue item, but cannot by itself authorize a later release.
+
+The package is intended for installation from removable or operator-controlled media. The manifest is signed by an offline release key; each file is independently hashed; path traversal, symlinks, special files, oversized content, trust-root changes, and unapproved rollback are rejected. The release ledger is kept outside the installed tree. The laboratory package does not include production identities, classified keys, or sponsor credentials.

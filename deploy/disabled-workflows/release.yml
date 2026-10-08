@@ -1,3 +1,4 @@
+# INACTIVE REFERENCE ONLY: outside .github/workflows; no deployment or release runs.
 name: Release candidate artifacts
 on:
   workflow_dispatch:
@@ -12,9 +13,11 @@ permissions:
   security-events: write
 jobs:
   quality:
-    uses: ./.github/workflows/quality.yml
+    uses: ./.github/workflows/ci.yml
+  security:
+    uses: ./.github/workflows/security.yml
   package:
-    needs: quality
+    needs: [quality, security]
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:

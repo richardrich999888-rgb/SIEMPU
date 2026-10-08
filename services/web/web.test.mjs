@@ -4,7 +4,9 @@ import { createServer, get } from 'node:http';
 import { createWebServer } from './server.mjs';
 
 test('gateway restricts origins, hosts, assets and content type; forwards approved JSON request', async (t) => {
+  let upstreamRequests = 0;
   const control = createServer((req, res) => {
+    upstreamRequests++;
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end(
       JSON.stringify({
@@ -69,6 +71,33 @@ test('gateway restricts origins, hosts, assets and content type; forwards approv
     authorization: 'Bearer synthetic',
     forwarded: null,
   });
+  const beforeInvalidTargets = upstreamRequests;
+  for (const target of [
+    '//evil.invalid/api/meta',
+    'http://evil.invalid/api/meta',
+    '/api/\\evil.invalid',
+    '/api/%2f%2fevil.invalid',
+    '/api/meta?redirect=https://evil.invalid',
+  ]) {
+    const status = await new Promise((resolve, reject) => {
+      const request = get(
+        { hostname: '127.0.0.1', port: gateway.address().port, path: target },
+        (res) => {
+          res.resume();
+          resolve(res.statusCode);
+        },
+      );
+      request.on('error', reject);
+    });
+    assert.equal(status, 400, target);
+  }
+  assert.equal(upstreamRequests, beforeInvalidTargets);
+  response = await fetch(base + '/api//evil.invalid', {
+    headers: { authorization: 'Bearer synthetic' },
+  });
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).code, 'INVALID_API_PATH');
+  assert.equal(upstreamRequests, beforeInvalidTargets);
   response = await fetch(base + '/health/ready');
   assert.equal(response.status, 200);
 });

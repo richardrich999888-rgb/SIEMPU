@@ -1,8 +1,15 @@
-import { createServer, request as requestHttp } from 'node:http';
+import { request as requestHttp } from 'node:http';
+import {
+  createTransportServer,
+  serverTLS,
+  clientTLS,
+  secureProfile,
+} from '../../packages/transport/tls.mjs';
 import { request as requestHttps } from 'node:https';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { randomUUID } from 'node:crypto';
 
 const mime = {
   '.html': 'text/html; charset=utf-8',
@@ -24,6 +31,8 @@ const securityHeaders = {
 
 export function createWebServer({
   root = resolve('.'),
+  tls = serverTLS('web'),
+  upstreamTLS = clientTLS('web'),
   controlUrl = process.env.SIEPMU_CONTROL_URL || 'http://127.0.0.1:8081',
   publicOrigin = process.env.SIEPMU_PUBLIC_ORIGIN,
   maxBytes = 6 * 1024 * 1024,
@@ -43,9 +52,14 @@ export function createWebServer({
   if (
     upstream.protocol !== 'https:' &&
     !['127.0.0.1', 'localhost', '[::1]'].includes(upstream.hostname) &&
-    process.env.SIEPMU_ALLOW_REMOTE_HTTP !== '1'
+    process.env.SIEPMU_ALLOW_REMOTE_HTTP !== '1' &&
+    !secureProfile()
   )
     throw new Error('Remote authority connection requires TLS or internal override');
+  if (tls && (!upstreamTLS || upstream.protocol !== 'https:'))
+    throw new Error('Secure gateway requires authenticated upstream TLS');
+  if (tls && (!publicOrigin || new URL(publicOrigin).protocol !== 'https:'))
+    throw new Error('Secure public origin must use HTTPS');
   // Destination identity is selected only at startup. A request target never enters URL resolution.
   const destination = Object.freeze({
     protocol: upstream.protocol,
@@ -65,7 +79,18 @@ export function createWebServer({
         else fulfill(response);
       };
       const outgoing = requestTransport(
-        { ...destination, method, path: requestPath, headers, signal },
+        {
+          ...destination,
+          ...upstreamTLS,
+          method,
+          path: requestPath,
+          headers,
+          signal,
+          rejectUnauthorized: true,
+          minVersion: 'TLSv1.3',
+          maxVersion: 'TLSv1.3',
+          agent: false,
+        },
         (incoming) => {
           incoming.once('error', (error) => finish(error));
           incoming.once('aborted', () => finish(new Error('Authority response aborted')));
@@ -100,10 +125,13 @@ export function createWebServer({
     });
   const configuredOrigin = publicOrigin ? new URL(publicOrigin).origin : undefined;
   const expectedHost = publicOrigin ? new URL(publicOrigin).host : undefined;
-  const server = createServer(async (req, res) => {
+  const server = createTransportServer(async (req, res) => {
+    const requestId = randomUUID();
+    res.setHeader('X-Request-Id', requestId);
     const send = (status, value) => {
       res.writeHead(status, { ...securityHeaders, 'content-type': 'application/json' });
-      res.end(JSON.stringify(value));
+      const code = value.code ?? value.error ?? 'REQUEST_FAILED';
+      res.end(JSON.stringify(status >= 400 ? { ...value, error: code, code, requestId } : value));
     };
     try {
       if (
@@ -121,12 +149,10 @@ export function createWebServer({
         return;
       }
       if (path === '/health/ready' && req.method === 'GET') {
-        const health = await fetch(new URL('/health', upstream), {
-          signal: AbortSignal.timeout(2000),
-          redirect: 'error',
-        });
-        send(health.ok ? 200 : 503, {
-          status: health.ok ? 'ok' : 'unavailable',
+        const health = await forward('GET', '/health', {}, undefined, AbortSignal.timeout(2000));
+        const healthy = health.status === 200;
+        send(healthy ? 200 : 503, {
+          status: healthy ? 'ok' : 'unavailable',
           service: 'web-gateway',
         });
         return;
@@ -217,6 +243,10 @@ export function createWebServer({
         res.writeHead(response.status, {
           ...securityHeaders,
           'content-type': 'application/json',
+          'x-request-id':
+            typeof response.headers['x-request-id'] === 'string'
+              ? response.headers['x-request-id']
+              : requestId,
           ...(typeof response.headers['retry-after'] === 'string'
             ? { 'retry-after': response.headers['retry-after'] }
             : {}),
@@ -267,7 +297,7 @@ export function createWebServer({
         });
       else res.destroy();
     }
-  });
+  }, tls);
   server.requestTimeout = 25_000;
   server.headersTimeout = 10_000;
   server.maxRequestsPerSocket = 100;
@@ -278,12 +308,15 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   const host = process.env.SIEPMU_WEB_HOST || '127.0.0.1';
   if (
     !['127.0.0.1', '::1', 'localhost'].includes(host) &&
-    process.env.SIEPMU_ALLOW_REMOTE_HTTP !== '1'
+    process.env.SIEPMU_ALLOW_REMOTE_HTTP !== '1' &&
+    !secureProfile()
   )
     throw new Error('Remote HTTP requires explicit internal-network override');
   const server = createWebServer();
   server.listen(Number(process.env.SIEPMU_WEB_PORT || 8080), host, () =>
-    console.log(`SIEPMU web gateway at http://${host}:${server.address().port}`),
+    console.log(
+      `SIEPMU web gateway at ${secureProfile() ? 'https' : 'http'}://${host}:${server.address().port}`,
+    ),
   );
   for (const signal of ['SIGINT', 'SIGTERM'])
     process.on(signal, () => {

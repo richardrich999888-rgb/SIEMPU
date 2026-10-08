@@ -119,6 +119,19 @@ export function evaluateSarif(document) {
       !Array.isArray(run.results)
     )
       throw new Error('Invalid CodeQL SARIF structure');
+    if (
+      run.invocations !== undefined &&
+      (!Array.isArray(run.invocations) ||
+        run.invocations.some(
+          (invocation) =>
+            !object(invocation) ||
+            (invocation.executionSuccessful !== undefined &&
+              typeof invocation.executionSuccessful !== 'boolean'),
+        ))
+    )
+      throw new Error('Invalid SARIF invocations');
+    if (run.invocations?.some((invocation) => invocation.executionSuccessful === false))
+      throw new Error('CodeQL reported an unsuccessful invocation');
     for (const result of run.results) {
       if (['pass', 'notApplicable'].includes(result.kind)) continue;
       const { rule, component } = resolveRule(run, result);
@@ -180,11 +193,16 @@ export async function gateDirectory(directory) {
   const names = (await readdir(directory)).filter((name) => name.endsWith('.sarif')).sort();
   if (!names.length) throw new Error('No CodeQL SARIF outputs found; refusing a vacuous pass');
   const reports = [];
-  for (const name of names)
-    reports.push({
-      file: name,
-      ...evaluateSarif(JSON.parse(await readFile(join(directory, name), 'utf8'))),
-    });
+  for (const name of names) {
+    try {
+      reports.push({
+        file: name,
+        ...evaluateSarif(JSON.parse(await readFile(join(directory, name), 'utf8'))),
+      });
+    } catch (error) {
+      reports.push({ file: name, status: 'FAIL', error: error.message });
+    }
+  }
   const summary = {
     status: reports.some((report) => report.status !== 'PASS') ? 'FAIL' : 'PASS',
     reports,

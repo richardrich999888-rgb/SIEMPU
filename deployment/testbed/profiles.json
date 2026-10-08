@@ -1,0 +1,18 @@
+{
+  "N0": { "args": [], "description": "Unimpaired isolated bridge" },
+  "N1": {
+    "args": ["delay", "100ms", "20ms", "distribution", "normal"],
+    "description": "Latency and jitter"
+  },
+  "N2": {
+    "args": ["delay", "150ms", "20ms", "loss", "2%"],
+    "description": "Latency with packet loss"
+  },
+  "N3": { "args": ["delay", "50ms", "rate", "512kbit"], "description": "Constrained bandwidth" },
+  "N4": { "args": ["loss", "100%"], "description": "Disconnect; no remote authorization" },
+  "N5": { "args": ["loss", "100%"], "description": "Repeated reachability interruption" },
+  "N8": {
+    "args": ["loss", "100%"],
+    "description": "WAN-isolated interface; internal enclave path remains available"
+  }
+}
