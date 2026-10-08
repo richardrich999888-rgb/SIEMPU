@@ -261,6 +261,19 @@ try {
   save();
   await docker(['down', '--remove-orphans']).catch(() => {});
 }
+// Failure rows are echoed to the job log as well: the uploaded artefact can be unreachable
+// for reviewers, and a summary count alone cannot identify the failing profile or cause.
+const MAX_FAILURE_ROWS = 20;
+for (const row of rows.filter((r) => r.outcome === 'FAIL').slice(0, MAX_FAILURE_ROWS))
+  console.log(
+    JSON.stringify({
+      failed: row.label,
+      error: row.error,
+      elapsedMs: Math.round(row.elapsedMs),
+      profile: row.conditions?.profile ?? null,
+    }),
+  );
+if (report.error) console.log(JSON.stringify({ runnerError: report.error }));
 console.log(
   JSON.stringify({
     status: failures.length ? 'FAIL' : 'PASS',

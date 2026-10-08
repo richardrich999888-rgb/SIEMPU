@@ -29,6 +29,10 @@ jobs:
         run: npm run validate
       - name: Required vertical slice acceptance tests
         run: npm run test:e2e
+      - name: Trust Before Release demonstration on the secure stack (synthetic)
+        run: npm run demo:trust-before-release
+        env:
+          SIEPMU_TBR_ITERATIONS: '10'
       - name: Record candidate engineering evidence
         run: node scripts/record-engineering-evidence.mjs --verified
       - name: Require native evidence after successful checks
@@ -41,6 +45,8 @@ jobs:
             artifacts/validation/report.json
             artifacts/validation/*.log
             artifacts/validation/engineering-evidence.json
+            artifacts/trust-before-release/report.json
+            artifacts/trust-before-release/report.md
             artifacts/application.cdx.json
             dist/manifest.json
           if-no-files-found: warn

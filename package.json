@@ -39,7 +39,8 @@
     "test:engineering": "node --test --test-concurrency=1 tests/crypto-provider.test.mjs tests/checkpoint-custody.test.mjs tests/flash-approval.test.mjs tests/independent-services.test.mjs tests/monitoring.test.mjs tests/offline-release.test.mjs tests/transport/*.test.mjs",
     "testbed:provision": "node deployment/testbed/provision.mjs",
     "testbed:run": "node deployment/testbed/run.mjs",
-    "release:offline": "node scripts/offline-release.mjs"
+    "release:offline": "node scripts/offline-release.mjs",
+    "demo:trust-before-release": "node scripts/trust-before-release.mjs"
   },
   "devDependencies": {
     "@types/node": "24.10.0",

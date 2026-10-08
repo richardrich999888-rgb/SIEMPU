@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 const roots = ['apps', 'services', 'packages', 'scripts', 'database'];
 const excludedScripts = new Set([
   'scripts/demo.mjs',
+  'scripts/trust-before-release.mjs',
   'scripts/benchmark.mjs',
   'scripts/container-acceptance.mjs',
   'scripts/release.mjs',
