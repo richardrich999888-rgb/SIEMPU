@@ -49,6 +49,7 @@ import { generateLabPKI } from '../deployment/secure/lab-pki.mjs';
 import { buildOfflineBundle, installOfflineBundle } from '../packages/release/offline.mjs';
 import { pair } from '../tests/helpers/client.mjs';
 import { sourceDigest } from './audit-claims.mjs';
+import { measureCustodyScaling } from './custody-scaling.mjs';
 import { sourceRevision } from './lib/demo-report.mjs';
 
 const OUT = resolve(process.env.SIEPMU_TRL5_OUT || 'artifacts/trl5');
@@ -72,6 +73,23 @@ export function percentile(values, p) {
   const sorted = [...values].sort((a, b) => a - b);
   return sorted[Math.max(1, Math.ceil((p / 100) * sorted.length)) - 1];
 }
+/** Requests per segment in the control-latency profile. */
+const LATENCY_SEGMENT = 200;
+
+/**
+ * Splits a latency series (in request order) into consecutive segments and summarises each, so
+ * growth over the run is visible. The last segment may be shorter.
+ * @param {number[]} values
+ * @param {number} size segment length (> 0)
+ */
+export function segmentLatency(values, size) {
+  if (!Number.isInteger(size) || size <= 0) throw new RangeError('segment size');
+  const out = [];
+  for (let i = 0; i < values.length; i += size)
+    out.push({ fromRequest: i, ...summary(values.slice(i, i + size)) });
+  return out;
+}
+
 /** Summary statistics over a latency sample (ms). */
 export const summary = (values) => ({
   n: values.length,
@@ -1176,6 +1194,26 @@ export async function runTrl5Validation() {
     } catch {}
     rmSync(work, { recursive: true, force: true });
     rmSync(f.dir, { recursive: true, force: true });
+  }
+  // Measurements, not pass/fail criteria: control-request latency across the run (from the
+  // content-free control log) and the in-process cost of one custody authorisation by chain length.
+  try {
+    metrics.controlLatencyBySegment = segmentLatency(
+      readFileSync(join(logs, 'control.log'), 'utf8')
+        .split('\n')
+        .flatMap((line) => {
+          try {
+            const entry = JSON.parse(line);
+            return typeof entry.latencyMs === 'number' ? [entry.latencyMs] : [];
+          } catch {
+            return [];
+          }
+        }),
+      LATENCY_SEGMENT,
+    );
+    metrics.custodyScaling = await measureCustodyScaling();
+  } catch (error) {
+    metrics.measurementError = error.message;
   }
   return finish({ results, metrics, capability, startedAt, environment });
 }

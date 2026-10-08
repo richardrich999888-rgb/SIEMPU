@@ -20,7 +20,13 @@ import {
   containsIndexedBlock,
 } from '../deployment/relevant-env/payload.mjs';
 import { createHash } from 'node:crypto';
-import { percentile, summary, PROFILES, LOSS_PROFILES } from '../scripts/trl5-validation.mjs';
+import {
+  percentile,
+  summary,
+  segmentLatency,
+  PROFILES,
+  LOSS_PROFILES,
+} from '../scripts/trl5-validation.mjs';
 
 test('topology: three namespaces, two links, A and C only reach B', () => {
   const plan = topologyPlan();
@@ -192,4 +198,18 @@ test('plaintext scan: no false positive on ciphertext-like or unrelated content 
     containsIndexedBlock(Buffer.concat([stream, Buffer.from(stream.toString('base64'))]), index),
     false,
   );
+});
+
+test('segmentLatency: consecutive segments, short tail, rejects a bad size', () => {
+  const segments = segmentLatency([1, 2, 3, 4, 5], 2);
+  assert.deepEqual(
+    segments.map((x) => [x.fromRequest, x.n, x.max]),
+    [
+      [0, 2, 2],
+      [2, 2, 4],
+      [4, 1, 5],
+    ],
+  );
+  assert.deepEqual(segmentLatency([], 3), []);
+  assert.throws(() => segmentLatency([1], 0), RangeError);
 });

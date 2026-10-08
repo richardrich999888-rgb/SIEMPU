@@ -127,6 +127,44 @@ jobs:
             artifacts/mission-workflow/report.md
           if-no-files-found: warn
           retention-days: 14
+  relevant-env:
+    # TRL 5 advancement matrix (docs/trl5/ACCEPTANCE_MATRIX.md) on three network namespaces with
+    # kernel netem: the same harness as the local run, plus the packet-loss profiles L1/L2 that
+    # need sch_netem. Namespaces share one kernel; see docs/trl5/ENVIRONMENT.md.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, resolved 2026-10-07
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6, resolved 2026-10-07
+        with:
+          node-version: 24.21.0
+      - name: Pin Rust toolchain
+        run: |
+          rustup toolchain install 1.97.0 --profile minimal
+          rustup default 1.97.0
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build release verifier (T5.4 runs both verifiers)
+        run: npm run build:native
+      - name: Load kernel netem and record capability
+        run: |
+          sudo modprobe sch_netem
+          tc -V
+      - name: Execute the declared matrix as root (namespaces and qdiscs need CAP_NET_ADMIN)
+        run: |
+          sudo git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          sudo -E env "PATH=$PATH" npm run trl5:validate
+      - name: Require PASS on this exact revision, with the loss profiles executed
+        run: |
+          node --input-type=module -e "import{readFileSync}from'node:fs';const r=JSON.parse(readFileSync('artifacts/trl5/test-results.json'));const ids=r.results.map(x=>x.id);if(r.outcome!=='PASS'||r.source.commit!==process.env.GITHUB_SHA||r.source.dirty||!ids.includes('T3.L1')||!ids.includes('T3.L2'))process.exit(1);"
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6, resolved 2026-10-07
+        if: always()
+        with:
+          name: trl5-relevant-env-evidence
+          path: artifacts/trl5/
+          if-no-files-found: error
+          retention-days: 30
   formal:
     # TLA+ model of release, revocation and recovery (formal/README.md). The faithful model must
     # pass and each deliberately broken design must violate its target property.
