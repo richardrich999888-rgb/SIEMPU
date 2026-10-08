@@ -6,7 +6,7 @@ import {
 } from '../../services/evidence/custody.mjs';
 import { packet } from '../../services/control/primitives.mjs';
 import { spawn } from 'node:child_process';
-import { createServer } from 'node:net';
+import { reservePort } from './ports.mjs';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { generateKeyPairSync } from 'node:crypto';
@@ -41,16 +41,8 @@ export async function seedLabCustodian(authorityDir, custodyDir) {
     custody.close();
   }
 }
-export async function freePort() {
-  const s = createServer();
-  await new Promise((r, j) => {
-    s.once('error', j);
-    s.listen(0, '127.0.0.1', r);
-  });
-  const port = s.address().port;
-  await new Promise((r) => s.close(r));
-  return port;
-}
+// Child processes receive ports reserved outside the ephemeral range (see ports.mjs).
+export const freePort = reservePort;
 export function prepareSecureLab(dir) {
   const pki = generateLabPKI(join(dir, 'pki'));
   for (const name of [
@@ -154,7 +146,7 @@ export async function startSecureStack(
   await seedLabCustodian(dir, lab.independent);
   const ports = {};
   for (const n of ['web', 'control', 'relay', 'checkpoint', 'collector'])
-    ports[n] = await freePort();
+    ports[n] = await reservePort();
   const env = { ...process.env, ...labEnvironment(dir, lab.pki, ports) };
   delete env.SIEPMU_ALLOW_REMOTE_HTTP;
   const children = new Map(),

@@ -3,8 +3,8 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
-import { createServer } from 'node:net';
 import { ApiClient, coreTransport, httpTransport } from './client.mjs';
+import { reservePort } from '../../deployment/secure/ports.mjs';
 
 export const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const relayStores = new Map();
@@ -17,7 +17,7 @@ export async function provision() {
   );
   return { dir, provisioned, profiles };
 }
-export async function openAuthority(dir, hooks = {}) {
+export async function openAuthority(dir, hooks = {}, options = {}) {
   const { Authority } = await import('../../services/control/core.mjs');
   const signingKey = JSON.parse(await readFile(join(dir, 'server-key.json'), 'utf8'));
   const masterKey = await readFile(join(dir, 'master.key'));
@@ -39,11 +39,12 @@ export async function openAuthority(dir, hooks = {}) {
     masterKey,
     hooks,
     relay,
+    ...options,
   });
 }
-export async function coreFixture(t, hooks = {}) {
+export async function coreFixture(t, hooks = {}, options = {}) {
   const fixture = await provision();
-  const authority = await openAuthority(fixture.dir, hooks);
+  const authority = await openAuthority(fixture.dir, hooks, options);
   const transport = coreTransport(authority);
   const clients = Object.fromEntries(
     Object.entries(fixture.profiles).map(([name, profile]) => [
@@ -58,18 +59,11 @@ export async function coreFixture(t, hooks = {}) {
   });
   return { ...fixture, authority, transport, clients };
 }
-async function freePort() {
-  const server = createServer();
-  await new Promise((resolve, reject) => {
-    server.once('error', reject);
-    server.listen(0, '127.0.0.1', resolve);
-  });
-  const port = server.address().port;
-  await new Promise((resolve) => server.close(resolve));
-  return port;
-}
 export async function startStack(dir) {
-  const [web, control, relay] = await Promise.all([freePort(), freePort(), freePort()]);
+  // Sequential: concurrent reservations could otherwise observe the same free port.
+  const web = await reservePort(),
+    control = await reservePort(),
+    relay = await reservePort();
   const env = {
     ...process.env,
     SIEPMU_DATA_DIR: dir,

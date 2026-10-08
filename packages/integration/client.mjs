@@ -26,8 +26,19 @@ export class IntegrationEndpoint {
       },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
-    if (r.status !== 200)
-      throw Object.assign(new Error('PLATFORM_REQUEST_REJECTED'), { status: r.status });
+    if (r.status !== 200) {
+      // Error code only; never echo request or response bodies (may carry protected material).
+      let code = null;
+      try {
+        code = JSON.parse(r.body).code ?? null;
+      } catch {}
+      throw Object.assign(new Error('PLATFORM_REQUEST_REJECTED'), {
+        status: r.status,
+        method,
+        path,
+        code,
+      });
+    }
     return JSON.parse(r.body);
   }
   async signed(path) {
