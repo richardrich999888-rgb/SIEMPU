@@ -71,7 +71,8 @@ jobs:
         run: npm --prefix packages/pqc-lab test
   rust-native:
     # Rust reference components (ADR-011): format, lint, unit and vector conformance tests,
-    # RustSec advisory audit, then byte-level differential checks against the Node reference.
+    # RustSec advisory audit, byte-level differential checks against the Node reference, and the
+    # Core Mission Workflow, whose step 15 requires both independent verifiers to agree.
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -108,11 +109,16 @@ jobs:
         run: npm run test:native
       - name: Measure Node and Rust verifiers
         run: node scripts/native-benchmark.mjs --sizes 1000,10000 --runs 3
+      - name: SIEPMU Core Mission Workflow (18 steps, classical and laboratory PQC profiles)
+        run: npm run test:mission
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6, resolved 2026-10-07
         if: always()
         with:
           name: rust-native-evidence
-          path: artifacts/native/benchmark.json
+          path: |
+            artifacts/native/benchmark.json
+            artifacts/mission-workflow/report.json
+            artifacts/mission-workflow/report.md
           if-no-files-found: warn
           retention-days: 14
   formal:

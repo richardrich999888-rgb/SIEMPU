@@ -63,11 +63,11 @@ export function percentile(values, p) {
   return sorted[rank - 1];
 }
 
-const syntheticBytes = (seed, length) =>
+export const syntheticBytes = (seed, length) =>
   Buffer.from(Array.from({ length }, (_, i) => (i * 131 + seed) % 256));
 const ms = (start) => Math.round((performance.now() - start) * 100) / 100;
 
-function sourceRevision() {
+export function sourceRevision() {
   const git = (args) => execFileSync('git', args, { encoding: 'utf8' }).trim();
   try {
     return { commit: git(['rev-parse', 'HEAD']), dirty: git(['status', '--porcelain']) !== '' };
@@ -77,7 +77,7 @@ function sourceRevision() {
 }
 
 /** Adapts the bounded TLS 1.3 client to the minimal fetch contract used by the fault proxy. */
-function tlsFetch(tls) {
+export function tlsFetch(tls) {
   return async (url, { method, headers, body }) => {
     const r = await requestBytes(url, { method, headers, body, tls });
     return {
@@ -88,7 +88,7 @@ function tlsFetch(tls) {
   };
 }
 
-async function waitReady(baseUrl, tls) {
+export async function waitReady(baseUrl, tls) {
   for (let i = 0; i < READY_ATTEMPTS; i++) {
     try {
       if ((await requestBytes(baseUrl + '/health/ready', { tls, timeoutMs: 500 })).status === 200)
