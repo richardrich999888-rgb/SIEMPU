@@ -283,7 +283,7 @@
       "RESULT": "Matrix guard tests pass; no external assessment.",
       "EVIDENCE": "docs/trl/TRL_ASSESSMENT.md",
       "DATE": "2026-10-08 (hosted runs on the stated revision)",
-      "LIMITATION": "Self-assessment; relevant environment undefined; not an independent TRA.",
+      "LIMITATION": "Self-assessment; relevant environment undefined; not an independent TRA. TRL 5 advancement tests completed (C23) do not change the level.",
       "SLIDES": [7],
       "PERMITTED_WORDING": "Provisional TRL 4 (internal self-assessment); TRL 5 validation candidate subsystems."
     },
@@ -316,6 +316,40 @@
       "LIMITATION": "Do not state or imply.",
       "SLIDES": [7, 12],
       "PERMITTED_WORDING": "Do not use."
+    },
+    {
+      "CLAIM_ID": "C23",
+      "CLAIM_TEXT": "A 33-test TRL 5 advancement matrix, declared before execution, passed on a three-host network-namespace environment (sender, platform, recipient), including revocation races, a 20-second link outage, delay, jitter and bandwidth impairment, interface faults, rollback recovery and offline installation; the hosted run added 1 % and 3 % packet loss (35/35).",
+      "STATUS": "TESTED",
+      "SOURCE": "docs/hpsc/HPSC_DECK.md",
+      "IMPLEMENTATION": [
+        "scripts/trl5-validation.mjs",
+        "deployment/relevant-env/topology.mjs",
+        "deployment/relevant-env/agent.mjs"
+      ],
+      "COMMIT": "1348b868df832b46820796af7733ecfe3540f3ac (local run clean, 33/33; hosted CI 37800666173 relevant-env 35/35 with netem loss, all 8 CI jobs PASS)",
+      "TEST": ["tests/relevant-env.test.mjs", "tests/trl-matrix.test.mjs"],
+      "RESULT": "33/33 PASS locally on a clean tree; 35/35 PASS in hosted CI on the same revision.",
+      "EVIDENCE": "docs/trl5/EXECUTION_REPORT.md",
+      "DATE": "2026-10-08",
+      "LIMITATION": "Namespaces on one kernel (not separate machines or VMs); applicant-defined thresholds; no independent witness; not a sponsor-defined relevant environment. Does not establish TRL 5.",
+      "SLIDES": [6, 7],
+      "PERMITTED_WORDING": "TRL 5 advancement tests completed on a three-host laboratory topology; TRL 4 retained pending sponsor environment, scaling fix and witnessed multi-machine run."
+    },
+    {
+      "CLAIM_ID": "C24",
+      "CLAIM_TEXT": "Sustained throughput is about 1.6 exchanges per second (4 KiB) on shared 4 vCPU, bounded by the independent custody check whose cost grows with evidence-chain length (defect D-T5-01, open).",
+      "STATUS": "TESTED",
+      "SOURCE": "docs/hpsc/HPSC_DECK.md",
+      "IMPLEMENTATION": ["scripts/custody-scaling.mjs", "services/evidence/custody.mjs"],
+      "COMMIT": "1348b868df832b46820796af7733ecfe3540f3ac (local run clean, 33/33; hosted CI 37800666173 relevant-env 35/35 with netem loss, all 8 CI jobs PASS)",
+      "TEST": ["tests/custody-scaling.test.mjs"],
+      "RESULT": "1.56 exchanges/s, 0 failures; custody authorisation 0.144 ms per record + 20 ms in-process, twice per request, serialised.",
+      "EVIDENCE": "docs/trl5/PERFORMANCE_REPORT.md",
+      "DATE": "2026-10-08",
+      "LIMITATION": "Laboratory measurement on shared CPU; not a capacity figure. Fix (incremental checkpoints) is proposed, not implemented.",
+      "SLIDES": [7, 10],
+      "PERMITTED_WORDING": "State the throughput limit and its cause plainly; never quote throughput without the defect."
     }
   ]
 }

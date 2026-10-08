@@ -2,6 +2,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { dirname, join } from 'node:path';
 
 const matrix = JSON.parse(readFileSync('docs/trl/cte-trl-matrix.json', 'utf8'));
 const EXTERNAL_AXES = [
@@ -40,4 +42,35 @@ test('no element or system level exceeds what an undefined relevant environment 
   assert.ok(matrix.systemAssessment.provisionalTrl <= Math.min(highest, 4));
   for (const phrase of ['TRL 5 or 6', 'IAF approval', 'SAG grading'])
     assert.ok(matrix.systemAssessment.notClaimed.includes(phrase), phrase);
+});
+
+test('TRL 5 advancement tests are recorded without raising any level', () => {
+  const advancement = matrix.systemAssessment.advancementTests;
+  assert.equal(
+    advancement.decision,
+    'TRL 4 validated laboratory prototype with completed TRL 5 advancement tests and outstanding gates',
+  );
+  for (const path of [advancement.matrix, advancement.decisionRecord, advancement.evidence])
+    assert.ok(existsSync(path), path);
+  const results = JSON.parse(readFileSync(advancement.evidence, 'utf8'));
+  // The recorded evidence must be from a clean tree at the stated revision.
+  assert.equal(results.source.commit, advancement.revision);
+  assert.equal(results.source.dirty, false);
+  assert.equal(results.outcome, 'PASS');
+  assert.ok(advancement.openGates.length > 0, 'gates remain open until externally closed');
+  assert.equal(matrix.systemAssessment.provisionalTrl, 4);
+});
+
+test('frozen TRL 5 advancement evidence matches its manifest byte for byte', () => {
+  const dir = dirname(matrix.systemAssessment.advancementTests.evidence);
+  const manifest = JSON.parse(readFileSync(join(dir, 'evidence-manifest.json'), 'utf8'));
+  assert.ok(Object.keys(manifest.files).length > 0);
+  for (const [file, digest] of Object.entries(manifest.files))
+    assert.equal(
+      createHash('sha256')
+        .update(readFileSync(join(dir, file)))
+        .digest('hex'),
+      digest,
+      file,
+    );
 });

@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "commit": "1348b868df832b46820796af7733ecfe3540f3ac",
+    "dirty": false,
+    "sourceDigest": "aa30fa71a4302e137ba579af3fcb27665249235bdc3ec4920b53f1b55a1540f3"
+  },
+  "host": {
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "cpuCount": 4,
+    "memoryBytes": 16876494848
+  },
+  "runtime": {
+    "node": "v24.21.0",
+    "openssl": "3.5.8",
+    "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+    "iproute2": "ip utility, iproute2-6.1.0, libbpf 1.3.0",
+    "kernel": "6.18.44-fc-v80"
+  },
+  "capability": {
+    "namespaces": true,
+    "tbf": true,
+    "netem": false
+  },
+  "environment": {
+    "topology": {
+      "hosts": {
+        "a": {
+          "ns": "siepmu-a",
+          "role": "sender unit",
+          "address": "10.69.1.2",
+          "gatewayAddress": "10.69.1.1"
+        },
+        "b": {
+          "ns": "siepmu-b",
+          "role": "platform",
+          "address": "10.69.1.1"
+        },
+        "c": {
+          "ns": "siepmu-c",
+          "role": "recipient unit",
+          "address": "10.69.2.2",
+          "gatewayAddress": "10.69.2.1"
+        }
+      },
+      "links": [
+        {
+          "id": "ab",
+          "left": [
+            "a",
+            "sa0",
+            "10.69.1.2/24"
+          ],
+          "right": [
+            "b",
+            "sb1",
+            "10.69.1.1/24"
+          ]
+        },
+        {
+          "id": "cb",
+          "left": [
+            "c",
+            "sc0",
+            "10.69.2.2/24"
+          ],
+          "right": [
+            "b",
+            "sb2",
+            "10.69.2.1/24"
+          ]
+        }
+      ]
+    },
+    "isolation": "Linux network namespaces on one kernel (shared CPU, clock and file system); per-host state directories; not separate machines or VMs",
+    "kernelCapabilities": {
+      "namespaces": true,
+      "tbf": true,
+      "netem": false
+    },
+    "impairment": "kernel TBF (bandwidth) and link down (outage); userspace relay for delay/jitter; loss NOT emulated"
+  }
+}

@@ -30,13 +30,28 @@ conditions and acceptance criteria agreed with the sponsor. None of these is def
 
 - PS-69 does not specify the classification boundary, user count, latency, offline duration,
   permitted hosting or the interfaces to existing systems.
-- Every test so far runs on a single host or a single CI runner.
+- Every test so far runs on a single machine or a single CI runner. The TRL 5 advancement
+  campaign (below) separates the hosts at the network level only.
 - The 10-zone netem testbed is a laboratory simulation of network impairment. It is not a relevant
   environment the sponsor has agreed to.
 - The integration contract is synthetic.
 
 So the highest defensible level for any element is 4. A claim of TRL 5 would need the gate below
 to be passed.
+
+### TRL 5 advancement campaign (8 October 2026)
+
+- **What ran.** A 33-test matrix, declared before execution (`docs/trl5/ACCEPTANCE_MATRIX.md`),
+  passed on revision `1348b86`. The environment was three network-namespace hosts (sender,
+  platform, recipient) on one kernel. The hosted CI run of the same revision added kernel-netem
+  packet loss and passed 35/35.
+- **Decision.** `docs/trl5/READINESS_DECISION.md` retains **TRL 4**:
+  - the hosts share one kernel;
+  - the environment is applicant-defined;
+  - there was no witness;
+  - the campaign found an open custody scaling defect (D-T5-01, `docs/trl5/PERFORMANCE_REPORT.md`).
+- **Effect on the matrix.** Evidence custody is no longer listed as a TRL 5 candidate until
+  D-T5-01 is fixed.
 
 ## Elements
 

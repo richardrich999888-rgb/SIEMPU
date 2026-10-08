@@ -95,6 +95,9 @@ claim it is novel in the world.
 - **Demo 4, monitoring and recovery:** 11/11 steps, including a defect we found and fixed [C17]
 - **Frozen build:** `0e8d1b9`. 249 automated tests pass, 97.5 % line coverage; hosted CI and
   security scans green.
+- **Three-host advancement tests:** sender, platform and recipient as separate network hosts.
+  33/33 pre-declared tests pass, including revocation races, a 20 s outage, delay, bandwidth limits,
+  rollback recovery and offline install. The hosted run adds 1 % and 3 % packet loss (35/35). [C23]
 
 **Notes:** Run Demo 2 live (about 9 s), then show its report. Offer Demos 3 and 4 if time allows.
 Mention the telemetry defect Demo 4 caught: monitoring stopped after a policy change. It shows the
@@ -104,13 +107,21 @@ demonstrations are real tests, not choreography.
 
 - **System: provisional TRL 4.** An integrated laboratory prototype with evidence on a pinned
   revision; internal self-assessment. [C20]
-- **TRL 5 validation candidates:** release, relay, offline queue, evidence custody.
+- **TRL 5 advancement tests completed:** 33/33 on a three-host laboratory topology. [C23]
+- **TRL 5 validation candidates:** release, relay and offline queue. Evidence custody also needs the
+  scaling fix.
 - **At TRL 3:** threat-detection analytics, real-interface integration, graded-provider crypto.
-- **Why not TRL 5 yet:** the relevant environment is not defined. Every test is single-host or a
-  simulated network. [C22]
+- **Why still TRL 4:**
+  - The hosts are namespaces on one machine.
+  - The relevant environment is not sponsor-defined, and no witness was present. [C22]
+  - Our load test found a real limit: about 1.6 exchanges/s, because the custody check re-verifies
+    the whole audit chain on every request. The fix is designed and is the first funded task.
+    [C24]
 
-**Notes:** Saying TRL 4 makes the claim credible. The TRL 5 gate is a definition the sponsor gives
-us plus a witnessed multi-host test. Funding the second half is what we are asking for.
+**Notes:** Lead with the defect. We built the environment, ran tests we declared in advance, and
+they found a scaling limit we had not seen on one host. That is what a TRL 5 campaign is for.
+Claiming TRL 5 with that limit open would not survive a technical evaluator. The remaining gates
+are the sponsor's environment definition, the fix, and a witnessed multi-machine run.
 
 ## Slide 8: Sovereign deployment and crypto-agility
 
@@ -140,14 +151,14 @@ not change.
 
 ## Slide 10: TRL 5/6 advancement roadmap (12 months, proposed) [Proposed]
 
-| Milestone                  | Months | Exit evidence                                                 |
-| -------------------------- | ------ | ------------------------------------------------------------- |
-| M0 Baseline                | 0–1    | Frozen baseline; sponsor questions submitted                  |
-| M1 TRL 5 preparation       | 1–4    | Relevant environment agreed; multi-host lab; assessor engaged |
-| M2 TRL 5 validation        | 4–7    | Witnessed validation of four elements                         |
-| M3 TRL 6 build             | 7–10   | Hardware-backed keys; sponsor interface adapter               |
-| M4 TRL 6 demonstration     | 10–12  | Representative prototype; independent assessment closed       |
-| M5 Qualification readiness | 12     | SAG evaluation dossier for the selected provider              |
+| Milestone                  | Months | Exit evidence                                                                                   |
+| -------------------------- | ------ | ----------------------------------------------------------------------------------------------- |
+| M0 Baseline                | 0–1    | Frozen baseline; sponsor questions submitted                                                    |
+| M1 TRL 5 preparation       | 1–4    | Custody scaling fix (D-T5-01); relevant environment agreed; multi-machine lab; assessor engaged |
+| M2 TRL 5 validation        | 4–7    | Witnessed validation of four elements                                                           |
+| M3 TRL 6 build             | 7–10   | Hardware-backed keys; sponsor interface adapter                                                 |
+| M4 TRL 6 demonstration     | 10–12  | Representative prototype; independent assessment closed                                         |
+| M5 Qualification readiness | 12     | SAG evaluation dossier for the selected provider                                                |
 
 These are internal milestones, to be aligned with the programme agreement. [C21]
 

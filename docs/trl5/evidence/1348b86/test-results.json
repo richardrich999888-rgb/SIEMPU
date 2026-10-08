@@ -1,0 +1,919 @@
+{
+  "schemaVersion": 1,
+  "matrix": "docs/trl5/ACCEPTANCE_MATRIX.md",
+  "startedAt": "2026-10-08T15:31:47.614Z",
+  "finishedAt": "2026-10-08T15:37:20.297Z",
+  "source": {
+    "commit": "1348b868df832b46820796af7733ecfe3540f3ac",
+    "dirty": false,
+    "sourceDigest": "aa30fa71a4302e137ba579af3fcb27665249235bdc3ec4920b53f1b55a1540f3"
+  },
+  "outcome": "PASS",
+  "filter": null,
+  "passed": 33,
+  "total": 33,
+  "results": [
+    {
+      "id": "T1.1",
+      "requirement": "R5",
+      "criterion": "MFA login on each host",
+      "outcome": "PASS",
+      "observed": {
+        "alice": {
+          "ok": true,
+          "loginMs": 200.65
+        },
+        "admin": {
+          "ok": true,
+          "loginMs": 166.96
+        },
+        "bob": {
+          "ok": true,
+          "loginMs": 169.81
+        },
+        "bravo": {
+          "ok": true,
+          "loginMs": 159.2
+        },
+        "eve": {
+          "ok": true,
+          "loginMs": 162.95
+        }
+      },
+      "measurements": null
+    },
+    {
+      "id": "T1.2",
+      "requirement": "R5",
+      "criterion": "Wrong one-time password refused (401)",
+      "outcome": "PASS",
+      "observed": {
+        "ok": false,
+        "status": 401
+      },
+      "measurements": null
+    },
+    {
+      "id": "T1.3",
+      "requirement": "R6",
+      "criterion": "Client trusting another CA cannot connect",
+      "outcome": "PASS",
+      "observed": {
+        "ok": false,
+        "code": "SELF_SIGNED_CERT_IN_CHAIN"
+      },
+      "measurements": null
+    },
+    {
+      "id": "T1.4",
+      "requirement": "R1, R2, R5",
+      "criterion": "A→C exchange, 64 KiB and 512 KiB, exact bytes and signed receipts",
+      "outcome": "PASS",
+      "observed": {
+        "65536": {
+          "send": {
+            "ok": true,
+            "objectId": "fc2e3f3e-abf3-49f3-9ac0-ddea73a7cbd3",
+            "sha256": "e3d5ad17feb6d098ad388aab5036627d873549b67701eeff0148dede10eafdff",
+            "sealMs": 175.04,
+            "submitMs": 161.47
+          },
+          "receive": {
+            "ok": true,
+            "sha256": "e3d5ad17feb6d098ad388aab5036627d873549b67701eeff0148dede10eafdff",
+            "bytes": 65536,
+            "receiveMs": 269.46,
+            "releaseEventId": "3407033d-9644-4ffc-9eed-80f032f52cf5",
+            "ackEventId": "10ffa833-bbf0-4641-b056-793bfc1729cc"
+          },
+          "match": true
+        },
+        "524288": {
+          "send": {
+            "ok": true,
+            "objectId": "98e5b48a-7dab-4920-9fd7-19818c21437e",
+            "sha256": "eecd4a9486a8cf217a095991ea7f9bb8ea2c23f4190be3fad27659405ab96207",
+            "sealMs": 248.03,
+            "submitMs": 172.63
+          },
+          "receive": {
+            "ok": true,
+            "sha256": "eecd4a9486a8cf217a095991ea7f9bb8ea2c23f4190be3fad27659405ab96207",
+            "bytes": 524288,
+            "receiveMs": 477.69,
+            "releaseEventId": "1f9ac47b-53bd-46b7-9dc3-0cf96610714b",
+            "ackEventId": "6de685d1-e792-40ff-b649-99cb8dad8256"
+          },
+          "match": true
+        }
+      },
+      "measurements": null
+    },
+    {
+      "id": "T1.5",
+      "requirement": "R7",
+      "criterion": "Unauthorised party on Host C cannot obtain the object",
+      "outcome": "PASS",
+      "observed": {
+        "ok": false,
+        "status": 404,
+        "code": "OBJECT_NOT_FOUND"
+      },
+      "measurements": null
+    },
+    {
+      "id": "T1.6",
+      "requirement": "R5, R10",
+      "criterion": "No plaintext window in Host B storage",
+      "outcome": "PASS",
+      "observed": {
+        "filesScanned": 101,
+        "bytesScanned": 7438574,
+        "hits": []
+      },
+      "measurements": null
+    },
+    {
+      "id": "T2.1",
+      "requirement": "R7",
+      "criterion": "Policy withdrawn before issuance: claim refused with signed HELD decision",
+      "outcome": "PASS",
+      "observed": {
+        "claim": {
+          "ok": false,
+          "status": 409,
+          "code": "POLICY_DENIED"
+        },
+        "decisions": [
+          [
+            "SUBMITTED",
+            "PENDING"
+          ],
+          [
+            "RELEASE_DENIED",
+            "HELD"
+          ]
+        ]
+      },
+      "measurements": null
+    },
+    {
+      "id": "T2.2",
+      "requirement": "R7, R2",
+      "criterion": "Revocation during disconnection: revoked recipient never released, eligible recipient delivered",
+      "outcome": "PASS",
+      "observed": {
+        "sendDuringOutage": {
+          "ok": false,
+          "status": null,
+          "code": "ECONNRESET"
+        },
+        "revoke": 200,
+        "r2": {
+          "ok": false,
+          "status": 401,
+          "code": "USER_REVOKED"
+        },
+        "r2Issued": 0,
+        "r3": {
+          "ok": true,
+          "match": true
+        }
+      },
+      "measurements": null
+    },
+    {
+      "id": "T2.3",
+      "requirement": "R7",
+      "criterion": "Concurrent release vs policy withdrawal (20 trials): no issuance at a withdrawn epoch",
+      "outcome": "PASS",
+      "observed": {
+        "trials": 20,
+        "released": 11,
+        "refused": 9,
+        "authorityChanges": 40,
+        "violations": 0,
+        "outcomes": [
+          {
+            "withdrawDelayMs": 0,
+            "released": false,
+            "status": 409
+          },
+          {
+            "withdrawDelayMs": 50,
+            "released": false,
+            "status": 409
+          },
+          {
+            "withdrawDelayMs": 100,
+            "released": true,
+            "status": null
+          },
+          {
+            "withdrawDelayMs": 150,
+            "released": true,
+            "status": null
+          },
+          {
+            "withdrawDelayMs": 200,
+            "released": true,
+            "status": null
+          },
+          {
+            "withdrawDelayMs": 0,
+            "released": false,
+            "status": 409
+          },
+          {
+            "withdrawDelayMs": 50,
+            "released": false,
+            "status": 409
+          },
+          {
+            "withdrawDelayMs": 100,
+            "released": true,
+            "status": null
+          },
+          {
+            "withdrawDelayMs": 150,
+            "released": true,
+            "status": null
+          },
+          {
+            "withdrawDelayMs": 200,
+            "released": true,
+            "status": null
+          },
+          {
+            "withdrawDelayMs": 0,
+            "released": false,
+            "status": 409
+          },
+          {
+            "withdrawDelayMs": 50,
+            "released": false,
+            "status": 409
+          },
+          {
+            "withdrawDelayMs": 100,
+            "released": true,
+            "status": null
+          },
+          {
+            "withdrawDelayMs": 150,
+            "released": true,
+            "status": null
+          },
+          {
+            "withdrawDelayMs": 200,
+            "released": true,
+            "status": null
+          },
+          {
+            "withdrawDelayMs": 0,
+            "released": false,
+            "status": 409
+          },
+          {
+            "withdrawDelayMs": 50,
+            "released": false,
+            "status": 409
+          },
+          {
+            "withdrawDelayMs": 100,
+            "released": false,
+            "status": 409
+          },
+          {
+            "withdrawDelayMs": 150,
+            "released": true,
+            "status": null
+          },
+          {
+            "withdrawDelayMs": 200,
+            "released": true,
+            "status": null
+          }
+        ]
+      },
+      "measurements": null
+    },
+    {
+      "id": "T2.4",
+      "requirement": "R7",
+      "criterion": "Claim with a stale epoch is refused",
+      "outcome": "PASS",
+      "observed": {
+        "staleEpoch": 67,
+        "stale": {
+          "ok": false,
+          "status": 409,
+          "code": "EPOCH_MISMATCH"
+        },
+        "freshAfter": true
+      },
+      "measurements": null
+    },
+    {
+      "id": "T2.5",
+      "requirement": "R2",
+      "criterion": "Duplicate submission returns the same object; one SUBMITTED record",
+      "outcome": "PASS",
+      "observed": {
+        "first": {
+          "ok": true,
+          "objectId": "a092410e-2eaa-4cc9-81af-f2fdb29718fc",
+          "submitMs": 259.14
+        },
+        "second": {
+          "ok": true,
+          "objectId": "a092410e-2eaa-4cc9-81af-f2fdb29718fc",
+          "submitMs": 254.47
+        },
+        "submitted": 1
+      },
+      "measurements": null
+    },
+    {
+      "id": "T3.1",
+      "requirement": "R2, R3",
+      "criterion": "Profile P0 (baseline): 5 exchanges of 64 KiB, all delivered intact",
+      "outcome": "PASS",
+      "observed": {
+        "intact": 5,
+        "of": 5,
+        "failures": []
+      },
+      "measurements": {
+        "profile": {
+          "id": "P0",
+          "label": "baseline",
+          "delayMs": 0,
+          "jitterMs": 0,
+          "rateKbit": null
+        },
+        "appliedQdiscOnHostA": "qdisc noqueue 0: root refcnt 2",
+        "relayProfile": {
+          "delayMs": 0,
+          "jitterMs": 0,
+          "seed": 69
+        },
+        "controlRequestMs": {
+          "n": 3,
+          "p50": 213,
+          "p95": 224,
+          "p99": null,
+          "max": 224
+        },
+        "exchangeMs": {
+          "n": 5,
+          "p50": 1303,
+          "p95": 1341,
+          "p99": null,
+          "max": 1341
+        },
+        "intact": 5
+      }
+    },
+    {
+      "id": "T3.2",
+      "requirement": "R2, R3",
+      "criterion": "Profile P1 (100 ms ± 20 ms): 5 exchanges of 64 KiB, all delivered intact",
+      "outcome": "PASS",
+      "observed": {
+        "intact": 5,
+        "of": 5,
+        "failures": []
+      },
+      "measurements": {
+        "profile": {
+          "id": "P1",
+          "label": "100 ms ± 20 ms",
+          "delayMs": 100,
+          "jitterMs": 20,
+          "rateKbit": null
+        },
+        "appliedQdiscOnHostA": "qdisc noqueue 0: root refcnt 2",
+        "relayProfile": {
+          "delayMs": 100,
+          "jitterMs": 20,
+          "seed": 69
+        },
+        "controlRequestMs": {
+          "n": 3,
+          "p50": 592,
+          "p95": 621,
+          "p99": null,
+          "max": 621
+        },
+        "exchangeMs": {
+          "n": 5,
+          "p50": 3004,
+          "p95": 3092,
+          "p99": null,
+          "max": 3092
+        },
+        "intact": 5
+      }
+    },
+    {
+      "id": "T3.3",
+      "requirement": "R2, R3",
+      "criterion": "Profile P2 (300 ms ± 100 ms): 5 exchanges of 64 KiB, all delivered intact",
+      "outcome": "PASS",
+      "observed": {
+        "intact": 5,
+        "of": 5,
+        "failures": []
+      },
+      "measurements": {
+        "profile": {
+          "id": "P2",
+          "label": "300 ms ± 100 ms",
+          "delayMs": 300,
+          "jitterMs": 100,
+          "rateKbit": null
+        },
+        "appliedQdiscOnHostA": "qdisc noqueue 0: root refcnt 2",
+        "relayProfile": {
+          "delayMs": 300,
+          "jitterMs": 100,
+          "seed": 69
+        },
+        "controlRequestMs": {
+          "n": 3,
+          "p50": 1405,
+          "p95": 1499,
+          "p99": null,
+          "max": 1499
+        },
+        "exchangeMs": {
+          "n": 5,
+          "p50": 6502,
+          "p95": 6793,
+          "p99": null,
+          "max": 6793
+        },
+        "intact": 5
+      }
+    },
+    {
+      "id": "T3.4",
+      "requirement": "R2, R3",
+      "criterion": "Profile P3 (1 Mbit/s): 5 exchanges of 64 KiB, all delivered intact",
+      "outcome": "PASS",
+      "observed": {
+        "intact": 5,
+        "of": 5,
+        "failures": []
+      },
+      "measurements": {
+        "profile": {
+          "id": "P3",
+          "label": "1 Mbit/s",
+          "delayMs": 0,
+          "jitterMs": 0,
+          "rateKbit": 1000
+        },
+        "appliedQdiscOnHostA": "qdisc tbf 8025: root refcnt 5 rate 1Mbit burst 4Kb lat 400ms",
+        "relayProfile": {
+          "delayMs": 0,
+          "jitterMs": 0,
+          "seed": 69
+        },
+        "controlRequestMs": {
+          "n": 3,
+          "p50": 223,
+          "p95": 236,
+          "p99": null,
+          "max": 236
+        },
+        "exchangeMs": {
+          "n": 5,
+          "p50": 2548,
+          "p95": 2681,
+          "p99": null,
+          "max": 2681
+        },
+        "intact": 5
+      }
+    },
+    {
+      "id": "T3.5",
+      "requirement": "R2, R3",
+      "criterion": "Profile P4 (200 ms ± 50 ms + 2 Mbit/s): 5 exchanges of 64 KiB, all delivered intact",
+      "outcome": "PASS",
+      "observed": {
+        "intact": 5,
+        "of": 5,
+        "failures": []
+      },
+      "measurements": {
+        "profile": {
+          "id": "P4",
+          "label": "200 ms ± 50 ms + 2 Mbit/s",
+          "delayMs": 200,
+          "jitterMs": 50,
+          "rateKbit": 2000
+        },
+        "appliedQdiscOnHostA": "qdisc tbf 8027: root refcnt 5 rate 2Mbit burst 4Kb lat 400ms",
+        "relayProfile": {
+          "delayMs": 200,
+          "jitterMs": 50,
+          "seed": 69
+        },
+        "controlRequestMs": {
+          "n": 3,
+          "p50": 1009,
+          "p95": 1049,
+          "p99": null,
+          "max": 1049
+        },
+        "exchangeMs": {
+          "n": 5,
+          "p50": 5266,
+          "p95": 5336,
+          "p99": null,
+          "max": 5336
+        },
+        "intact": 5
+      }
+    },
+    {
+      "id": "T3.6",
+      "requirement": "R2",
+      "criterion": "Link outage 20 s: requests fail, recovery ≤ 10 s, queued object delivered",
+      "outcome": "PASS",
+      "observed": {
+        "outageMs": 20011,
+        "recoveryMs": 269,
+        "requestDuringOutage": {
+          "ok": false,
+          "status": null,
+          "code": "ECONNRESET"
+        },
+        "queuedDelivered": true
+      },
+      "measurements": null
+    },
+    {
+      "id": "T4.1",
+      "requirement": "R8",
+      "criterion": "Document from Host C system delivered to Host A unit with signed acknowledgement",
+      "outcome": "PASS",
+      "observed": {
+        "submit": {
+          "ok": true,
+          "documentId": "81c858de-4d1a-44d2-9624-76a0c822cb3f",
+          "requestId": "ef9fede8-fd1c-41a8-8295-607190917c49",
+          "objectId": "f5f42a0d-97eb-4605-9793-9161075d62fe"
+        },
+        "delivered": {
+          "objectId": "f5f42a0d-97eb-4605-9793-9161075d62fe",
+          "outcome": "DELIVERED",
+          "code": null,
+          "documentId": "81c858de-4d1a-44d2-9624-76a0c822cb3f",
+          "ackEventId": "fc70df35-c222-4a0c-8c6a-dcf7f5d3d66c"
+        },
+        "status": {
+          "ok": true,
+          "documentId": "81c858de-4d1a-44d2-9624-76a0c822cb3f",
+          "state": "DELIVERED",
+          "objectId": "f5f42a0d-97eb-4605-9793-9161075d62fe"
+        }
+      },
+      "measurements": null
+    },
+    {
+      "id": "T4.2",
+      "requirement": "R8, R2",
+      "criterion": "Duplicate document returns the same object; one SUBMITTED record",
+      "outcome": "PASS",
+      "observed": {
+        "again": {
+          "ok": true,
+          "documentId": "81c858de-4d1a-44d2-9624-76a0c822cb3f",
+          "objectId": "f5f42a0d-97eb-4605-9793-9161075d62fe",
+          "requestId": "ef9fede8-fd1c-41a8-8295-607190917c49"
+        },
+        "submitted": 1
+      },
+      "measurements": null
+    },
+    {
+      "id": "T4.3",
+      "requirement": "R8",
+      "criterion": "Altered replay under the same request ID refused (409)",
+      "outcome": "PASS",
+      "observed": {
+        "ok": false,
+        "status": 409
+      },
+      "measurements": null
+    },
+    {
+      "id": "T4.4",
+      "requirement": "R8, R7",
+      "criterion": "Document for an unauthorised destination refused",
+      "outcome": "PASS",
+      "observed": {
+        "ok": false,
+        "status": null,
+        "code": "ADAPTER_REJECTED"
+      },
+      "measurements": null
+    },
+    {
+      "id": "T4.5",
+      "requirement": "R8, R6",
+      "criterion": "Source with an unpinned client certificate refused",
+      "outcome": "PASS",
+      "observed": {
+        "ok": false,
+        "status": null,
+        "code": "SOURCE_NOT_AUTHENTICATED"
+      },
+      "measurements": null
+    },
+    {
+      "id": "T4.6",
+      "requirement": "R8, R2",
+      "criterion": "Adapter interruption: refused while down; after restart delivered exactly once",
+      "outcome": "PASS",
+      "observed": {
+        "down": {
+          "ok": false,
+          "status": null,
+          "code": "ECONNREFUSED"
+        },
+        "restarted": true,
+        "up": {
+          "ok": true,
+          "documentId": "6fccdb0b-2846-478f-8272-b831e68dd527",
+          "requestId": "247ee95a-6d3f-4ac4-8ab3-0f0960e4a9f6",
+          "objectId": "49a2e50b-5b7c-48bc-abb3-53c7e12aef93"
+        },
+        "submitted": 1,
+        "delivered": 1
+      },
+      "measurements": null
+    },
+    {
+      "id": "T5.1",
+      "requirement": "R6",
+      "criterion": "Security events reach the independent collector within 10 s, without plaintext",
+      "outcome": "PASS",
+      "observed": {
+        "forbidden": 403,
+        "kinds": {
+          "AUTH_FAILURE": 2,
+          "ACCESS_DENIED": 1,
+          "RELEASE_DENIED": 22,
+          "AUTHORITY_CHANGED": 67
+        },
+        "contentFree": true,
+        "elapsedMs": 377
+      },
+      "measurements": null
+    },
+    {
+      "id": "T5.2",
+      "requirement": "R6",
+      "criterion": "Operator acknowledges an event; non-operator identity refused",
+      "outcome": "PASS",
+      "observed": {
+        "ack": 200,
+        "nonOperator": 403
+      },
+      "measurements": null
+    },
+    {
+      "id": "T5.3",
+      "requirement": "R2, R6",
+      "criterion": "Relay failure: submission refused with no partial object; accepted after restart",
+      "outcome": "PASS",
+      "observed": {
+        "down": {
+          "ok": false,
+          "status": 503,
+          "code": "RELAY_UNAVAILABLE"
+        },
+        "objectsBefore": 56,
+        "objectsAfter": 56,
+        "recovered": true
+      },
+      "measurements": null
+    },
+    {
+      "id": "T5.4",
+      "requirement": "R2",
+      "criterion": "Evidence verified on Host C by Node and Rust verifiers; tampered copy rejected",
+      "outcome": "PASS",
+      "observed": {
+        "ok": true,
+        "records": 270,
+        "node": "ACCEPT",
+        "nodeTampered": "REJECT",
+        "rust": "ACCEPT",
+        "rustTampered": "REJECT"
+      },
+      "measurements": null
+    },
+    {
+      "id": "T6.1",
+      "requirement": "R2, R10",
+      "criterion": "Rolled-back authority database is quarantined",
+      "outcome": "PASS",
+      "observed": {
+        "revokeAfterBackup": 200,
+        "sendWhileRolledBack": {
+          "ok": false,
+          "status": 503,
+          "code": "RECOVERY_QUARANTINED"
+        },
+        "revokedUserRequest": {
+          "ok": false,
+          "status": 503,
+          "code": "RECOVERY_QUARANTINED"
+        }
+      },
+      "measurements": null
+    },
+    {
+      "id": "T6.2",
+      "requirement": "R2",
+      "criterion": "Consistent database restored: service resumes and the revocation still holds",
+      "outcome": "PASS",
+      "observed": {
+        "send": true,
+        "revokedUser": {
+          "ok": false,
+          "status": 401,
+          "code": "USER_REVOKED"
+        }
+      },
+      "measurements": null
+    },
+    {
+      "id": "T7.1",
+      "requirement": "R4",
+      "criterion": "No host has a route out of the enclave",
+      "outcome": "PASS",
+      "observed": {
+        "a": [
+          {
+            "ok": false,
+            "code": "ENETUNREACH"
+          },
+          {
+            "ok": false,
+            "code": "ENETUNREACH"
+          }
+        ],
+        "b": [
+          {
+            "ok": false,
+            "code": "ENETUNREACH"
+          },
+          {
+            "ok": false,
+            "code": "ENETUNREACH"
+          }
+        ],
+        "c": [
+          {
+            "ok": false,
+            "code": "ENETUNREACH"
+          },
+          {
+            "ok": false,
+            "code": "ENETUNREACH"
+          }
+        ]
+      },
+      "measurements": null
+    },
+    {
+      "id": "T7.2",
+      "requirement": "R12",
+      "criterion": "Signed offline bundle installs; tampered bundle refused",
+      "outcome": "PASS",
+      "observed": {
+        "files": 131,
+        "installed": "INSTALLED",
+        "tamperAppended": "PACKAGE_SIZE_LIMIT",
+        "tamperSameLength": "RELEASE_DIGEST"
+      },
+      "measurements": null
+    },
+    {
+      "id": "T7.3",
+      "requirement": "R10",
+      "criterion": "Keys and evidence are local files on Host B; evidence verified offline on Host C",
+      "outcome": "PASS",
+      "observed": {
+        "keyFiles": [
+          "custody/public-key.json",
+          "custody/signing-key.json",
+          "master.key",
+          "monitor/public-key.json",
+          "monitor/signing-key.json",
+          "pki/adapter-client.key",
+          "pki/adapter.key",
+          "pki/ca.key",
+          "pki/checkpoint.key",
+          "pki/collector.key",
+          "pki/control-client.key",
+          "pki/control.key",
+          "pki/observer-client.key",
+          "pki/operator-client.key",
+          "pki/relay.key",
+          "pki/unit-a.key",
+          "pki/unit-b.key",
+          "pki/unit-denied.key",
+          "pki/web-client.key",
+          "pki/web.key",
+          "public-key.json",
+          "server-key.json"
+        ],
+        "offlineVerification": true
+      },
+      "measurements": null
+    },
+    {
+      "id": "T8.1",
+      "requirement": "R11",
+      "criterion": "Sustained load 30 s: zero digest mismatches and zero failures",
+      "outcome": "PASS",
+      "observed": {
+        "sent": 54,
+        "refused": 0,
+        "delivered": 54,
+        "mismatched": 0,
+        "failed": 0
+      },
+      "measurements": {
+        "senders": 4,
+        "workersPerSender": 2,
+        "payloadBytes": 4096,
+        "sendPhase": {
+          "seconds": 34.672,
+          "sent": 54,
+          "refused": 0,
+          "exchangesPerSecond": 1.56,
+          "latencyMs": {
+            "n": 54,
+            "p50": 5046.53,
+            "p95": 5172.3,
+            "p99": null,
+            "max": 5250.53
+          }
+        },
+        "receivePhase": {
+          "seconds": 53.469,
+          "delivered": 54,
+          "mismatched": 0,
+          "failed": 0,
+          "claimsPerSecond": 1.01,
+          "latencyMs": {
+            "n": 54,
+            "p50": 3759.91,
+            "p95": 4142.5,
+            "p99": null,
+            "max": 4168.08
+          }
+        },
+        "hostB": {
+          "processes": {
+            "collector": {
+              "avgCpuPercent": 8.5,
+              "peakRssMiB": 126
+            },
+            "checkpoint": {
+              "avgCpuPercent": 72.3,
+              "peakRssMiB": 236
+            },
+            "relay": {
+              "avgCpuPercent": 0.6,
+              "peakRssMiB": 72
+            },
+            "control": {
+              "avgCpuPercent": 32.4,
+              "peakRssMiB": 261
+            },
+            "web": {
+              "avgCpuPercent": 3.5,
+              "peakRssMiB": 98
+            }
+          },
+          "linkAB": {
+            "rxBytes": 1051488,
+            "txBytes": 972607
+          },
+          "databaseGrowthBytes": 8099024,
+          "databaseBytesPerExchange": 149982
+        }
+      }
+    }
+  ]
+}
