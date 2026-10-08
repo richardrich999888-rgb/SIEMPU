@@ -190,3 +190,28 @@ test('a response lost after authority commit resumes safely after adapter restar
     /PLATFORM_REQUEST_REJECTED/,
   );
 });
+
+test('status reports authority state for accepted requests only', async (t) => {
+  const endpoint = fakeEndpoint();
+  let objects = [];
+  endpoint.listObjects = async () => objects;
+  const adapter = adapterWith(t, endpoint);
+  const accepted = await adapter.submit(request());
+  objects = [{ id: accepted.objectId, state: 'DELIVERED' }];
+  assert.deepEqual(await adapter.status(accepted.requestId), {
+    version: 1,
+    requestId: accepted.requestId,
+    objectId: accepted.objectId,
+    state: 'DELIVERED',
+  });
+  await assert.rejects(adapter.status(randomUUID()), /ADAPTER_UNKNOWN_REQUEST/);
+  await assert.rejects(adapter.status('../../etc'), /ADAPTER_SCHEMA_OR_REPLAY/);
+  // The authority no longer lists the object (e.g. duty concealment): unknown, not an error leak.
+  objects = [];
+  await assert.rejects(adapter.status(accepted.requestId), /ADAPTER_UNKNOWN_REQUEST/);
+  // A platform failure propagates as a failure; it is never reported as a state.
+  endpoint.listObjects = async () => {
+    throw new Error('PLATFORM_REQUEST_REJECTED');
+  };
+  await assert.rejects(adapter.status(accepted.requestId), /PLATFORM_REQUEST_REJECTED/);
+});

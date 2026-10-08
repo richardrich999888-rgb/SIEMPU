@@ -37,6 +37,9 @@ import {
   base32,
   totpCounter,
 } from './primitives.mjs';
+/** Ceiling on ACCESS_DENIED alerts recorded per user per minute. */
+const ACCESS_ALERTS_PER_MINUTE = 20;
+
 export class AppError extends Error {
   constructor(status, code, message = code, extra = {}) {
     super(message);
@@ -220,13 +223,15 @@ export class Authority {
     );
   }
   alert(kind, actor, reason) {
+    // The epoch is fixed when the alert is raised, so every re-export is byte-identical.
     this.run(
-      'INSERT INTO alerts VALUES(?,?,?,?,?)',
+      'INSERT INTO alerts(id,kind,actor_id,timestamp,reason,epoch) VALUES(?,?,?,?,?,?)',
       randomUUID(),
       kind,
       actor ?? null,
       Date.now(),
       reason,
+      this.epoch().epoch,
     );
     this.count('securityEvents');
   }
@@ -1056,8 +1061,36 @@ export class Authority {
   async #authenticatedDispatch(method, path, b, token) {
     // This is the only entry into protected route dispatch. Authentication is
     // unconditional here and cannot be skipped by a method or path supplied by a client.
-    let s = this.authenticate(token);
+    const s = this.authenticate(token);
     this.rate('session:' + s.id, 500);
+    try {
+      return await this.#protectedDispatch(s, method, path, b);
+    } catch (error) {
+      // Wrong-role access is a monitored security event (PS-69 threat detection). It is
+      // recorded after the failed request's transaction has rolled back, never inside it.
+      if (error instanceof AppError && error.status === 403 && error.code === 'FORBIDDEN')
+        this.#recordAccessDenied(s.user_id);
+      throw error;
+    }
+  }
+  /** Bounded per-user alert: at most ACCESS_ALERTS_PER_MINUTE rows, so a hostile account
+   * cannot grow the alert table without limit. Further denials still fail with 403. */
+  #recordAccessDenied(userId) {
+    const window = Math.floor(Date.now() / 60000);
+    const bucket = 'alert-access:' + userId;
+    this.tx(() => {
+      const old = this.get('SELECT * FROM rate_limits WHERE bucket=?', bucket);
+      const n = old?.window === window ? old.count + 1 : 1;
+      this.run(
+        'INSERT INTO rate_limits VALUES(?,?,?) ON CONFLICT(bucket) DO UPDATE SET window=excluded.window,count=excluded.count',
+        bucket,
+        window,
+        n,
+      );
+      if (n <= ACCESS_ALERTS_PER_MINUTE) this.alert('ACCESS_DENIED', userId, 'ROLE_FORBIDDEN');
+    });
+  }
+  async #protectedDispatch(s, method, path, b) {
     let value;
     if (method === 'GET' && path === '/api/auth/me')
       value = {
