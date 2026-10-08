@@ -29,7 +29,7 @@ An explicit first-use decision or trusted provisioning file pins the SHA-256 fin
 ## Validation status
 
 - JavaScript syntax checks: executed.
-- Challenge scope, receipt scope, stale-tab overwrite, cooperative locking and blocked-storage regression tests, including public-only trust pin and metadata validation: nine executed with `node --test apps/unit-client/trust.test.mjs apps/unit-client/challenge.test.mjs apps/unit-client/vault-store.test.mjs`.
+- Challenge scope, receipt scope, stale-tab overwrite, cooperative locking and blocked-storage regression tests, including public-only trust pin and metadata validation: eleven executed with `node --test apps/unit-client/authority-pin.test.mjs apps/unit-client/trust.test.mjs apps/unit-client/challenge.test.mjs apps/unit-client/vault-store.test.mjs`. These also verify that the installed offline shell includes every transitive static module import.
 - Real-browser end-to-end run: see repository execution evidence. Browser availability must be established before claiming this layer passed; static checks and API tests do not establish browser behavior.
 
 `browser-check.mjs` is a real-browser acceptance runner for an already running **fresh synthetic** deployment. Install Playwright and its Chromium binary in a separate test environment, then set `SIEPMU_PLAYWRIGHT_MODULE` to that environment's Playwright module (or install it where Node can resolve it). The runner performs genuine browser UI operations and fails if the executable is unavailable.

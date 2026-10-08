@@ -1,0 +1,1010 @@
+{
+  "format": "SIEPMU-EVIDENCE-v1 test vectors",
+  "specification": "spec/SIEPMU-EVIDENCE-v1.md",
+  "reference": "apps/verifier/verify.mjs (general mode)",
+  "notes": [
+    "Synthetic data. Keys are generated per regeneration; no private key is stored.",
+    "argv placeholders @input, @key and @checkpoint denote file paths holding input (or inputBase64 bytes), key and checkpoint.",
+    "expect.error null means rejection is required but the message is implementation-specific.",
+    "divergence cases: expect is normative; reference is the Node outcome (spec section 8)."
+  ],
+  "cases": [
+    {
+      "id": "accept-chain",
+      "description": "Three-record chain with matching signed checkpoint",
+      "input": "{\"records\":[{\"payload\":{\"sequence\":1,\"previousHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"eventId\":\"00000000-0000-4000-8000-000000000001\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000001,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":1,\"note\":\"synthetic vector\"}},\"signature\":\"KYnAaYrZokpjnXPhbKpF7YD8krzbcQjtQfBaBK2f9aBvL3YIj7yLfqPiCxhE1YAyPPbbFghLwXnV1V5L-hXDEQ\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":2,\"previousHash\":\"a4bf11c9f04b886fc0b7cdcd86b601e2d6f57be3505a023727ce55e6c96ef1cc\",\"eventId\":\"00000000-0000-4000-8000-000000000002\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000002,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":2,\"note\":\"synthetic vector\"}},\"signature\":\"h64id_-wX8szF_bcCbteOrkLkBzR1KafJhuI7_ppjIWTOfOYdXrqsEgNwk7aU4C4FLPqW4OFRyD7X2EAHySeow\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":3,\"previousHash\":\"ebd240270618ee789d647c4c6ddf3a838fdb8b84fb5555c5bff05d745a275146\",\"eventId\":\"00000000-0000-4000-8000-000000000003\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000003,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":3,\"note\":\"synthetic vector\"}},\"signature\":\"kRNsJKMxGYf82xlMum015mZcNfGvXP0Y_rKpmOZn1gUBBdhuXA5AVnJBoUupji0TP1VtR2zRvlEFFU5_u59W7w\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}],\"checkpoint\":{\"payload\":{\"sequence\":3,\"headHash\":\"1b455a83b86c8afb19ac74008475ff45798f2111d66d54c66590f87d7bfd4105\",\"issuedAt\":1700000009999},\"signature\":\"th3UCF73Z-TLEwsz3bSeoCkmwsmyqyH7rc-uhK3tEmmKlI3H898IQuGOMrqBLyKaClKEgrLkBC9WxuMtygJCEg\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 0,
+        "stdout": "{\n  \"valid\": true,\n  \"type\": \"evidence-chain\",\n  \"records\": 3,\n  \"headHash\": \"1b455a83b86c8afb19ac74008475ff45798f2111d66d54c66590f87d7bfd4105\",\n  \"checkpointVerified\": true,\n  \"externalCheckpointVerified\": false,\n  \"limitations\": [\n    \"Authenticity is relative to the independently supplied trusted public key, not factual truth.\",\n    \"No external checkpoint supplied: an earlier valid chain and its checkpoint can be replayed without detection.\",\n    \"This does not prove hardware-backed signing, reliable wall-clock time, or freedom from authority compromise.\"\n  ]\n}\n"
+      }
+    },
+    {
+      "id": "accept-empty-chain",
+      "description": "Empty chain with sequence-0 genesis checkpoint",
+      "input": "{\"records\":[],\"checkpoint\":{\"payload\":{\"sequence\":0,\"headHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"issuedAt\":1700000009999},\"signature\":\"W_MXSsR4BddWudnCRPIwDeZECKvznmfJp7Y73lz4y1fLTSsA1lDJtSjyty8i741S-welE7IMDpNqzypAZ3cqpQ\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 0,
+        "stdout": "{\n  \"valid\": true,\n  \"type\": \"evidence-chain\",\n  \"records\": 0,\n  \"headHash\": \"0000000000000000000000000000000000000000000000000000000000000000\",\n  \"checkpointVerified\": true,\n  \"externalCheckpointVerified\": false,\n  \"limitations\": [\n    \"Authenticity is relative to the independently supplied trusted public key, not factual truth.\",\n    \"No external checkpoint supplied: an earlier valid chain and its checkpoint can be replayed without detection.\",\n    \"This does not prove hardware-backed signing, reliable wall-clock time, or freedom from authority compromise.\"\n  ]\n}\n"
+      }
+    },
+    {
+      "id": "accept-external-prefix",
+      "description": "External checkpoint saved after record 2",
+      "input": "{\"records\":[{\"payload\":{\"sequence\":1,\"previousHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"eventId\":\"00000000-0000-4000-8000-000000000001\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000001,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":1,\"note\":\"synthetic vector\"}},\"signature\":\"KYnAaYrZokpjnXPhbKpF7YD8krzbcQjtQfBaBK2f9aBvL3YIj7yLfqPiCxhE1YAyPPbbFghLwXnV1V5L-hXDEQ\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":2,\"previousHash\":\"a4bf11c9f04b886fc0b7cdcd86b601e2d6f57be3505a023727ce55e6c96ef1cc\",\"eventId\":\"00000000-0000-4000-8000-000000000002\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000002,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":2,\"note\":\"synthetic vector\"}},\"signature\":\"h64id_-wX8szF_bcCbteOrkLkBzR1KafJhuI7_ppjIWTOfOYdXrqsEgNwk7aU4C4FLPqW4OFRyD7X2EAHySeow\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":3,\"previousHash\":\"ebd240270618ee789d647c4c6ddf3a838fdb8b84fb5555c5bff05d745a275146\",\"eventId\":\"00000000-0000-4000-8000-000000000003\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000003,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":3,\"note\":\"synthetic vector\"}},\"signature\":\"kRNsJKMxGYf82xlMum015mZcNfGvXP0Y_rKpmOZn1gUBBdhuXA5AVnJBoUupji0TP1VtR2zRvlEFFU5_u59W7w\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}],\"checkpoint\":{\"payload\":{\"sequence\":3,\"headHash\":\"1b455a83b86c8afb19ac74008475ff45798f2111d66d54c66590f87d7bfd4105\",\"issuedAt\":1700000009999},\"signature\":\"th3UCF73Z-TLEwsz3bSeoCkmwsmyqyH7rc-uhK3tEmmKlI3H898IQuGOMrqBLyKaClKEgrLkBC9WxuMtygJCEg\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": "{\"payload\":{\"sequence\":2,\"headHash\":\"ebd240270618ee789d647c4c6ddf3a838fdb8b84fb5555c5bff05d745a275146\",\"issuedAt\":1700000009999},\"signature\":\"c6PvkjsPDkWEkMl-HpRSyRBuq64664du1uMpu8tJQwLL4fFSHXUDjE28DW6KlcBfU5B-mxy6USn3-WcTIJM6Kw\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "argv": [
+        "@input",
+        "@key",
+        "--checkpoint",
+        "@checkpoint"
+      ],
+      "expect": {
+        "status": 0,
+        "stdout": "{\n  \"valid\": true,\n  \"type\": \"evidence-chain\",\n  \"records\": 3,\n  \"headHash\": \"1b455a83b86c8afb19ac74008475ff45798f2111d66d54c66590f87d7bfd4105\",\n  \"checkpointVerified\": true,\n  \"externalCheckpointVerified\": true,\n  \"limitations\": [\n    \"Authenticity is relative to the independently supplied trusted public key, not factual truth.\",\n    \"Suffix-truncation detection is bounded by the externally saved checkpoint.\",\n    \"This does not prove hardware-backed signing, reliable wall-clock time, or freedom from authority compromise.\"\n  ]\n}\n"
+      }
+    },
+    {
+      "id": "accept-external-genesis",
+      "description": "External checkpoint at sequence 0",
+      "input": "{\"records\":[{\"payload\":{\"sequence\":1,\"previousHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"eventId\":\"00000000-0000-4000-8000-000000000001\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000001,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":1,\"note\":\"synthetic vector\"}},\"signature\":\"KYnAaYrZokpjnXPhbKpF7YD8krzbcQjtQfBaBK2f9aBvL3YIj7yLfqPiCxhE1YAyPPbbFghLwXnV1V5L-hXDEQ\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":2,\"previousHash\":\"a4bf11c9f04b886fc0b7cdcd86b601e2d6f57be3505a023727ce55e6c96ef1cc\",\"eventId\":\"00000000-0000-4000-8000-000000000002\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000002,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":2,\"note\":\"synthetic vector\"}},\"signature\":\"h64id_-wX8szF_bcCbteOrkLkBzR1KafJhuI7_ppjIWTOfOYdXrqsEgNwk7aU4C4FLPqW4OFRyD7X2EAHySeow\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":3,\"previousHash\":\"ebd240270618ee789d647c4c6ddf3a838fdb8b84fb5555c5bff05d745a275146\",\"eventId\":\"00000000-0000-4000-8000-000000000003\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000003,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":3,\"note\":\"synthetic vector\"}},\"signature\":\"kRNsJKMxGYf82xlMum015mZcNfGvXP0Y_rKpmOZn1gUBBdhuXA5AVnJBoUupji0TP1VtR2zRvlEFFU5_u59W7w\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}],\"checkpoint\":{\"payload\":{\"sequence\":3,\"headHash\":\"1b455a83b86c8afb19ac74008475ff45798f2111d66d54c66590f87d7bfd4105\",\"issuedAt\":1700000009999},\"signature\":\"th3UCF73Z-TLEwsz3bSeoCkmwsmyqyH7rc-uhK3tEmmKlI3H898IQuGOMrqBLyKaClKEgrLkBC9WxuMtygJCEg\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": "{\"payload\":{\"sequence\":0,\"headHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"issuedAt\":1700000009999},\"signature\":\"YZRqe-NC6Q6VRNIgNbj3fRHPWZ8vpUkwSuEWKGaDTz6YF1feTBRgMVojsqVYVudJQBAA5NMSxJqZ7viRet95bg\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "argv": [
+        "@input",
+        "@key",
+        "--checkpoint",
+        "@checkpoint"
+      ],
+      "expect": {
+        "status": 0,
+        "stdout": "{\n  \"valid\": true,\n  \"type\": \"evidence-chain\",\n  \"records\": 3,\n  \"headHash\": \"1b455a83b86c8afb19ac74008475ff45798f2111d66d54c66590f87d7bfd4105\",\n  \"checkpointVerified\": true,\n  \"externalCheckpointVerified\": true,\n  \"limitations\": [\n    \"Authenticity is relative to the independently supplied trusted public key, not factual truth.\",\n    \"Suffix-truncation detection is bounded by the externally saved checkpoint.\",\n    \"This does not prove hardware-backed signing, reliable wall-clock time, or freedom from authority compromise.\"\n  ]\n}\n"
+      }
+    },
+    {
+      "id": "accept-single-packet",
+      "description": "Single signed non-release packet",
+      "input": "{\"payload\":{\"grant\":\"synthetic\",\"n\":1},\"signature\":\"eRxj3Edu9QmmpvJ3WqbB8NYCvU8Aq_xUbl921NSfGUMAQMAee3wN7P_tB8n0UIZPGITRWEamFQbgKNbrJd43cA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 0,
+        "stdout": "{\n  \"valid\": true,\n  \"type\": \"signed-packet\",\n  \"keyId\": \"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\",\n  \"bindingVerified\": false,\n  \"limitations\": [\n    \"Signature authenticates the packet under the supplied key; it does not prove factual truth or current authorization.\",\n    \"Expected binding checks compare only the supplied expected values with signed receipt fields; they do not establish correctness of omitted expectations.\"\n  ]\n}\n"
+      }
+    },
+    {
+      "id": "accept-receipt-all-bindings",
+      "description": "Release receipt with digest, epoch and object ID bindings",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key",
+        "--object-digest",
+        "ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b",
+        "--epoch",
+        "7",
+        "--object-id",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "expect": {
+        "status": 0,
+        "stdout": "{\n  \"valid\": true,\n  \"type\": \"signed-packet\",\n  \"keyId\": \"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\",\n  \"bindingVerified\": true,\n  \"expectedBindings\": {\n    \"objectDigest\": \"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\n    \"authorityEpoch\": 7,\n    \"objectId\": \"22222222-2222-4222-8222-222222222222\"\n  },\n  \"limitations\": [\n    \"Signature authenticates the packet under the supplied key; it does not prove factual truth or current authorization.\",\n    \"Expected binding checks compare only the supplied expected values with signed receipt fields; they do not establish correctness of omitted expectations.\"\n  ]\n}\n"
+      }
+    },
+    {
+      "id": "accept-receipt-epoch-binding",
+      "description": "Release receipt with epoch binding only",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key",
+        "--epoch",
+        "7"
+      ],
+      "expect": {
+        "status": 0,
+        "stdout": "{\n  \"valid\": true,\n  \"type\": \"signed-packet\",\n  \"keyId\": \"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\",\n  \"bindingVerified\": true,\n  \"expectedBindings\": {\n    \"authorityEpoch\": 7\n  },\n  \"limitations\": [\n    \"Signature authenticates the packet under the supplied key; it does not prove factual truth or current authorization.\",\n    \"Expected binding checks compare only the supplied expected values with signed receipt fields; they do not establish correctness of omitted expectations.\"\n  ]\n}\n"
+      }
+    },
+    {
+      "id": "accept-falsy-external-checkpoint",
+      "description": "External checkpoint file containing null counts as absent",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": "null",
+      "argv": [
+        "@input",
+        "@key",
+        "--checkpoint",
+        "@checkpoint"
+      ],
+      "expect": {
+        "status": 0,
+        "stdout": "{\n  \"valid\": true,\n  \"type\": \"signed-packet\",\n  \"keyId\": \"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\",\n  \"bindingVerified\": false,\n  \"limitations\": [\n    \"Signature authenticates the packet under the supplied key; it does not prove factual truth or current authorization.\",\n    \"Expected binding checks compare only the supplied expected values with signed receipt fields; they do not establish correctness of omitted expectations.\"\n  ]\n}\n"
+      }
+    },
+    {
+      "id": "accept-jwk-extra-members",
+      "description": "Key ID covers every JWK member, including optional ones",
+      "input": "{\"payload\":{\"a\":1},\"signature\":\"Z6H3okSPqUV50KTrSk1sqzday06F1d0rK4mHKqbLGXC-mjd5tdt7rRCQl3_Jdo8xtuw0nLUS9AEeWJ_1M9iHiA\",\"keyId\":\"4eafb803c2b0370f67e6c12abb5a5f088765afd6d5c9906ecb36885404797daa\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\",\"alg\":\"ES256\",\"use\":\"sig\",\"kid\":\"synthetic\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 0,
+        "stdout": "{\n  \"valid\": true,\n  \"type\": \"signed-packet\",\n  \"keyId\": \"4eafb803c2b0370f67e6c12abb5a5f088765afd6d5c9906ecb36885404797daa\",\n  \"bindingVerified\": false,\n  \"limitations\": [\n    \"Signature authenticates the packet under the supplied key; it does not prove factual truth or current authorization.\",\n    \"Expected binding checks compare only the supplied expected values with signed receipt fields; they do not establish correctness of omitted expectations.\"\n  ]\n}\n"
+      }
+    },
+    {
+      "id": "accept-integral-number-lexeme",
+      "description": "Signed epoch 1 transported as 1.0e0",
+      "input": "{\"records\":[{\"payload\":{\"sequence\":1,\"previousHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"eventId\":\"00000000-0000-4000-8000-000000000001\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000001,\"epoch\":1.0e0,\"actorId\":\"synthetic\",\"details\":{\"index\":1,\"note\":\"synthetic vector\"}},\"signature\":\"D4KI7ppVBoHL4rKpeYqkgJeIzdAgEp51UhzHqAhmB2htzwhJlnY45CioEtx1QCMSwyP5i4jArCqzPUqb2-wgag\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}],\"checkpoint\":{\"payload\":{\"sequence\":1,\"headHash\":\"1eabb0259a327af4901e8334b0c6e8764b3911689dfefb6b8bffda619c25ea41\",\"issuedAt\":1700000009999},\"signature\":\"5lQSZQcjOndOnbDmxPz-ljPoDmPzLPNcDf1v0iCH7puahLThcqOMUv57yJqRu-DKeuvZ8Nz_htdOr-zEfk9L9g\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 0,
+        "stdout": "{\n  \"valid\": true,\n  \"type\": \"evidence-chain\",\n  \"records\": 1,\n  \"headHash\": \"1eabb0259a327af4901e8334b0c6e8764b3911689dfefb6b8bffda619c25ea41\",\n  \"checkpointVerified\": true,\n  \"externalCheckpointVerified\": false,\n  \"limitations\": [\n    \"Authenticity is relative to the independently supplied trusted public key, not factual truth.\",\n    \"No external checkpoint supplied: an earlier valid chain and its checkpoint can be replayed without detection.\",\n    \"This does not prove hardware-backed signing, reliable wall-clock time, or freedom from authority compromise.\"\n  ]\n}\n"
+      }
+    },
+    {
+      "id": "accept-utf16-member-order",
+      "description": "Canonical preimage uses UTF-16 member order and JSON.stringify escaping",
+      "input": "{\"payload\":{\"\uff61\":\"half-width\",\"\ud83d\ude00\":\"emoji\",\"ctl\":\"\\u0000\\u001f\u007f\u2028\\\"\\\\\"},\"signature\":\"BvkpU4t291aPINUqQd7CjMDJETOsYuByB9fPkpuALlEAg-E74b_XVpx4ElL4zJUP6_054amG6gYaMN0bfZHmkg\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 0,
+        "stdout": "{\n  \"valid\": true,\n  \"type\": \"signed-packet\",\n  \"keyId\": \"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\",\n  \"bindingVerified\": false,\n  \"limitations\": [\n    \"Signature authenticates the packet under the supplied key; it does not prove factual truth or current authorization.\",\n    \"Expected binding checks compare only the supplied expected values with signed receipt fields; they do not establish correctness of omitted expectations.\"\n  ]\n}\n"
+      }
+    },
+    {
+      "id": "high-s-signature",
+      "description": "High-S twin of a valid signature (outcome recorded from the reference)",
+      "input": "{\"payload\":{\"a\":\"high-s\"},\"signature\":\"S72z_wwSYZVUbHHj3gVV_BYsvToSuUeKV1T_8c7vuP5uNjDorT7-0oQoQWeKuLSh54-6VZDYuiqZLx5K46GH6Q\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 0,
+        "stdout": "{\n  \"valid\": true,\n  \"type\": \"signed-packet\",\n  \"keyId\": \"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\",\n  \"bindingVerified\": false,\n  \"limitations\": [\n    \"Signature authenticates the packet under the supplied key; it does not prove factual truth or current authorization.\",\n    \"Expected binding checks compare only the supplied expected values with signed receipt fields; they do not establish correctness of omitted expectations.\"\n  ]\n}\n"
+      }
+    },
+    {
+      "id": "reject-tampered-payload",
+      "description": "Payload altered after signing",
+      "input": "{\"records\":[{\"payload\":{\"sequence\":1,\"previousHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"eventId\":\"00000000-0000-4000-8000-000000000001\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000001,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":1,\"note\":\"synthetic vector\"}},\"signature\":\"KYnAaYrZokpjnXPhbKpF7YD8krzbcQjtQfBaBK2f9aBvL3YIj7yLfqPiCxhE1YAyPPbbFghLwXnV1V5L-hXDEQ\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":2,\"previousHash\":\"a4bf11c9f04b886fc0b7cdcd86b601e2d6f57be3505a023727ce55e6c96ef1cc\",\"eventId\":\"00000000-0000-4000-8000-000000000002\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000002,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":900,\"note\":\"synthetic vector\"}},\"signature\":\"h64id_-wX8szF_bcCbteOrkLkBzR1KafJhuI7_ppjIWTOfOYdXrqsEgNwk7aU4C4FLPqW4OFRyD7X2EAHySeow\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":3,\"previousHash\":\"ebd240270618ee789d647c4c6ddf3a838fdb8b84fb5555c5bff05d745a275146\",\"eventId\":\"00000000-0000-4000-8000-000000000003\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000003,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":3,\"note\":\"synthetic vector\"}},\"signature\":\"kRNsJKMxGYf82xlMum015mZcNfGvXP0Y_rKpmOZn1gUBBdhuXA5AVnJBoUupji0TP1VtR2zRvlEFFU5_u59W7w\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}],\"checkpoint\":{\"payload\":{\"sequence\":3,\"headHash\":\"1b455a83b86c8afb19ac74008475ff45798f2111d66d54c66590f87d7bfd4105\",\"issuedAt\":1700000009999},\"signature\":\"th3UCF73Z-TLEwsz3bSeoCkmwsmyqyH7rc-uhK3tEmmKlI3H898IQuGOMrqBLyKaClKEgrLkBC9WxuMtygJCEg\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Signature invalid"
+      }
+    },
+    {
+      "id": "reject-reordered",
+      "description": "Records 1 and 2 swapped",
+      "input": "{\"records\":[{\"payload\":{\"sequence\":2,\"previousHash\":\"a4bf11c9f04b886fc0b7cdcd86b601e2d6f57be3505a023727ce55e6c96ef1cc\",\"eventId\":\"00000000-0000-4000-8000-000000000002\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000002,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":2,\"note\":\"synthetic vector\"}},\"signature\":\"h64id_-wX8szF_bcCbteOrkLkBzR1KafJhuI7_ppjIWTOfOYdXrqsEgNwk7aU4C4FLPqW4OFRyD7X2EAHySeow\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":1,\"previousHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"eventId\":\"00000000-0000-4000-8000-000000000001\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000001,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":1,\"note\":\"synthetic vector\"}},\"signature\":\"KYnAaYrZokpjnXPhbKpF7YD8krzbcQjtQfBaBK2f9aBvL3YIj7yLfqPiCxhE1YAyPPbbFghLwXnV1V5L-hXDEQ\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":3,\"previousHash\":\"ebd240270618ee789d647c4c6ddf3a838fdb8b84fb5555c5bff05d745a275146\",\"eventId\":\"00000000-0000-4000-8000-000000000003\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000003,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":3,\"note\":\"synthetic vector\"}},\"signature\":\"kRNsJKMxGYf82xlMum015mZcNfGvXP0Y_rKpmOZn1gUBBdhuXA5AVnJBoUupji0TP1VtR2zRvlEFFU5_u59W7w\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}],\"checkpoint\":{\"payload\":{\"sequence\":3,\"headHash\":\"1b455a83b86c8afb19ac74008475ff45798f2111d66d54c66590f87d7bfd4105\",\"issuedAt\":1700000009999},\"signature\":\"th3UCF73Z-TLEwsz3bSeoCkmwsmyqyH7rc-uhK3tEmmKlI3H898IQuGOMrqBLyKaClKEgrLkBC9WxuMtygJCEg\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Sequence discontinuity at record 1"
+      }
+    },
+    {
+      "id": "reject-deleted-record",
+      "description": "Middle record removed",
+      "input": "{\"records\":[{\"payload\":{\"sequence\":1,\"previousHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"eventId\":\"00000000-0000-4000-8000-000000000001\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000001,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":1,\"note\":\"synthetic vector\"}},\"signature\":\"KYnAaYrZokpjnXPhbKpF7YD8krzbcQjtQfBaBK2f9aBvL3YIj7yLfqPiCxhE1YAyPPbbFghLwXnV1V5L-hXDEQ\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":3,\"previousHash\":\"ebd240270618ee789d647c4c6ddf3a838fdb8b84fb5555c5bff05d745a275146\",\"eventId\":\"00000000-0000-4000-8000-000000000003\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000003,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":3,\"note\":\"synthetic vector\"}},\"signature\":\"kRNsJKMxGYf82xlMum015mZcNfGvXP0Y_rKpmOZn1gUBBdhuXA5AVnJBoUupji0TP1VtR2zRvlEFFU5_u59W7w\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}],\"checkpoint\":{\"payload\":{\"sequence\":3,\"headHash\":\"1b455a83b86c8afb19ac74008475ff45798f2111d66d54c66590f87d7bfd4105\",\"issuedAt\":1700000009999},\"signature\":\"th3UCF73Z-TLEwsz3bSeoCkmwsmyqyH7rc-uhK3tEmmKlI3H898IQuGOMrqBLyKaClKEgrLkBC9WxuMtygJCEg\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Sequence discontinuity at record 2"
+      }
+    },
+    {
+      "id": "reject-truncated-suffix",
+      "description": "Last record removed; embedded checkpoint no longer matches",
+      "input": "{\"records\":[{\"payload\":{\"sequence\":1,\"previousHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"eventId\":\"00000000-0000-4000-8000-000000000001\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000001,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":1,\"note\":\"synthetic vector\"}},\"signature\":\"KYnAaYrZokpjnXPhbKpF7YD8krzbcQjtQfBaBK2f9aBvL3YIj7yLfqPiCxhE1YAyPPbbFghLwXnV1V5L-hXDEQ\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":2,\"previousHash\":\"a4bf11c9f04b886fc0b7cdcd86b601e2d6f57be3505a023727ce55e6c96ef1cc\",\"eventId\":\"00000000-0000-4000-8000-000000000002\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000002,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":2,\"note\":\"synthetic vector\"}},\"signature\":\"h64id_-wX8szF_bcCbteOrkLkBzR1KafJhuI7_ppjIWTOfOYdXrqsEgNwk7aU4C4FLPqW4OFRyD7X2EAHySeow\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}],\"checkpoint\":{\"payload\":{\"sequence\":3,\"headHash\":\"1b455a83b86c8afb19ac74008475ff45798f2111d66d54c66590f87d7bfd4105\",\"issuedAt\":1700000009999},\"signature\":\"th3UCF73Z-TLEwsz3bSeoCkmwsmyqyH7rc-uhK3tEmmKlI3H898IQuGOMrqBLyKaClKEgrLkBC9WxuMtygJCEg\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Export checkpoint does not match chain head"
+      }
+    },
+    {
+      "id": "reject-previous-hash",
+      "description": "Re-signed record with wrong previous hash",
+      "input": "{\"records\":[{\"payload\":{\"sequence\":1,\"previousHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"eventId\":\"00000000-0000-4000-8000-000000000001\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000001,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":1,\"note\":\"synthetic vector\"}},\"signature\":\"KYnAaYrZokpjnXPhbKpF7YD8krzbcQjtQfBaBK2f9aBvL3YIj7yLfqPiCxhE1YAyPPbbFghLwXnV1V5L-hXDEQ\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":2,\"previousHash\":\"8810ad581e59f2bc3928b261707a71308f7e139eb04820366dc4d5c18d980225\",\"eventId\":\"00000000-0000-4000-8000-000000000002\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000002,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":2,\"note\":\"synthetic vector\"}},\"signature\":\"ORsEX23QGqT9BvhS3we8Ae6Jdh8xafLYi_sq2qCiIe5lbLcV48PPAuUa1o1L1epWN4Tmv6X-TTsNbFf1mGXCAw\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":3,\"previousHash\":\"ebd240270618ee789d647c4c6ddf3a838fdb8b84fb5555c5bff05d745a275146\",\"eventId\":\"00000000-0000-4000-8000-000000000003\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000003,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":3,\"note\":\"synthetic vector\"}},\"signature\":\"kRNsJKMxGYf82xlMum015mZcNfGvXP0Y_rKpmOZn1gUBBdhuXA5AVnJBoUupji0TP1VtR2zRvlEFFU5_u59W7w\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}],\"checkpoint\":{\"payload\":{\"sequence\":3,\"headHash\":\"1b455a83b86c8afb19ac74008475ff45798f2111d66d54c66590f87d7bfd4105\",\"issuedAt\":1700000009999},\"signature\":\"th3UCF73Z-TLEwsz3bSeoCkmwsmyqyH7rc-uhK3tEmmKlI3H898IQuGOMrqBLyKaClKEgrLkBC9WxuMtygJCEg\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Previous hash mismatch at record 2"
+      }
+    },
+    {
+      "id": "reject-string-sequence",
+      "description": "Sequence encoded as a string",
+      "input": "{\"records\":[{\"payload\":{\"sequence\":\"1\",\"previousHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"eventId\":\"00000000-0000-4000-8000-000000000001\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000001,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":1,\"note\":\"synthetic vector\"}},\"signature\":\"sMsB-WnG10hZVISD8VQmKOTwwmtftIcI8OR6O6xbLkysTjWe83J2AH9Kr7XvCEp70vUkVO47an7b3qajg_AcLg\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":2,\"previousHash\":\"a4bf11c9f04b886fc0b7cdcd86b601e2d6f57be3505a023727ce55e6c96ef1cc\",\"eventId\":\"00000000-0000-4000-8000-000000000002\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000002,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":2,\"note\":\"synthetic vector\"}},\"signature\":\"h64id_-wX8szF_bcCbteOrkLkBzR1KafJhuI7_ppjIWTOfOYdXrqsEgNwk7aU4C4FLPqW4OFRyD7X2EAHySeow\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":3,\"previousHash\":\"ebd240270618ee789d647c4c6ddf3a838fdb8b84fb5555c5bff05d745a275146\",\"eventId\":\"00000000-0000-4000-8000-000000000003\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000003,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":3,\"note\":\"synthetic vector\"}},\"signature\":\"kRNsJKMxGYf82xlMum015mZcNfGvXP0Y_rKpmOZn1gUBBdhuXA5AVnJBoUupji0TP1VtR2zRvlEFFU5_u59W7w\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}],\"checkpoint\":{\"payload\":{\"sequence\":3,\"headHash\":\"1b455a83b86c8afb19ac74008475ff45798f2111d66d54c66590f87d7bfd4105\",\"issuedAt\":1700000009999},\"signature\":\"th3UCF73Z-TLEwsz3bSeoCkmwsmyqyH7rc-uhK3tEmmKlI3H898IQuGOMrqBLyKaClKEgrLkBC9WxuMtygJCEg\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Sequence discontinuity at record 1"
+      }
+    },
+    {
+      "id": "reject-empty-event-id",
+      "description": "Empty event ID",
+      "input": "{\"records\":[{\"payload\":{\"sequence\":1,\"previousHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"eventId\":\"\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000001,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":1,\"note\":\"synthetic vector\"}},\"signature\":\"dvHzgVjFyVLLB5gCSJlt7plBXuMr9G7nGI_utB1tW0Qvlzzbg4nDy3QGF7KQt2igXWVZtKMNAjPm9ltGjpeqvA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":2,\"previousHash\":\"a4bf11c9f04b886fc0b7cdcd86b601e2d6f57be3505a023727ce55e6c96ef1cc\",\"eventId\":\"00000000-0000-4000-8000-000000000002\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000002,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":2,\"note\":\"synthetic vector\"}},\"signature\":\"h64id_-wX8szF_bcCbteOrkLkBzR1KafJhuI7_ppjIWTOfOYdXrqsEgNwk7aU4C4FLPqW4OFRyD7X2EAHySeow\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":3,\"previousHash\":\"ebd240270618ee789d647c4c6ddf3a838fdb8b84fb5555c5bff05d745a275146\",\"eventId\":\"00000000-0000-4000-8000-000000000003\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000003,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":3,\"note\":\"synthetic vector\"}},\"signature\":\"kRNsJKMxGYf82xlMum015mZcNfGvXP0Y_rKpmOZn1gUBBdhuXA5AVnJBoUupji0TP1VtR2zRvlEFFU5_u59W7w\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}],\"checkpoint\":{\"payload\":{\"sequence\":3,\"headHash\":\"1b455a83b86c8afb19ac74008475ff45798f2111d66d54c66590f87d7bfd4105\",\"issuedAt\":1700000009999},\"signature\":\"th3UCF73Z-TLEwsz3bSeoCkmwsmyqyH7rc-uhK3tEmmKlI3H898IQuGOMrqBLyKaClKEgrLkBC9WxuMtygJCEg\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Invalid evidence event"
+      }
+    },
+    {
+      "id": "reject-negative-timestamp",
+      "description": "Negative timestamp",
+      "input": "{\"records\":[{\"payload\":{\"sequence\":1,\"previousHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"eventId\":\"00000000-0000-4000-8000-000000000001\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":-1,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":1,\"note\":\"synthetic vector\"}},\"signature\":\"tYK2n3kfl4hQK2UyeWzli0lGTJPzcXFEEzIXuV7AIcXvyAVF84gwtIhUgizxG4FP3O2rN9CVaCSlPNOFFdsyiA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":2,\"previousHash\":\"a4bf11c9f04b886fc0b7cdcd86b601e2d6f57be3505a023727ce55e6c96ef1cc\",\"eventId\":\"00000000-0000-4000-8000-000000000002\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000002,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":2,\"note\":\"synthetic vector\"}},\"signature\":\"h64id_-wX8szF_bcCbteOrkLkBzR1KafJhuI7_ppjIWTOfOYdXrqsEgNwk7aU4C4FLPqW4OFRyD7X2EAHySeow\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":3,\"previousHash\":\"ebd240270618ee789d647c4c6ddf3a838fdb8b84fb5555c5bff05d745a275146\",\"eventId\":\"00000000-0000-4000-8000-000000000003\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000003,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":3,\"note\":\"synthetic vector\"}},\"signature\":\"kRNsJKMxGYf82xlMum015mZcNfGvXP0Y_rKpmOZn1gUBBdhuXA5AVnJBoUupji0TP1VtR2zRvlEFFU5_u59W7w\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}],\"checkpoint\":{\"payload\":{\"sequence\":3,\"headHash\":\"1b455a83b86c8afb19ac74008475ff45798f2111d66d54c66590f87d7bfd4105\",\"issuedAt\":1700000009999},\"signature\":\"th3UCF73Z-TLEwsz3bSeoCkmwsmyqyH7rc-uhK3tEmmKlI3H898IQuGOMrqBLyKaClKEgrLkBC9WxuMtygJCEg\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Invalid evidence time or epoch"
+      }
+    },
+    {
+      "id": "reject-non-object-payload",
+      "description": "Signed record payload is a string",
+      "input": "{\"records\":[{\"payload\":\"not an object\",\"signature\":\"pvGAmVCqMGrfsyZiTDR9rlQNARn1QzIlYoNv2af5ngQghMKwUrDX3bR6dtDAOapnZIwf_gqwArtN3Fh4Q99B-A\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":2,\"previousHash\":\"a4bf11c9f04b886fc0b7cdcd86b601e2d6f57be3505a023727ce55e6c96ef1cc\",\"eventId\":\"00000000-0000-4000-8000-000000000002\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000002,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":2,\"note\":\"synthetic vector\"}},\"signature\":\"h64id_-wX8szF_bcCbteOrkLkBzR1KafJhuI7_ppjIWTOfOYdXrqsEgNwk7aU4C4FLPqW4OFRyD7X2EAHySeow\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":3,\"previousHash\":\"ebd240270618ee789d647c4c6ddf3a838fdb8b84fb5555c5bff05d745a275146\",\"eventId\":\"00000000-0000-4000-8000-000000000003\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000003,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":3,\"note\":\"synthetic vector\"}},\"signature\":\"kRNsJKMxGYf82xlMum015mZcNfGvXP0Y_rKpmOZn1gUBBdhuXA5AVnJBoUupji0TP1VtR2zRvlEFFU5_u59W7w\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}],\"checkpoint\":{\"payload\":{\"sequence\":3,\"headHash\":\"1b455a83b86c8afb19ac74008475ff45798f2111d66d54c66590f87d7bfd4105\",\"issuedAt\":1700000009999},\"signature\":\"th3UCF73Z-TLEwsz3bSeoCkmwsmyqyH7rc-uhK3tEmmKlI3H898IQuGOMrqBLyKaClKEgrLkBC9WxuMtygJCEg\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Invalid record payload"
+      }
+    },
+    {
+      "id": "reject-missing-checkpoint",
+      "description": "Export without checkpoint member",
+      "input": "{\"records\":[{\"payload\":{\"sequence\":1,\"previousHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"eventId\":\"00000000-0000-4000-8000-000000000001\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000001,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":1,\"note\":\"synthetic vector\"}},\"signature\":\"KYnAaYrZokpjnXPhbKpF7YD8krzbcQjtQfBaBK2f9aBvL3YIj7yLfqPiCxhE1YAyPPbbFghLwXnV1V5L-hXDEQ\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":2,\"previousHash\":\"a4bf11c9f04b886fc0b7cdcd86b601e2d6f57be3505a023727ce55e6c96ef1cc\",\"eventId\":\"00000000-0000-4000-8000-000000000002\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000002,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":2,\"note\":\"synthetic vector\"}},\"signature\":\"h64id_-wX8szF_bcCbteOrkLkBzR1KafJhuI7_ppjIWTOfOYdXrqsEgNwk7aU4C4FLPqW4OFRyD7X2EAHySeow\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":3,\"previousHash\":\"ebd240270618ee789d647c4c6ddf3a838fdb8b84fb5555c5bff05d745a275146\",\"eventId\":\"00000000-0000-4000-8000-000000000003\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000003,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":3,\"note\":\"synthetic vector\"}},\"signature\":\"kRNsJKMxGYf82xlMum015mZcNfGvXP0Y_rKpmOZn1gUBBdhuXA5AVnJBoUupji0TP1VtR2zRvlEFFU5_u59W7w\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}]}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Unexpected or missing packet members"
+      }
+    },
+    {
+      "id": "reject-uppercase-checkpoint-hash",
+      "description": "Checkpoint head hash in uppercase hex",
+      "input": "{\"records\":[{\"payload\":{\"sequence\":1,\"previousHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"eventId\":\"00000000-0000-4000-8000-000000000001\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000001,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":1,\"note\":\"synthetic vector\"}},\"signature\":\"KYnAaYrZokpjnXPhbKpF7YD8krzbcQjtQfBaBK2f9aBvL3YIj7yLfqPiCxhE1YAyPPbbFghLwXnV1V5L-hXDEQ\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":2,\"previousHash\":\"a4bf11c9f04b886fc0b7cdcd86b601e2d6f57be3505a023727ce55e6c96ef1cc\",\"eventId\":\"00000000-0000-4000-8000-000000000002\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000002,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":2,\"note\":\"synthetic vector\"}},\"signature\":\"h64id_-wX8szF_bcCbteOrkLkBzR1KafJhuI7_ppjIWTOfOYdXrqsEgNwk7aU4C4FLPqW4OFRyD7X2EAHySeow\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":3,\"previousHash\":\"ebd240270618ee789d647c4c6ddf3a838fdb8b84fb5555c5bff05d745a275146\",\"eventId\":\"00000000-0000-4000-8000-000000000003\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000003,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":3,\"note\":\"synthetic vector\"}},\"signature\":\"kRNsJKMxGYf82xlMum015mZcNfGvXP0Y_rKpmOZn1gUBBdhuXA5AVnJBoUupji0TP1VtR2zRvlEFFU5_u59W7w\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}],\"checkpoint\":{\"payload\":{\"sequence\":3,\"headHash\":\"1B455A83B86C8AFB19AC74008475FF45798F2111D66D54C66590F87D7BFD4105\",\"issuedAt\":1700000009999},\"signature\":\"trQiIFZANUCA_2uhp3LggXAODm_Xj5fbqSTCCQWXQFew2iC51Kb8DouRA00PuamBTyDp68yhmLenbHEZ-qpH9A\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Invalid checkpoint hash"
+      }
+    },
+    {
+      "id": "reject-external-conflict",
+      "description": "External checkpoint from an alternate chain at the same sequence",
+      "input": "{\"records\":[{\"payload\":{\"sequence\":1,\"previousHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"eventId\":\"00000000-0000-4000-8000-000000000001\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000001,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":1,\"note\":\"synthetic vector\"}},\"signature\":\"KYnAaYrZokpjnXPhbKpF7YD8krzbcQjtQfBaBK2f9aBvL3YIj7yLfqPiCxhE1YAyPPbbFghLwXnV1V5L-hXDEQ\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":2,\"previousHash\":\"a4bf11c9f04b886fc0b7cdcd86b601e2d6f57be3505a023727ce55e6c96ef1cc\",\"eventId\":\"00000000-0000-4000-8000-000000000002\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000002,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":2,\"note\":\"synthetic vector\"}},\"signature\":\"h64id_-wX8szF_bcCbteOrkLkBzR1KafJhuI7_ppjIWTOfOYdXrqsEgNwk7aU4C4FLPqW4OFRyD7X2EAHySeow\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":3,\"previousHash\":\"ebd240270618ee789d647c4c6ddf3a838fdb8b84fb5555c5bff05d745a275146\",\"eventId\":\"00000000-0000-4000-8000-000000000003\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000003,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":3,\"note\":\"synthetic vector\"}},\"signature\":\"kRNsJKMxGYf82xlMum015mZcNfGvXP0Y_rKpmOZn1gUBBdhuXA5AVnJBoUupji0TP1VtR2zRvlEFFU5_u59W7w\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}],\"checkpoint\":{\"payload\":{\"sequence\":3,\"headHash\":\"1b455a83b86c8afb19ac74008475ff45798f2111d66d54c66590f87d7bfd4105\",\"issuedAt\":1700000009999},\"signature\":\"th3UCF73Z-TLEwsz3bSeoCkmwsmyqyH7rc-uhK3tEmmKlI3H898IQuGOMrqBLyKaClKEgrLkBC9WxuMtygJCEg\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": "{\"payload\":{\"sequence\":3,\"headHash\":\"3b9334c6f472f192a6ecea41920e2c1b5b1df01a410fd9bc57b84d7c1288cfd5\",\"issuedAt\":1700000009999},\"signature\":\"AFNMAL4qvIKa7jfKFRZXOHHaD_u1bBsj3nwcK3tYbFFOc_tBMy3evUw3aMTa3GhroNxRfkzk1o-WZ2AAhbqlXw\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "argv": [
+        "@input",
+        "@key",
+        "--checkpoint",
+        "@checkpoint"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Chain conflicts with externally saved checkpoint"
+      }
+    },
+    {
+      "id": "reject-external-beyond-chain",
+      "description": "External checkpoint later than the supplied chain",
+      "input": "{\"records\":[{\"payload\":{\"sequence\":1,\"previousHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"eventId\":\"00000000-0000-4000-8000-000000000001\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000001,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":1,\"note\":\"synthetic vector\"}},\"signature\":\"KYnAaYrZokpjnXPhbKpF7YD8krzbcQjtQfBaBK2f9aBvL3YIj7yLfqPiCxhE1YAyPPbbFghLwXnV1V5L-hXDEQ\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":2,\"previousHash\":\"a4bf11c9f04b886fc0b7cdcd86b601e2d6f57be3505a023727ce55e6c96ef1cc\",\"eventId\":\"00000000-0000-4000-8000-000000000002\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000002,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":2,\"note\":\"synthetic vector\"}},\"signature\":\"h64id_-wX8szF_bcCbteOrkLkBzR1KafJhuI7_ppjIWTOfOYdXrqsEgNwk7aU4C4FLPqW4OFRyD7X2EAHySeow\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}],\"checkpoint\":{\"payload\":{\"sequence\":2,\"headHash\":\"ebd240270618ee789d647c4c6ddf3a838fdb8b84fb5555c5bff05d745a275146\",\"issuedAt\":1700000009999},\"signature\":\"0fJOfakKCNeevIDUcSTd7V7rCWK14TkMmws_4A310IhZaMuRFYLRRFLk1SdQ0kY6dCkaAu1x9gbGNUc31SGTSA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": "{\"payload\":{\"sequence\":3,\"headHash\":\"1b455a83b86c8afb19ac74008475ff45798f2111d66d54c66590f87d7bfd4105\",\"issuedAt\":1700000009999},\"signature\":\"th3UCF73Z-TLEwsz3bSeoCkmwsmyqyH7rc-uhK3tEmmKlI3H898IQuGOMrqBLyKaClKEgrLkBC9WxuMtygJCEg\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "argv": [
+        "@input",
+        "@key",
+        "--checkpoint",
+        "@checkpoint"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Chain truncated before externally saved checkpoint"
+      }
+    },
+    {
+      "id": "reject-external-with-single-packet",
+      "description": "External checkpoint supplied with a single packet",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": "{\"payload\":{\"sequence\":3,\"headHash\":\"1b455a83b86c8afb19ac74008475ff45798f2111d66d54c66590f87d7bfd4105\",\"issuedAt\":1700000009999},\"signature\":\"th3UCF73Z-TLEwsz3bSeoCkmwsmyqyH7rc-uhK3tEmmKlI3H898IQuGOMrqBLyKaClKEgrLkBC9WxuMtygJCEg\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "argv": [
+        "@input",
+        "@key",
+        "--checkpoint",
+        "@checkpoint"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "A chain export is required with an external checkpoint"
+      }
+    },
+    {
+      "id": "reject-wrong-key",
+      "description": "Chain signed by a different key",
+      "input": "{\"records\":[{\"payload\":{\"sequence\":1,\"previousHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"eventId\":\"00000000-0000-4000-8000-000000000001\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000001,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":1,\"note\":\"synthetic vector\"}},\"signature\":\"h9_f_HgIogIJlgV7lDwqC5IhaqXW-9Wl31U8lFy9pciP1XM-IuRsRmHizDbRqes4qeUYfbjAntshOoYbce6ZTg\",\"keyId\":\"a92488e78c3148a4f1f4b196f82d0697da8994d3429df70029ced6557bbd723b\"},{\"payload\":{\"sequence\":2,\"previousHash\":\"8076cf6489536dab2222d9d6310d03d34e21eee22a43b493ee1108a8925b66b3\",\"eventId\":\"00000000-0000-4000-8000-000000000002\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000002,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":2,\"note\":\"synthetic vector\"}},\"signature\":\"kjatb_RFJVSxlRJqe1KcfGf4U4qOX4EXtufsMWtg7JM1M9ShV0vmnYA-e-mgkBjcNCyYxlAWtcjQ-S1vaRlR5w\",\"keyId\":\"a92488e78c3148a4f1f4b196f82d0697da8994d3429df70029ced6557bbd723b\"}],\"checkpoint\":{\"payload\":{\"sequence\":2,\"headHash\":\"650bb6316b6403b9d484006243b4771d9a07b9829aadf88ff1de454afe22d73d\",\"issuedAt\":1700000009999},\"signature\":\"_XIHx6dO34tvHOUXQFtsg5L69A3wYTW8_E3FTYGBq6TwKM7WONHM461NHsdDFL8IxIAIPvyYeJoYVKd9PE2EAA\",\"keyId\":\"a92488e78c3148a4f1f4b196f82d0697da8994d3429df70029ced6557bbd723b\"}}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Signing key ID mismatch"
+      }
+    },
+    {
+      "id": "reject-key-id-mismatch",
+      "description": "Packet key ID does not match the trusted key",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"d9298a10d1b0735837dc4bd85dac641b0f3cef27a47e5d53a54f2f3f5b2fcffa\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Signing key ID mismatch"
+      }
+    },
+    {
+      "id": "reject-extra-packet-member",
+      "description": "Packet with an extra member",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\",\"extra\":true}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Unexpected or missing packet members"
+      }
+    },
+    {
+      "id": "reject-separator-collision",
+      "description": "Member named \"keyId|payload\" must not satisfy the member check",
+      "input": "{\"keyId|payload\":\"x\",\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Unexpected or missing packet members"
+      }
+    },
+    {
+      "id": "reject-signature-alphabet",
+      "description": "Signature with standard-alphabet characters",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFS+/\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Invalid signature encoding"
+      }
+    },
+    {
+      "id": "reject-signature-padding",
+      "description": "Signature with base64 padding",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA=\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Invalid signature encoding"
+      }
+    },
+    {
+      "id": "reject-signature-short",
+      "description": "Signature of 63 bytes",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Invalid P1363 signature"
+      }
+    },
+    {
+      "id": "reject-signature-zero",
+      "description": "All-zero signature (r = s = 0)",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Signature invalid"
+      }
+    },
+    {
+      "id": "reject-signature-out-of-range",
+      "description": "Signature with r, s >= n",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"_____________________________________________________________________________________w\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Signature invalid"
+      }
+    },
+    {
+      "id": "reject-non-canonical-trailing-bits",
+      "description": "Signature text whose unused trailing bits are set",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPB\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Invalid P1363 signature"
+      }
+    },
+    {
+      "id": "reject-float-in-payload",
+      "description": "Non-integer number in signed payload",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7},\"ratio\":0.5},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Canonical numbers must be safe integers"
+      }
+    },
+    {
+      "id": "reject-negative-zero",
+      "description": "Negative zero in signed payload",
+      "input": "{\"payload\":{\"a\":-0},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Canonical numbers must be safe integers"
+      }
+    },
+    {
+      "id": "reject-unsafe-integer",
+      "description": "2^53 in signed payload",
+      "input": "{\"payload\":{\"a\":9007199254740992},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Canonical numbers must be safe integers"
+      }
+    },
+    {
+      "id": "reject-depth-65",
+      "description": "Signed payload nested beyond depth 64",
+      "input": "{\"payload\":[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[1]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]],\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Canonical value exceeds depth limit"
+      }
+    },
+    {
+      "id": "reject-binding-with-chain",
+      "description": "Expected bindings supplied with a chain",
+      "input": "{\"records\":[{\"payload\":{\"sequence\":1,\"previousHash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"eventId\":\"00000000-0000-4000-8000-000000000001\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000001,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":1,\"note\":\"synthetic vector\"}},\"signature\":\"KYnAaYrZokpjnXPhbKpF7YD8krzbcQjtQfBaBK2f9aBvL3YIj7yLfqPiCxhE1YAyPPbbFghLwXnV1V5L-hXDEQ\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":2,\"previousHash\":\"a4bf11c9f04b886fc0b7cdcd86b601e2d6f57be3505a023727ce55e6c96ef1cc\",\"eventId\":\"00000000-0000-4000-8000-000000000002\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000002,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":2,\"note\":\"synthetic vector\"}},\"signature\":\"h64id_-wX8szF_bcCbteOrkLkBzR1KafJhuI7_ppjIWTOfOYdXrqsEgNwk7aU4C4FLPqW4OFRyD7X2EAHySeow\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"},{\"payload\":{\"sequence\":3,\"previousHash\":\"ebd240270618ee789d647c4c6ddf3a838fdb8b84fb5555c5bff05d745a275146\",\"eventId\":\"00000000-0000-4000-8000-000000000003\",\"eventType\":\"SYNTHETIC_TEST\",\"timestamp\":1700000000003,\"epoch\":4,\"actorId\":\"synthetic\",\"details\":{\"index\":3,\"note\":\"synthetic vector\"}},\"signature\":\"kRNsJKMxGYf82xlMum015mZcNfGvXP0Y_rKpmOZn1gUBBdhuXA5AVnJBoUupji0TP1VtR2zRvlEFFU5_u59W7w\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}],\"checkpoint\":{\"payload\":{\"sequence\":3,\"headHash\":\"1b455a83b86c8afb19ac74008475ff45798f2111d66d54c66590f87d7bfd4105\",\"issuedAt\":1700000009999},\"signature\":\"th3UCF73Z-TLEwsz3bSeoCkmwsmyqyH7rc-uhK3tEmmKlI3H898IQuGOMrqBLyKaClKEgrLkBC9WxuMtygJCEg\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key",
+        "--epoch",
+        "4"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Expected object bindings apply to a single release receipt; verify the chain separately"
+      }
+    },
+    {
+      "id": "reject-binding-digest-mismatch",
+      "description": "Expected digest differs",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key",
+        "--object-digest",
+        "d9298a10d1b0735837dc4bd85dac641b0f3cef27a47e5d53a54f2f3f5b2fcffa"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Expected object digest mismatch"
+      }
+    },
+    {
+      "id": "reject-binding-epoch-mismatch",
+      "description": "Expected epoch differs",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key",
+        "--epoch",
+        "8"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Expected authority epoch mismatch"
+      }
+    },
+    {
+      "id": "reject-binding-object-mismatch",
+      "description": "Expected object ID differs",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key",
+        "--object-id",
+        "other"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Expected object ID mismatch"
+      }
+    },
+    {
+      "id": "reject-binding-uppercase-digest",
+      "description": "Expected digest not lowercase hex",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key",
+        "--object-digest",
+        "EE56EFF0001A03DFB5B86F85A5FE438AAE165F861DE09C06ED1006B2EAFA155B"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Expected object digest must be lowercase SHA-256 hex"
+      }
+    },
+    {
+      "id": "reject-binding-long-object-id",
+      "description": "Expected object ID longer than 128 UTF-16 units",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key",
+        "--object-id",
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Invalid expected object ID"
+      }
+    },
+    {
+      "id": "reject-binding-non-release",
+      "description": "Bindings against a non-release packet",
+      "input": "{\"payload\":{\"eventType\":\"GRANT\"},\"signature\":\"mZKbvCDvgBiUsy_edcTCkFRLhXybUy7jbz_e_4RoBSVodDa7Q6bqmsRaBybZctiXfuOSPW-Wrc7tudXNoNqIqw\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key",
+        "--epoch",
+        "7"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Expected a release issuance receipt for object binding checks"
+      }
+    },
+    {
+      "id": "reject-binding-inconsistent-epoch",
+      "description": "Receipt epoch and details.authorityEpoch disagree",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":6}},\"signature\":\"cFW50VJ7RiKj1ZA9Oh0raYc-R5fixPMEnZCfBmdd2AAH1DC8rpbmWKBmx5Tn_t8lmzLh23MKjs5CrLNzLe1NMw\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key",
+        "--epoch",
+        "7"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Receipt authority epoch is missing or inconsistent"
+      }
+    },
+    {
+      "id": "reject-private-jwk",
+      "description": "Trusted key carrying a private scalar",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\",\"d\":\"AA\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Trusted key must be public P-256 JWK"
+      }
+    },
+    {
+      "id": "reject-wrong-curve",
+      "description": "Trusted key on P-384",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-384\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Trusted key must be public P-256 JWK"
+      }
+    },
+    {
+      "id": "reject-short-coordinate",
+      "description": "Trusted key coordinate of 31 bytes",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQ\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Invalid trusted key coordinate"
+      }
+    },
+    {
+      "id": "reject-off-curve-key",
+      "description": "Trusted key point not on P-256 (implementation-specific message)",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": null
+      }
+    },
+    {
+      "id": "reject-malformed-json",
+      "description": "Truncated JSON input (implementation-specific message)",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "expect": {
+        "status": 1,
+        "error": null
+      }
+    },
+    {
+      "id": "reject-usage-odd-arguments",
+      "description": "Option without value",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key",
+        "--epoch"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Usage: node apps/verifier/verify.mjs receipt-or-export.json trusted-public-key.json [--mode evidence|release] [--checkpoint saved-checkpoint.json] [--object-digest SHA256_HEX] [--epoch INTEGER] [--object-id ID] [--replay-store receipts.sqlite]"
+      }
+    },
+    {
+      "id": "reject-usage-unknown-option",
+      "description": "Unknown option",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key",
+        "--fast",
+        "yes"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Usage: node apps/verifier/verify.mjs receipt-or-export.json trusted-public-key.json [--mode evidence|release] [--checkpoint saved-checkpoint.json] [--object-digest SHA256_HEX] [--epoch INTEGER] [--object-id ID] [--replay-store receipts.sqlite]"
+      }
+    },
+    {
+      "id": "reject-usage-duplicate-option",
+      "description": "Repeated option",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key",
+        "--epoch",
+        "7",
+        "--epoch",
+        "7"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Usage: node apps/verifier/verify.mjs receipt-or-export.json trusted-public-key.json [--mode evidence|release] [--checkpoint saved-checkpoint.json] [--object-digest SHA256_HEX] [--epoch INTEGER] [--object-id ID] [--replay-store receipts.sqlite]"
+      }
+    },
+    {
+      "id": "reject-epoch-zero",
+      "description": "Expected epoch 0",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key",
+        "--epoch",
+        "0"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Expected epoch must be a positive safe integer"
+      }
+    },
+    {
+      "id": "reject-replay-store-without-release",
+      "description": "Replay store outside release mode",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key",
+        "--replay-store",
+        "x.sqlite"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "A replay store requires --mode release"
+      }
+    },
+    {
+      "id": "reject-release-with-checkpoint",
+      "description": "Release mode combined with a checkpoint",
+      "input": "{\"payload\":{\"eventId\":\"11111111-1111-4111-8111-111111111111\",\"eventType\":\"RELEASE_ISSUED\",\"decision\":\"RELEASED\",\"sequence\":9,\"previousHash\":\"c714eb74acbcba2bd90da99b1d16fdb47092241c204d38b04c4e0826c6aadc60\",\"timestamp\":1700000000500,\"epoch\":7,\"objectId\":\"22222222-2222-4222-8222-222222222222\",\"details\":{\"objectDigest\":\"ee56eff0001a03dfb5b86f85a5fe438aae165f861de09c06ed1006b2eafa155b\",\"authorityEpoch\":7}},\"signature\":\"k4rZ6TDuEaiolQZq4gm3K7_Yy9iCCbCrEAT56kmB93bi2UUg4IQF1Q8znpbyy8kCU71IYtq_MfrCB7veBIFSPA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": "{\"payload\":{\"sequence\":3,\"headHash\":\"1b455a83b86c8afb19ac74008475ff45798f2111d66d54c66590f87d7bfd4105\",\"issuedAt\":1700000009999},\"signature\":\"th3UCF73Z-TLEwsz3bSeoCkmwsmyqyH7rc-uhK3tEmmKlI3H898IQuGOMrqBLyKaClKEgrLkBC9WxuMtygJCEg\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "argv": [
+        "@input",
+        "@key",
+        "--mode",
+        "release",
+        "--checkpoint",
+        "@checkpoint"
+      ],
+      "expect": {
+        "status": 1,
+        "error": "Verify chain checkpoints separately from release receipts"
+      }
+    },
+    {
+      "id": "divergence-lone-surrogate",
+      "description": "D1: signed string containing a lone surrogate escape",
+      "input": "{\"payload\":{\"s\":\"\\ud800\"},\"signature\":\"kpWN8t1Izdn2KemxxJ1kQcHSG60xOiBDgIb5tGYkFOPTyfwTnofUdG3qzE3B2s_CbXI0TIREGChTA_IacBdlcA\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "divergence": "D1",
+      "expect": {
+        "status": 1,
+        "error": null
+      },
+      "reference": {
+        "status": 0,
+        "stdout": "{\n  \"valid\": true,\n  \"type\": \"signed-packet\",\n  \"keyId\": \"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\",\n  \"bindingVerified\": false,\n  \"limitations\": [\n    \"Signature authenticates the packet under the supplied key; it does not prove factual truth or current authorization.\",\n    \"Expected binding checks compare only the supplied expected values with signed receipt fields; they do not establish correctness of omitted expectations.\"\n  ]\n}\n"
+      }
+    },
+    {
+      "id": "divergence-duplicate-member",
+      "description": "D3: duplicate member name; the reference keeps the last value",
+      "input": "{\"payload\":{\"a\":1,\"a\":2},\"signature\":\"bJ9A2hwwSlIrWQ2QoYVejR0_sFD6EPmuxVTq411GqbQBXfhGmpTN76fZReWbKdfIUIGCFKW8F4JswinOMFoA7A\",\"keyId\":\"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\"}",
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "divergence": "D3",
+      "expect": {
+        "status": 1,
+        "error": null
+      },
+      "reference": {
+        "status": 0,
+        "stdout": "{\n  \"valid\": true,\n  \"type\": \"signed-packet\",\n  \"keyId\": \"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\",\n  \"bindingVerified\": false,\n  \"limitations\": [\n    \"Signature authenticates the packet under the supplied key; it does not prove factual truth or current authorization.\",\n    \"Expected binding checks compare only the supplied expected values with signed receipt fields; they do not establish correctness of omitted expectations.\"\n  ]\n}\n"
+      }
+    },
+    {
+      "id": "divergence-invalid-utf8",
+      "description": "D2: invalid UTF-8 byte inside a string",
+      "input": null,
+      "key": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"UGHq0z-60CiNR6g4wtkXgIf-ptAWHjRJogwqjNbcp70\",\"y\":\"43DLXRxXBsU6n2wHtElhboE52lhWMv5M6QsDIVVtzYE\"}",
+      "checkpoint": null,
+      "argv": [
+        "@input",
+        "@key"
+      ],
+      "inputBase64": "eyJwYXlsb2FkIjp7InMiOiJ4/3kifSwic2lnbmF0dXJlIjoiSnhvNlJocVBHbmJ6SmF2OEh5cl9VbDJRSmpRSkl6cFhGZ2NrVGFJOGc3LWpYZzlib2RCakpIUUJpc1pTenNxbVZsQ3FVYml0U29OT3Jmcmp5YWIwVlEiLCJrZXlJZCI6IjBmODIxZGQzOTMwYWNjODBlOGU1Y2UzZWJjNTk5MjU1ZDBhZmZiODIzOWVkYWUzYWY5MTAzMWEzNmVhMzU2OWEifQ==",
+      "divergence": "D2",
+      "expect": {
+        "status": 1,
+        "error": null
+      },
+      "reference": {
+        "status": 0,
+        "stdout": "{\n  \"valid\": true,\n  \"type\": \"signed-packet\",\n  \"keyId\": \"0f821dd3930acc80e8e5ce3ebc599255d0affb8239edae3af91031a36ea3569a\",\n  \"bindingVerified\": false,\n  \"limitations\": [\n    \"Signature authenticates the packet under the supplied key; it does not prove factual truth or current authorization.\",\n    \"Expected binding checks compare only the supplied expected values with signed receipt fields; they do not establish correctness of omitted expectations.\"\n  ]\n}\n"
+      }
+    }
+  ]
+}

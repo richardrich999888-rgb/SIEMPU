@@ -300,10 +300,8 @@ export async function enrollUser(
   admin,
   { username, unitId, role = 'operator', missionIds = ['DEMO-MISSION'] },
 ) {
-  const password = 'Demo-' + b64(randomBytes(18));
   const result = await admin.admin('POST', '/api/admin/users', {
     username,
-    password,
     unitId,
     role,
     missionIds,
@@ -312,7 +310,8 @@ export async function enrollUser(
     throw new Error('User enrollment failed: ' + JSON.stringify(result));
   const profile = {
     username,
-    password,
+    // Authority-generated, returned once (never part of a hashed request body).
+    password: result.body.initialPassword,
     userId: result.body.user.id,
     unitId,
     totpSecret: result.body.totpSecret,

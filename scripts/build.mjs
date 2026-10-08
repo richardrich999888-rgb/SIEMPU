@@ -5,20 +5,31 @@ import { createHash } from 'node:crypto';
 const roots = ['apps', 'services', 'packages', 'scripts', 'database'];
 const excludedScripts = new Set([
   'scripts/demo.mjs',
+  'scripts/trust-before-release.mjs',
+  'scripts/demo-document-exchange.mjs',
+  'scripts/demo-monitoring-recovery.mjs',
+  'scripts/lib/demo-report.mjs',
+  'scripts/hpsc-rehearsal.mjs',
+  'scripts/hpsc-budget.mjs',
   'scripts/benchmark.mjs',
   'scripts/container-acceptance.mjs',
   'scripts/release.mjs',
   'scripts/sarif-gate.mjs',
   'scripts/audit-claims.mjs',
   'scripts/validate.mjs',
+  'scripts/browser-e2e.mjs',
   'apps/unit-client/browser-check.mjs',
 ]);
+// Laboratory-only endpoint PQC code and any nested npm tree never enter dist/ or the
+// container image (same rule as RELEASE_EXCLUDED_PATHS in packages/release/offline.mjs).
+const excludedDirectories = new Set([join('packages', 'pqc-lab')]);
 const files = ['package.json', 'package-lock.json', 'LICENSE', 'README.md'];
 async function collect(dir) {
   for (const e of await readdir(dir, { withFileTypes: true })) {
     const p = join(dir, e.name);
-    if (e.isDirectory()) await collect(p);
-    else if (
+    if (e.isDirectory()) {
+      if (!excludedDirectories.has(p) && e.name !== 'node_modules') await collect(p);
+    } else if (
       e.isFile() &&
       /\.(mjs|js|css|html|svg|sql|json)$/.test(p) &&
       !p.endsWith('.test.mjs') &&

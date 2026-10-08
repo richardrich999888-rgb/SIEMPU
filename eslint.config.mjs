@@ -1,6 +1,15 @@
 import globals from 'globals';
 export default [
-  { ignores: ['node_modules/**', '.data/**', 'dist/**', 'artifacts/**', 'coverage/**'] },
+  {
+    ignores: [
+      'node_modules/**',
+      '.data/**',
+      'dist/**',
+      'artifacts/**',
+      'coverage/**',
+      'native/target/**',
+    ],
+  },
   {
     files: ['**/*.mjs', '**/*.js'],
     languageOptions: {

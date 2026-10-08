@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { evaluateSarif, gateDirectory } from './sarif-gate.mjs';
@@ -231,4 +231,25 @@ test('malformed levels, tags and location references cannot turn findings into p
     mutate(document.runs[0]);
     assert.throws(() => evaluateSarif(document));
   }
+});
+
+test('SAST rejects unsuccessful analysis and records parser failures as blocking evidence', async (t) => {
+  const failed = report('1');
+  failed.runs[0].results = [];
+  failed.runs[0].invocations = [{ executionSuccessful: false }];
+  assert.throws(() => evaluateSarif(failed), /unsuccessful invocation/);
+  for (const malformed of [{}, [null], [{ executionSuccessful: 'false' }]]) {
+    failed.runs[0].invocations = malformed;
+    assert.throws(() => evaluateSarif(failed), /Invalid SARIF invocations/);
+  }
+  failed.runs[0].invocations = [{ executionSuccessful: true }];
+  assert.equal(evaluateSarif(failed).status, 'PASS');
+  const dir = await mkdtemp(join(tmpdir(), 'siepmu-sarif-parse-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  await writeFile(join(dir, 'javascript.sarif'), '{broken');
+  const summary = await gateDirectory(dir);
+  assert.equal(summary.status, 'FAIL');
+  assert.equal(summary.reports[0].status, 'FAIL');
+  assert.ok(summary.reports[0].error);
+  assert.deepEqual(JSON.parse(await readFile(join(dir, 'gate.json'), 'utf8')), summary);
 });

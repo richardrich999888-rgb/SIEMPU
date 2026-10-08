@@ -1,5 +1,9 @@
 # Ten-minute HPSC demonstration story
 
+> **13 October 2026 presentation:** use [HPSC_DECK.md](HPSC_DECK.md) (12 slides) and
+> [demo-runbook.md](demo-runbook.md) (four demonstrations). This ten-minute story is kept as a
+> rehearsal checklist. Its rules on claims and budgets still apply.
+
 Use synthetic text and files. Freeze the demonstrated commit, deployment configuration, trust-root fingerprint and test-evidence bundle before rehearsal. Read `CLAIMS_REGISTER.yaml` first. A live result supports only its recorded environment and tested scenario.
 
 ## Presentation allocation

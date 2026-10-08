@@ -1,8 +1,17 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
+import { isTextPath, textIntegrityViolation } from './text-integrity.mjs';
 
-const excluded = new Set(['.git', '.data', 'node_modules', 'dist', 'artifacts', 'coverage']);
+const excluded = new Set([
+  '.git',
+  '.data',
+  'node_modules',
+  'dist',
+  'artifacts',
+  'coverage',
+  'target',
+]);
 async function walk(dir) {
   const files = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
@@ -14,6 +23,15 @@ async function walk(dir) {
   return files;
 }
 const files = await walk('.');
+let textFiles = 0;
+for (const file of files.filter(isTextPath)) {
+  const violation = textIntegrityViolation(await readFile(file));
+  if (violation) {
+    console.error(`Corrupted source text (${violation}): ${file}`);
+    process.exitCode = 1;
+  }
+  textFiles++;
+}
 let count = 0;
 for (const file of files.filter((p) => /\.(mjs|js)$/.test(p))) {
   const result = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
@@ -37,5 +55,5 @@ if (Object.keys(manifest.dependencies || {}).length) {
   process.exitCode = 1;
 }
 console.log(
-  `Syntax and JSON validation: ${count} JavaScript modules checked. This is not a type checker or SAST.`,
+  `Text integrity: ${textFiles} files. Syntax and JSON validation: ${count} JavaScript modules checked. This is not a type checker or SAST.`,
 );

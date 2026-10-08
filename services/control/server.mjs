@@ -1,12 +1,24 @@
-import { createServer } from 'node:http';
+import { createTelemetryExporter } from '../monitoring/exporter.mjs';
+import { createRecoveryGuard, remoteCustodyExchange } from '../evidence/custody.mjs';
+import {
+  createTransportServer,
+  serverTLS,
+  clientTLS,
+  secureProfile,
+} from '../../packages/transport/tls.mjs';
 import { readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { Authority, AppError } from './core.mjs';
 import { createRelayClient } from '../relay/client.mjs';
-export function createControlServer({ authority, allowedOrigin }) {
-  const server = createServer(async (req, res) => {
+export function createControlServer({
+  authority,
+  allowedOrigin,
+  tls = serverTLS('control'),
+  telemetry,
+}) {
+  const server = createTransportServer(async (req, res) => {
     const started = performance.now(),
       requestId = randomUUID();
     res.setHeader('X-Request-Id', requestId);
@@ -50,7 +62,7 @@ export function createControlServer({ authority, allowedOrigin }) {
       status = result.status;
       code = status < 400 ? 'OK' : result.body.code;
       res.writeHead(status);
-      res.end(JSON.stringify(result.body));
+      res.end(JSON.stringify(status >= 400 ? { ...result.body, requestId } : result.body));
     } catch (e) {
       status =
         e instanceof AppError ? e.status : e.code?.startsWith('SQLITE_CONSTRAINT') ? 409 : 500;
@@ -67,7 +79,7 @@ export function createControlServer({ authority, allowedOrigin }) {
         );
       res.writeHead(status);
       res.end(
-        JSON.stringify({ error: code, code, requestId, ...(e instanceof AppError ? e.extra : {}) }),
+        JSON.stringify({ error: code, code, ...(e instanceof AppError ? e.extra : {}), requestId }),
       );
     } finally {
       try {
@@ -77,6 +89,10 @@ export function createControlServer({ authority, allowedOrigin }) {
           authority.tx(() => authority.alert('REQUEST_DENIED', null, code));
         }
       } catch {}
+      if (telemetry && !(await telemetry.deliver(authority)))
+        console.error(
+          JSON.stringify({ service: 'control', event: 'monitoring_degraded', requestId }),
+        );
       console.log(
         JSON.stringify({
           timestamp: Date.now(),
@@ -89,12 +105,23 @@ export function createControlServer({ authority, allowedOrigin }) {
         }),
       );
     }
-  });
+  }, tls);
   server.requestTimeout = 15000;
   server.headersTimeout = 10000;
   return server;
 }
+/**
+ * Parses SIEPMU_ALLOW_PQC_LAB. Only omission (disabled) or exactly "1" (enabled) is accepted;
+ * any other value fails closed at start-up rather than being interpreted.
+ * @param {string | undefined} value
+ */
+export function parsePqcLabFlag(value) {
+  if (value === undefined) return false;
+  if (value === '1') return true;
+  throw new Error('SIEPMU_ALLOW_PQC_LAB accepts only explicit 1 or omission');
+}
 export function startControl() {
+  const allowPqcLab = parsePqcLabFlag(process.env.SIEPMU_ALLOW_PQC_LAB);
   const dir = resolve(process.env.SIEPMU_DATA_DIR ?? '.data');
   for (const f of ['server-key.json', 'master.key', 'relay.secret']) {
     if ((statSync(resolve(dir, f)).mode & 0o077) !== 0)
@@ -104,23 +131,39 @@ export function startControl() {
     baseUrl:
       process.env.SIEPMU_RELAY_URL ?? 'http://127.0.0.1:' + (process.env.SIEPMU_RELAY_PORT ?? 8082),
     secretFile: resolve(dir, 'relay.secret'),
+    tls: clientTLS('control'),
   });
   const authority = new Authority({
     dbPath: resolve(dir, 'control.sqlite'),
     signingKey: JSON.parse(readFileSync(resolve(dir, 'server-key.json'), 'utf8')),
     masterKey: readFileSync(resolve(dir, 'master.key')),
     relay,
+    allowPqcLab,
+    recoveryGuard: secureProfile()
+      ? createRecoveryGuard({
+          custodianKey: JSON.parse(readFileSync(process.env.SIEPMU_CUSTODIAN_PUBLIC_KEY, 'utf8')),
+          exchange: remoteCustodyExchange(process.env.SIEPMU_CUSTODY_URL, clientTLS('control')),
+        })
+      : undefined,
   });
   const host = process.env.SIEPMU_CONTROL_HOST ?? '127.0.0.1',
     port = Number(process.env.SIEPMU_CONTROL_PORT ?? 8081);
   if (
     !['127.0.0.1', '::1', 'localhost'].includes(host) &&
-    process.env.SIEPMU_ALLOW_REMOTE_HTTP !== '1'
+    process.env.SIEPMU_ALLOW_REMOTE_HTTP !== '1' &&
+    !secureProfile()
   )
     throw new Error('Remote HTTP requires explicit TLS ingress configuration');
   const origin =
     process.env.SIEPMU_PUBLIC_ORIGIN ?? 'http://127.0.0.1:' + (process.env.SIEPMU_WEB_PORT ?? 8080);
-  const server = createControlServer({ authority, allowedOrigin: origin });
+  const telemetry = process.env.SIEPMU_COLLECTOR_URL
+    ? createTelemetryExporter({
+        url: process.env.SIEPMU_COLLECTOR_URL,
+        tls: clientTLS('control'),
+        collectorKey: JSON.parse(readFileSync(process.env.SIEPMU_COLLECTOR_PUBLIC_KEY, 'utf8')),
+      })
+    : undefined;
+  const server = createControlServer({ authority, allowedOrigin: origin, telemetry });
   server.listen(port, host, () =>
     console.log(JSON.stringify({ service: 'control', event: 'listening', host, port })),
   );

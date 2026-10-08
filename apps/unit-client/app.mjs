@@ -824,6 +824,16 @@ function renderExchange() {
     { 'aria-label': 'Mission' },
     missions.map((m) => el('option', { value: m }, m)),
   );
+  const priority = el(
+    'select',
+    { 'aria-label': 'Message priority' },
+    ['ROUTINE', 'PRIORITY', 'IMMEDIATE', 'FLASH'].map((p) => el('option', { value: p }, p)),
+  );
+  const domain = el(
+    'select',
+    { 'aria-label': 'Message domain' },
+    ['GENERAL', 'INTEL'].map((d) => el('option', { value: d }, d)),
+  );
   const text = el('textarea', {
     name: 'message',
     placeholder: 'Synthetic mission information…',
@@ -867,7 +877,7 @@ function renderExchange() {
           payload = createTextPayload(text.value);
         }
         const context = {
-          schemaVersion: 1,
+          schemaVersion: 2,
           objectId: crypto.randomUUID(),
           senderUserId: state.user.id,
           senderDeviceId: state.device.id,
@@ -878,6 +888,8 @@ function renderExchange() {
           recipientKeyId: await keyId(target.encryptionPublicKey),
           missionId: mission.value,
           classification: 'DEMO',
+          messagePriority: priority.value,
+          messageDomain: domain.value,
           action: 'deliver',
           createdAt: now,
           expiresAt: Math.min(now + 3600000, grantPayload.expiresAt),
@@ -917,6 +929,8 @@ function renderExchange() {
     },
     field('Recipient', recipient),
     field('Mission', mission),
+    field('Priority (synthetic data only)', priority),
+    field('Message domain', domain),
     field('Message', text),
     field('Or attach one file', file),
     hint(
@@ -1312,13 +1326,15 @@ async function initialize() {
     if (state.pinFingerprint) localStorage.setItem(PIN_KEY, JSON.stringify(state.pinFingerprint));
   } catch {
     state.pinFingerprint = null;
-    localStorage.removeItem(PIN_KEY);
+    try {
+      localStorage.removeItem(PIN_KEY);
+    } catch {
+      // Blocked storage must not prevent an explicit trust decision in this tab.
+    }
   }
   let received;
-  let fresh = false;
   try {
     received = await api('/api/meta');
-    fresh = true;
   } catch (error) {
     try {
       received = JSON.parse(localStorage.getItem(META_KEY) || 'null');
@@ -1330,7 +1346,12 @@ async function initialize() {
   try {
     state.meta = await publicMetadata(received);
     state.pin = state.meta.serverPublicKey;
-    if (fresh) localStorage.setItem(META_KEY, JSON.stringify(state.meta));
+    try {
+      // Also replace a legacy offline cache with the validated public allowlist.
+      localStorage.setItem(META_KEY, JSON.stringify(state.meta));
+    } catch {
+      notify('Public metadata could not be cached; offline reload may be unavailable.', true);
+    }
   } catch {
     state.meta = null;
     state.pin = null;

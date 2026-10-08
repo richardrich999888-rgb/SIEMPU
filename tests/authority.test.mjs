@@ -34,6 +34,22 @@ const denied = (result) =>
 const issuanceCount = (fixture) =>
   Number(fixture.authority.db.prepare('SELECT COUNT(*) AS n FROM issuances').get().n);
 
+const WORKER_EXIT_GRACE_MS = 10000;
+/** Waits for a forked worker to exit naturally; SIGKILL only after the grace period. */
+async function stopWorker(child) {
+  if (child.exitCode !== null || child.signalCode !== null) return;
+  const exited = new Promise((resolve) => child.once('exit', resolve));
+  let timer;
+  const timedOut = new Promise((resolve) => {
+    timer = setTimeout(() => resolve('timeout'), WORKER_EXIT_GRACE_MS);
+  });
+  if ((await Promise.race([exited, timedOut])) === 'timeout') {
+    child.kill('SIGKILL');
+    await exited;
+  }
+  clearTimeout(timer);
+}
+
 test('endpoint encryption interoperates; relay/generic lists never require plaintext or wrapped keys', async (t) => {
   const fixture = await coreFixture(t);
   const message = 'SYNTHETIC-secret-content-for-independent-acceptance';
@@ -536,7 +552,10 @@ function policyWorker(t, fixture, delay = 0) {
     events.push(event);
     for (const waiter of [...waiters]) waiter(event);
   });
-  t.after(() => worker.kill('SIGKILL'));
+  // The worker exits by itself after reporting; that exit is when V8 writes its coverage
+  // file. An unconditional SIGKILL here raced that write and left truncated coverage JSON
+  // (hosted run 37731906364). Wait for the natural exit; force-kill only a stuck worker.
+  t.after(() => stopWorker(worker));
   const wait = (event) =>
     new Promise((resolve, reject) => {
       const present = events.find((value) => value.event === event);

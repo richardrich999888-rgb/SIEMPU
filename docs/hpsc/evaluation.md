@@ -1,5 +1,10 @@
 # Hostile evaluator record
 
+> **Historical record.** This internal review was made on an earlier source state (three-process
+> stack, Node 24.19.0) and is kept unchanged as a dated record. For current evidence see
+> [FROZEN_BASELINE.md](FROZEN_BASELINE.md), [PS69_COMPLIANCE.md](PS69_COMPLIANCE.md) and
+> [../trl/TRL_ASSESSMENT.md](../trl/TRL_ASSESSMENT.md). Its 0–5 review levels are not TRL numbers.
+
 This is an **internal builder-side review**, not an independent IAF evaluation. It uses source inspection, the recorded local test output, real-browser result and measured synthetic benchmark. It does not assign an IAF selection probability.
 
 ## Review basis

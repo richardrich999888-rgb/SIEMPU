@@ -1,5 +1,7 @@
 # Engineering delivery record
 
+Historical delivery report for the implementation merged as `49774e2`. Counts and run references below belong to that source history. See [implementation status](IMPLEMENTATION_STATUS.md) for the integrated foundation candidate.
+
 This is a working **synthetic-data prototype**, with completed local engineering validation. It is not an operationally accredited defence system. [Both-brief execution checklist](EXECUTION_CHECKLIST.md) maps all 90 numbered sections to implementation, tests and remaining scope.
 
 ## Implemented and executed

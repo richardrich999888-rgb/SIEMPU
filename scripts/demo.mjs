@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { rm, mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { httpFixture } from '../tests/helpers/fixture.mjs';
-import { createObject, decryptObject, enrollUser, verify } from '../tests/helpers/client.mjs';
+import { createObject, decryptObject, enrollUser } from '../tests/helpers/client.mjs';
+import { verifyReleaseReceipt } from '../apps/verifier/verify.mjs';
 
 const results = [];
 const record = (step, outcome, evidence = {}) => {
@@ -63,6 +64,7 @@ try {
   const allowed = await alice.prepare(pendingEligible.envelope.objectId);
   assert.equal(allowed.body.object.state, 'READY');
   control = await alice.ok('GET', '/api/control');
+  const selectiveEpoch = control.payload.epoch;
   const selective = await colleague.client.claim(
     pendingEligible.envelope.objectId,
     control.payload.epoch,
@@ -100,12 +102,18 @@ try {
     status: stale.status,
   });
   const receipt = selective.body.receipt;
-  assert.ok(verify(receipt.payload, receipt.signature, f.provisioned.serverPublicKey));
-  record('Independent native-crypto verification of detached decision receipt', 'PASS');
-
-  const evidence = await admin.ok('GET', '/api/evidence/export');
   const destination = resolve(process.env.SIEPMU_EVIDENCE_DIR || 'artifacts/demo');
   await mkdir(destination, { recursive: true });
+  const verified = await verifyReleaseReceipt(receipt, f.provisioned.serverPublicKey, {
+    objectDigest: pendingEligible.envelope.ciphertextHash,
+    objectId: pendingEligible.envelope.objectId,
+    epoch: selectiveEpoch,
+    replayStore: resolve(destination, 'verified-receipts.sqlite'),
+  });
+  assert.equal(verified.strictReleaseVerified, true);
+  record('Independent strict receipt verification with durable replay rejection', 'PASS');
+
+  const evidence = await admin.ok('GET', '/api/evidence/export');
   await writeFile(resolve(destination, 'receipt.json'), JSON.stringify(receipt, null, 2));
   await writeFile(
     resolve(destination, 'public-key.json'),

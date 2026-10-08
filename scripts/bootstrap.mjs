@@ -16,7 +16,7 @@ function keypair() {
   const jwk = privateKey.export({ format: 'jwk' });
   return { publicKey: publicJwk(jwk), privateKey: { ...publicJwk(jwk), d: jwk.d } };
 }
-export async function initDemo(dir) {
+export async function initDemo(dir, { includeAdapter = false } = {}) {
   dir = resolve(dir);
   if (existsSync(resolve(dir, 'control.sqlite')))
     throw new Error('Refusing to overwrite existing database; use a new demo directory');
@@ -46,6 +46,7 @@ export async function initDemo(dir) {
       ['bob', 'B', 'operator'],
       ['bravo', 'B', 'operator'],
       ['eve', 'C', 'viewer'],
+      ...(includeAdapter ? [['adapter', 'A', 'operator']] : []),
     ]) {
       const id = randomUUID(),
         deviceId = randomUUID(),

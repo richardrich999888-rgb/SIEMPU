@@ -1,0 +1,26 @@
+[package]
+name = "siepmu-evidence-verify"
+version = "0.1.0"
+description = "Independent Rust verifier for SIEPMU signed evidence (SIEPMU-EVIDENCE-v1, general mode)"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "siepmu-evidence-verify"
+path = "src/main.rs"
+
+[dependencies]
+# Exact pins. Selection rationale and assurance limits: native/DEPENDENCIES.md.
+p256 = { version = "=0.13.2", default-features = false, features = ["ecdsa"] }
+sha2 = { version = "=0.10.8", default-features = false }
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"

@@ -1,5 +1,18 @@
 # Evidence index
 
+## Current evidence (frozen HPSC build `0e8d1b9`)
+
+| Evidence                       | Reproduction                                                                | Result on the stated revision                                                                                |
+| ------------------------------ | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Native gates, coverage, claims | `npm run validate`                                                          | 249/249 tests, 97.5 % lines (local)                                                                          |
+| Hosted CI and security         | GitHub Actions CI 37761613000/37761620422, Security 37761613051/37761620429 | All jobs PASS, including native, rust-native, pqc-lab, browser, container, testbed, CodeQL gate, secret-scan |
+| Four demonstrations            | `npm run demo:hpsc` (index in `artifacts/hpsc-rehearsal/`)                  | 9/9, 14/14, 10/10, 11/11 steps                                                                               |
+| Rust verifier                  | `npm run build:native && npm run test:native`                               | Differential check 3/3; ACCEPT genuine / REJECT tampered in Demos 3 and 4                                    |
+| Signed offline bundle          | `scripts/offline-release.mjs` build and install                             | 116 files; tampered copy refused ([FROZEN_BASELINE.md](FROZEN_BASELINE.md))                                  |
+| TRL self-assessment            | `tests/trl-matrix.test.mjs`                                                 | Provisional TRL 4 ([../trl/TRL_ASSESSMENT.md](../trl/TRL_ASSESSMENT.md))                                     |
+
+The sections below are **historical** records from earlier source revisions. They are kept unchanged.
+
 | Evidence                          | Reproduction / source                                                                                                                                                                                     | Scope                                                                                                         |
 | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | Native tests, coverage and claims | `npm run validate`; [CI-fixes native record](../testing/native-ci-fixes-validation.json); [earlier native record](../testing/native-validation.json); [earlier captured summary](node-test-snapshot.json) | Dated records below passed 78 and 72 tests respectively; neither proves a later source revision               |
@@ -9,7 +22,7 @@
 | Policy race / crash               | `tests/authority.test.mjs`, independent helper processes                                                                                                                                                  | Tested commit orders/fault windows, not every possible schedule                                               |
 | Restore/migration                 | `tests/recovery.test.mjs`                                                                                                                                                                                 | Synthetic encrypted recovery and v1/v2 upgrade                                                                |
 | Performance                       | [captured JSON](performance-results.json), [scope](../performance.md), `scripts/benchmark.mjs`                                                                                                            | Dated sequential local 30 × 4 KiB profile; later non-benchmark validation does not refresh these measurements |
-| Supply chain / release            | `.github/workflows/quality.yml`, `.github/workflows/release.yml`, `scripts/sbom.mjs`                                                                                                                      | Configuration is not hosted execution proof; inspect Actions for the exact commit                             |
+| Supply chain / release            | `.github/workflows/ci.yml`, `.github/workflows/security.yml`, `scripts/sbom.mjs`; inactive packaging reference under `deploy/disabled-workflows/`                                                         | Configuration is not hosted execution proof; inspect Actions for the exact commit                             |
 | Claims/remaining work             | [claims](../claims.md), [implementation status](../IMPLEMENTATION_STATUS.md), [complete brief checklist](../EXECUTION_CHECKLIST.md)                                                                       | No external approval implied                                                                                  |
 
 ## Archived native execution records
