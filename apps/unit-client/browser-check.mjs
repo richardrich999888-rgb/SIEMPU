@@ -446,9 +446,15 @@ try {
   await setPolicy(admin.page, false);
   await alice.page.getByRole('button', { name: 'Reconnect & validate', exact: true }).click();
   await alice.page.locator('.badge.held').first().waitFor();
+  // The hold is explained in operator terms with the authority code preserved (ADR-013).
+  const notice = alice.page.locator('.decision', { hasText: 'Code: POLICY_DENIED' }).first();
+  await notice.waitFor();
+  assert.match(await notice.innerText(), /No current exchange policy/);
+  assert.equal(await notice.getAttribute('role'), 'note');
   results.push(
     'Durable local queue and current-policy hold after simulated disconnect/reconnection',
   );
+  results.push('Held object shows an operator explanation with the authority code (POLICY_DENIED)');
   await setPolicy(admin.page, true);
   await alice.page
     .getByRole('button', { name: 'Synchronize eligible objects', exact: true })

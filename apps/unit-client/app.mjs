@@ -17,12 +17,31 @@ import { element as el, field, button, badge, hint, panel, download, safeName } 
 import { renderAdmin } from '/apps/admin-console/admin.mjs';
 import { commitEncryptedVaultLocked } from './vault-store.mjs';
 import { validateDeviceChallenge, validateReleaseScope } from './challenge.mjs';
+import { explainDecision } from './decisions.mjs';
+import { can, experienceFor } from './capabilities.mjs';
 import {
   publicAuthorityKey,
   authorityFingerprint,
   publicMetadata,
   readAuthorityPin,
 } from './trust.mjs';
+
+/**
+ * Renders an authority decision code as an operator explanation (ADR-013). Anything that is not
+ * shaped like an authority code (for example a local network error) is shown verbatim.
+ * @param {string} reason
+ */
+function reasonNotice(reason) {
+  if (!/^[A-Z][A-Z0-9_]{0,63}$/.test(reason)) return el('p', { className: 'warning' }, reason);
+  const d = explainDecision(reason);
+  return el(
+    'div',
+    { className: `decision ${d.severity}`, role: 'note' },
+    el('strong', {}, d.title),
+    el('p', {}, d.explanation),
+    el('p', { className: 'hint' }, `${d.guidance} Code: ${d.code}`),
+  );
+}
 
 const VAULT_PREFIX = 'siepmu.vault.v1.';
 const PIN_KEY = 'siepmu.authority.pin.v1';
@@ -212,7 +231,7 @@ async function refreshAuthority() {
     state.vault.control = controlPacket;
     state.vault.directory = directory;
     state.vault.clockFloor = Math.max(state.vault.clockFloor || 0, Date.now(), control.issuedAt);
-    if (state.device && state.user.role === 'operator') {
+    if (state.device && can(state.user, 'exchange.send')) {
       const grant = await api('/api/grants', 'POST', { proof: await proof('grant') });
       await verified(grant, 'Creation grant');
       state.vault.grant = grant;
@@ -255,7 +274,8 @@ function renderNav() {
     ['objects', 'Objects & receipts'],
     ['vault', 'Endpoint vault'],
   ];
-  if (!state.localOnly && ['admin', 'auditor'].includes(state.user?.role))
+  const experience = experienceFor(state.user);
+  if (!state.localOnly && (experience === 'administrator' || experience === 'security-evaluation'))
     items.push(['admin', 'Administration']);
   document.querySelector('#navigation').replaceChildren(
     ...items.map(([view, label]) =>
@@ -845,7 +865,7 @@ function renderExchange() {
     {
       className: 'form-stack',
       onSubmit: action(async () => {
-        if (state.user.role !== 'operator')
+        if (!can(state.user, 'exchange.send'))
           throw new Error('Only an operator may originate an information object.');
         const target = devices.find((d) => d.id === recipient.value);
         const targetUser = users.find((u) => u.id === target?.userId);
@@ -938,7 +958,7 @@ function renderExchange() {
     ),
     el(
       'button',
-      { type: 'submit', disabled: state.user.role !== 'operator' },
+      { type: 'submit', disabled: !can(state.user, 'exchange.send') },
       state.offline || state.localOnly || !state.online
         ? 'Seal into offline queue'
         : 'Seal & submit securely',
@@ -1079,7 +1099,7 @@ function outboxList() {
           { className: 'object-meta' },
           `Mission ${env.missionId} · creation epoch ${env.creationGrant.payload.epoch ?? env.creationGrant.payload.creationEpoch ?? '—'}`,
         ),
-        item.reason ? el('p', { className: 'warning' }, item.reason) : null,
+        item.reason ? reasonNotice(item.reason) : null,
         item.receipt
           ? button(
               'Export signed receipt',
@@ -1226,9 +1246,7 @@ function renderObjects() {
         { className: 'object-meta' },
         `Mission ${object.missionId || '—'} · ${recipient ? 'Incoming to this device' : 'Outgoing or another enrolled device'}`,
       ),
-      object.reason || object.holdReason
-        ? el('p', { className: 'warning' }, object.reason || object.holdReason)
-        : null,
+      object.reason || object.holdReason ? reasonNotice(object.reason || object.holdReason) : null,
       el(
         'div',
         { className: 'form-actions' },
@@ -1250,7 +1268,9 @@ function renderObjects() {
             await verified(result.receipt, 'Preparation receipt');
             await refreshAuthority();
             notify(
-              `${result.object.state}: ${result.object.reason || 'Current authority evaluated.'}`,
+              result.object.reason
+                ? `${result.object.state}: ${explainDecision(result.object.reason).title} (${result.object.reason})`
+                : `${result.object.state}: Current authority evaluated.`,
             );
             await render();
           }),

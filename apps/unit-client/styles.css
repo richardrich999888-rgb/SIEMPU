@@ -444,6 +444,24 @@ textarea:focus {
   color: #d9c8a9;
   font-size: 12px;
 }
+/* Authority decision explanations (apps/unit-client/decisions.mjs). Severity is carried by the
+   border colour and by the text itself, never by colour alone. */
+.decision {
+  border-left: 3px solid var(--gold);
+  padding: 11px 14px;
+  background: #efc37908;
+  color: #d9c8a9;
+  font-size: 12px;
+}
+.decision.info {
+  border-left-color: var(--accent);
+}
+.decision.blocked {
+  border-left-color: var(--danger);
+}
+.decision p {
+  margin: 4px 0 0;
+}
 .success-text {
   color: var(--accent);
 }

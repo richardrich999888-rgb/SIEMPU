@@ -16,5 +16,6 @@ The accepted implementation contract is [protocols/IMPLEMENTATION_CONTRACT.md](.
 | [010](ADR-010-v3-laboratory-release-path.md)    | Laboratory schema-v3 objects use the normal release transaction     |
 | [011](ADR-011-hpke-pq-deferred.md)              | Wrap v2 kept for the laboratory; HPKE base mode planned as wrap v3  |
 | [012](ADR-012-rust-reference-components.md)     | Rust only via specified, differentially tested reference components |
+| [013](ADR-013-typescript-first-ui.md)           | TypeScript-checked UI modules; no framework or build step for now   |
 
 Changes must state the reason, trust-boundary effect, migration impact and regression evidence. Never change a cryptographic or evidence encoding silently under the same protocol version.

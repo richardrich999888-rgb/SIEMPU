@@ -1,10 +1,86 @@
 # Current engineering state (single authoritative handover file)
 
-**Review date:** 2026-10-08. **Branch:** `claude/siepmu-engineering-recovery-3nwgc8`.
+**Review date:** 2026-10-08. **Branch:** `claude/siepmu-trl56-recovery-9o6qet` (stacked on PR #17's
+branch `claude/siepmu-engineering-recovery-3nwgc8` at `e3174fe`; not merged into `main`).
 Update this file from executed results whenever major work completes, and before ending a session.
 Never copy a result forward to a new SHA.
 
-## Baseline inspected
+## Current head and hosted evidence
+
+| SHA       | Content                                                    | Hosted result                                                                                                                                                       |
+| --------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `4af847b` | Verifier member-set fix; Rust reference verifier + vectors | CI 37756819771 PASS (6/6 jobs incl. rust-native); Security 37756819737 PASS                                                                                         |
+| `7ac38e3` | TLA+ model                                                 | CI 37760088995 cancelled by next push; Security 37760089191 PASS                                                                                                    |
+| `693327f` | Remove generated TLC traces                                | CI 37760213427 PASS; Security 37760213262 PASS                                                                                                                      |
+| `68c8cc2` | Alert-epoch monitoring fix; Core Mission Workflow          | CI 37761417035 PASS; Security 37761417036 PASS                                                                                                                      |
+| `7b01d1a` | Decision explanations, capability model (ADR-013)          | **CI 37762135413 PASS, all 7 jobs** (native, rust-native incl. mission workflow, formal, pqc-lab, browser, container, testbed 75/75); **Security 37762135250 PASS** |
+
+Run URLs: `https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/<id>`.
+
+PR #17's branch advanced concurrently to `0e8d1b9` (adapter negative cases ported, HPKE-PQ evaluation
+as ADR-011, Rust ADR renumbered to ADR-012, HPSC demos, the same telemetry fix). It is merged into this
+branch with a merge commit; the UI ADR is therefore ADR-013. Hosted results for the merge commit are
+on PR #18.
+
+## Local verification on `7b01d1a` content (Node 24.21.0, rustc 1.97.0, OpenJDK 21, 4 vCPU)
+
+- `npm run validate` PASS (230+ tests, about 97 % lines); `test:security` 123/123; `test:e2e` 3/3;
+  `test:engineering` 16/16; Trust Before Release PASS; `test:browser:isolated` PASS (with
+  `SIEPMU_CHROMIUM_PATH` because this container's Playwright browser build differs).
+- Rust: `cargo fmt --check`, `clippy -D warnings` (all deny, pedantic warn), 28 tests, `cargo audit
+--deny warnings` 0 advisories over 28 crates. `npm run test:native` 3/3 (400 mutations identical).
+- `npm run formal:check`: faithful 3,837,180 states / depth 29 no error; `nonatomic` violates
+  `IssueRequiresCurrentAuthority`; `unguarded` violates `AckedRevocationHolds`.
+- `npm run test:mission`: classical 18/18, pqc-lab 18/18, about 20 s.
+
+## Defects found and fixed in this session
+
+14. Node verifier member-set check joined names with `|`, so one member `keyId|payload` satisfied
+    two expected names (`f40bfbc`). Not exploitable (later checks rejected), now unambiguous.
+15. **Monitoring silently stopped after the first alert followed by any epoch change**: alert events
+    were stamped with the export-time epoch, the collector rejected every later batch with
+    `TELEMETRY_CONFLICT` (`32e1585`, migration 006). Present on the hosted-green baseline; found by
+    the mission workflow's positive controls. A concurrent session fixed the same defect on the PR #17
+    branch (`0e8d1b9`) with an equivalent migration 006; on merging that base into this branch its
+    migration text, collector and core changes were kept (one canonical 006 checksum), plus this
+    branch's legacy-schema backfill test.
+
+## Implemented in this session (details: ADR-012, ADR-013, formal/README.md, MISSION_WORKFLOW.md)
+
+- Rust reference evidence verifier (general mode) with language-neutral spec and generated vectors.
+  Measured: 1.6–5.7x lower peak RSS, 0.54–0.89x Node speed (pure-Rust P-256 verify is ~2x slower).
+- TLA+ model of release, revocation, custodian-guarded recovery; mutant configs prove non-vacuity.
+- 18-step Core Mission Workflow on the five-process secure stack, classical and lab PQC profiles.
+- UI: content-free decision explanations for every authority code; deny-by-default capabilities.
+
+## Not done / incomplete (honest list)
+
+- UI: `app.mjs` decomposition; dedicated security/evaluation view; accessibility audit with
+  assistive technology; task-based usability evaluation; Tauri evaluation (no hardware target).
+- Rust: strict release mode with replay store; HSM/TPM/PKCS#11 native custody (no hardware).
+- Deployment: no Kubernetes/K3s profile executed; PostgreSQL/multi-replica not attempted (would need
+  proof of equivalent release/revocation consistency; the TLA+ model is the starting point).
+- The v3 composition review package and HPKE-PQ evaluation (ADR-011, on the base branch) still
+  await independent cryptographic review.
+- Node reference still accepts spec divergences D1–D3 (lone surrogates, invalid UTF-8, duplicate
+  members); changing that is a deliberate contract change, not yet made.
+
+## External approvals (unchanged; not engineering deliverables)
+
+SAG grading, IAF identity/PKI and interface specifications, relevant-environment definition,
+independent security assessment, sponsor acceptance, hardware procurement, operational
+authorisation, formal TRL assignment.
+
+## Next executable tasks
+
+1. Security/evaluation view in the admin console using `capabilities.mjs` (evidence verification,
+   crypto inventory, recovery and monitoring health), with browser tests.
+2. Extend the TLA+ model to FLASH approval revocation and multi-recipient instances (bigger machine).
+3. Decide (ADR) whether the Node verifier should adopt D1–D3 rejection.
+
+## Record of the previous session (PR #17 branch, kept for provenance)
+
+### Baseline inspected
 
 | Ref                                         | SHA       | Meaning                                          |
 | ------------------------------------------- | --------- | ------------------------------------------------ |
@@ -19,7 +95,7 @@ Other open PRs: #13 (filed-application alignment, superseded by PR #15/#16 conte
 which violates `engines` `<25`; do not merge as-is.** #4 (TypeScript 7) and #6 (`@types/node` 26)
 need typecheck evaluation.
 
-## Hosted CI results (exact SHAs)
+### Hosted CI results (exact SHAs)
 
 | SHA                | Run                                                                                    | Result                                                                                                                                                |
 | ------------------ | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -44,7 +120,7 @@ Resolved: the testbed failed exactly one netem profile (15 of 75) here and on PR
 N8 targeted the interface named `eth1`, whose network depends on Docker's attachment order; it
 is now selected by address (`f7b94bd`, hosted 75/75).
 
-## Local verification (Node 24.21.0, Linux container)
+### Local verification (Node 24.21.0, Linux container)
 
 - Frozen code `0e8d1b9`: `npm run validate` PASS 249/249 tests, 97.5 % lines; `test:e2e` 3/3; `npm run demo` 9/9;
   Trust Before Release 14/14; Demo 3 10/10; Demo 4 11/11 (Rust verifier ACCEPT genuine / REJECT tampered).
@@ -52,7 +128,7 @@ is now selected by address (`f7b94bd`, hosted 75/75).
   differential check 3/3.
 - Signed offline bundle built and installed from a clean worktree at `0e8d1b9` (manifest SHA-256 `5fd7b76d…`).
 
-## Defects found and fixed on this branch
+### Defects found and fixed on this branch
 
 1. PR #16: five files published with invalid UTF-8 (all its CI failures). Gate added: `scripts/text-integrity.mjs`.
 2. PR #15 + merge: `crypto.mjs` import graph broke offline start after an interrupted service-worker upgrade (ADR-007).
@@ -78,14 +154,14 @@ is now selected by address (`f7b94bd`, hosted 75/75).
     collector rejected every batch as a conflict and monitoring stopped silently (present since PR #15).
     Migration 006 records the epoch at alert time (`0e8d1b9`); regression test reproduces the old failure.
 
-## Implemented (engineering axis) — see WORK_PACKAGE_REGISTER.md
+### Implemented (engineering axis) — see WORK_PACKAGE_REGISTER.md
 
 TLS 1.3/mTLS profiles, 10-zone netem testbed, checkpoint custody and recovery quarantine,
 monitoring collector, synthetic adapter, FLASH dual control (provisional policy), duty roles,
 signed offline release, classical provider port, provider engine with key lifecycle, PQC lab
 providers (ML-KEM-768/1024, ML-DSA-65 via OpenSSL; X-Wing via Noble) with NIST/author vectors.
 
-## Completed on this branch since reconciliation
+### Completed on this branch since reconciliation
 
 - Laboratory v3 PQC end-to-end path through the authority release transaction (ADR-010), with
   wrap v2 fixing the HKDF `info` size defect (defect 9 below).
@@ -95,26 +171,26 @@ providers (ML-KEM-768/1024, ML-DSA-65 via OpenSSL; X-Wing via Noble) with NIST/a
   spec, intended properties P1–P6, assessor questions R1–R7, pinned wrap v2 vector reproduced in
   Python), `HPKE_PQ_EVALUATION.md`, ADR-011 (HPKE base mode reserved as wrap v3, not adopted).
 
-## Incomplete
+### Incomplete
 
 - `research/defence-comparison/sources.json` D04–D15 must be re-retrieved.
 - Live re-verification of the iDEX PS-69 page (not reachable from the build environment).
 
-## Open security findings
+### Open security findings
 
 None open from hosted CodeQL on `a932cce`. Known design limits: `docs/limitations.md`.
 
-## External approvals (not in scope of engineering completion)
+### External approvals (not in scope of engineering completion)
 
 SAG grading, IAF identity/PKI and interface specifications, relevant-environment definition,
 independent security assessment, sponsor acceptance, hardware custody procurement, operational
 authorisation, formal TRL assignment.
 
-## Open pull request
+### Open pull request
 
 PR #17 (draft) from this branch to `main`. Not to be merged automatically.
 
-## HPSC package (13 October 2026)
+### HPSC package (13 October 2026)
 
 Index: `docs/hpsc/EXECUTIVE_SUMMARY.md`. Deck `HPSC_DECK.md`, demos `demo-runbook.md` (Demos 1-4 via
 `npm run demo`, `demo:trust-before-release`, `demo:documents`, `demo:monitoring`), Q&A
@@ -124,7 +200,7 @@ external approvals `EXTERNAL_APPROVALS.md`, claims C15-C22 in `CLAIMS_REGISTER.y
 Founder inputs still required: team, traction, IP numbers, matching contribution, quotations,
 PDB scope decision (₹1.62 cr estimate vs ₹3.0 cr for the full ₹1.5 cr grant), own release key.
 
-## Next executable tasks
+### Next executable tasks
 
 1. Founder: fill the FOUNDER fields, approve budget inputs, rebuild the offline bundle with the
    founder's release key, rehearse the four demonstrations on the presentation laptop.

@@ -16,3 +16,5 @@ dist/
 *.log
 .DS_Store
 native/target/
+formal/states/
+formal/*_TTrace_*

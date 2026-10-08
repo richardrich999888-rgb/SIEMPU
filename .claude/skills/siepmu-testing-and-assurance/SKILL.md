@@ -8,24 +8,31 @@ description: How to locate and run SIEPMU native, acceptance, browser, network, 
 ## Environment
 
 Node **24.21.0** (CI and container); engines `>=24.19.0 <25`. Python 3 for research validation.
-Chromium via Playwright for browser tests. `npm ci --ignore-scripts` first. Tests use
+Chromium via Playwright for browser tests (if the bundled browser build is missing, set
+`SIEPMU_CHROMIUM_PATH` to an installed Chromium). Rust 1.97.0 for `native/`; Java 11+ for TLC. `npm ci --ignore-scripts` first. Tests use
 `node:test` with `--test-concurrency=1` (many tests start real processes and ports).
 
 ## Commands (all verified in package.json / Makefile)
 
-| Purpose                                                                                               | Command                                                                                   |
-| ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| Full native gate (check, lint, typecheck, format, coverage tests, security, audit, build, sbom, demo) | `npm run validate` -> `artifacts/validation/report.json`                                  |
-| All tests with coverage thresholds (lines 85, branches 75, functions 85)                              | `npm run test:coverage`                                                                   |
-| Acceptance (vertical slice, authorized backlog, revocation)                                           | `npm run test:e2e`                                                                        |
-| Security regression subset                                                                            | `npm run test:security`                                                                   |
-| Engineering candidate (TLS, custody, FLASH, monitoring, offline release, providers)                   | `npm run test:engineering`                                                                |
-| Browser, isolated deployment                                                                          | `npm run test:browser:isolated` (`make browser`)                                          |
-| PQC lab (Noble X-Wing KATs, interop)                                                                  | `npm ci --prefix packages/pqc-lab --ignore-scripts && npm --prefix packages/pqc-lab test` |
-| Demo and benchmark                                                                                    | `node scripts/demo.mjs`, `node scripts/benchmark.mjs`                                     |
-| Claims audit                                                                                          | `npm run audit:claims`                                                                    |
-| Research record consistency                                                                           | `python3 research/trl56/validate.py --self-test`                                          |
-| Single file                                                                                           | `node --test --test-concurrency=1 tests/<file>.test.mjs`                                  |
+| Purpose                                                                                               | Command                                                                                                                                       |
+| ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Full native gate (check, lint, typecheck, format, coverage tests, security, audit, build, sbom, demo) | `npm run validate` -> `artifacts/validation/report.json`                                                                                      |
+| All tests with coverage thresholds (lines 85, branches 75, functions 85)                              | `npm run test:coverage`                                                                                                                       |
+| Acceptance (vertical slice, authorized backlog, revocation)                                           | `npm run test:e2e`                                                                                                                            |
+| Security regression subset                                                                            | `npm run test:security`                                                                                                                       |
+| Engineering candidate (TLS, custody, FLASH, monitoring, offline release, providers)                   | `npm run test:engineering`                                                                                                                    |
+| Browser, isolated deployment                                                                          | `npm run test:browser:isolated` (`make browser`)                                                                                              |
+| PQC lab (Noble X-Wing KATs, interop)                                                                  | `npm ci --prefix packages/pqc-lab --ignore-scripts && npm --prefix packages/pqc-lab test`                                                     |
+| Demo and benchmark                                                                                    | `node scripts/demo.mjs`, `node scripts/benchmark.mjs`                                                                                         |
+| Claims audit                                                                                          | `npm run audit:claims`                                                                                                                        |
+| Research record consistency                                                                           | `python3 research/trl56/validate.py --self-test`                                                                                              |
+| Single file                                                                                           | `node --test --test-concurrency=1 tests/<file>.test.mjs`                                                                                      |
+| Core Mission Workflow, 18 steps x {classical, pqc-lab} (needs Rust verifier)                          | `npm run build:native && npm run test:mission` -> `artifacts/mission-workflow/`                                                               |
+| Rust verifier: format, lint, unit + vector conformance, audit                                         | in `native/`: `cargo fmt --check`, `cargo clippy --all-targets --locked -- -D warnings`, `cargo test --locked`, `cargo audit --deny warnings` |
+| Node/Rust differential (real demo evidence + 400 seeded mutations)                                    | `npm run build:native && npm run test:native`                                                                                                 |
+| Language-neutral vectors: drift check / regenerate                                                    | `npm run vectors:check` / `npm run vectors:generate` (regeneration changes keys)                                                              |
+| TLA+ model check (faithful + 2 mutants)                                                               | `SIEPMU_TLA2TOOLS=/path/tla2tools.jar npm run formal:check` (jar SHA-256 in `ci.yml`)                                                         |
+| Node vs Rust verifier benchmark                                                                       | `node scripts/native-benchmark.mjs [--sizes 1000,10000] [--runs 3]`                                                                           |
 
 Text corruption gate: `scripts/text-integrity.mjs` (in `npm run check`). Failed gates print a
 bounded "failing tests" excerpt in the job log (`failureExcerpt` in `scripts/validate.mjs`).
@@ -44,6 +51,9 @@ bounded "failing tests" excerpt in the job log (`failureExcerpt` in `scripts/val
 | Network failure                      | `tests/network-failure/recovery.test.mjs`                                                                      |
 | Recovery, backup, migrations         | `tests/recovery.test.mjs`, `offline-release.test.mjs`                                                          |
 | Browser                              | `apps/unit-client/browser-check.mjs`, `tests/browser/shell-upgrade.mjs`                                        |
+| UI decisions and capabilities        | `apps/unit-client/decisions.test.mjs` (scans authority sources), `capabilities.test.mjs` (drift guard)         |
+| Rust verifier                        | `native/evidence-verify/src/*` unit tests, `tests/vectors.rs`, `tests/native/*.check.mjs` (not in `npm test`)  |
+| Formal model                         | `formal/` via `scripts/formal-check.mjs`                                                                       |
 
 Helpers: `tests/helpers/fixture.mjs` (`provision`, `coreFixture`, `httpFixture`, `startStack`) and
 `client.mjs` (`ApiClient`, `createObject`, `decryptObject`, transports).
@@ -51,7 +61,8 @@ Helpers: `tests/helpers/fixture.mjs` (`provision`, `coreFixture`, `httpFixture`,
 ## CI (`.github/workflows/`)
 
 `ci.yml`: `native` (research validation, `npm run validate`, e2e, engineering evidence),
-`pqc-lab`, `browser`, `container` (needs native), `testbed` (needs native; netem, 75 exchanges).
+`pqc-lab`, `browser`, `container` (needs native), `testbed` (needs native; netem, 75 exchanges),
+`rust-native` (Rust gates, audit, differential, benchmark, Core Mission Workflow), `formal` (TLC).
 `security.yml`: dependency/regression, secret scan, CodeQL with `scripts/sarif-gate.mjs`
 (blocks severity >= 7, error level, unrated security; no suppression).
 

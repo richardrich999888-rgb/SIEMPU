@@ -105,3 +105,23 @@ test('migration 006 backfills the epoch of alerts raised before it', async (t) =
   assert.ok(rows.length > 0);
   for (const row of rows) assert.ok(Number.isSafeInteger(row.epoch) && row.epoch >= 1);
 });
+
+test('alert epoch migration backfills legacy rows once with a fixed epoch', async () => {
+  const { DatabaseSync } = await import('node:sqlite');
+  const { readFileSync } = await import('node:fs');
+  const db = new DatabaseSync(':memory:');
+  try {
+    db.exec(`CREATE TABLE authority(id INTEGER PRIMARY KEY, epoch INTEGER NOT NULL);
+      INSERT INTO authority VALUES(1, 7);
+      CREATE TABLE alerts(id TEXT PRIMARY KEY, kind TEXT NOT NULL, actor_id TEXT,
+        timestamp INTEGER NOT NULL, reason TEXT NOT NULL);
+      INSERT INTO alerts VALUES('legacy', 'REQUEST_DENIED', NULL, 1, 'CREDENTIAL_REJECTED');`);
+    db.exec(
+      readFileSync(new URL('../database/migrations/006-alert-epoch.sql', import.meta.url), 'utf8'),
+    );
+    db.exec('UPDATE authority SET epoch=8');
+    assert.equal(db.prepare("SELECT epoch FROM alerts WHERE id='legacy'").get().epoch, 7);
+  } finally {
+    db.close();
+  }
+});

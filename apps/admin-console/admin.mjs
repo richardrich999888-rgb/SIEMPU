@@ -1,11 +1,13 @@
 import { element as el, field, button, badge, hint, panel, table } from '/apps/unit-client/dom.mjs';
+import { decisionSummary } from '/apps/unit-client/decisions.mjs';
+import { can } from '/apps/unit-client/capabilities.mjs';
 
 /** Administrative metadata only; never render protected object plaintext. */
 export async function renderAdmin(root, helpers) {
   const { api, adminMutation, action, notify, state, verified, download } = helpers;
   const overview = await api('/api/admin/overview');
   state.admin = overview;
-  const canWrite = state.user.role === 'admin';
+  const canWrite = can(state.user, 'admin.manage');
   const units = overview.units || [];
   const users = overview.users || [];
   const devices = overview.devices || [];
@@ -148,7 +150,7 @@ export async function renderAdmin(root, helpers) {
             .slice(0, 30)
             .map((o) => [
               (o.id || o.objectId || '').slice(0, 18),
-              el('div', {}, badge(o.state), o.reason ? hint(o.reason) : null),
+              el('div', {}, badge(o.state), o.reason ? hint(decisionSummary(o.reason)) : null),
               o.messagePriority || 'Legacy v1',
               o.missionId,
               nameOfUser(o.senderUserId),
