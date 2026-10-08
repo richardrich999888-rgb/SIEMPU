@@ -83,8 +83,27 @@ export async function decryptAes(keyBytes, packet, aad) {
   }
 }
 
+// Wrap derivation v2. HKDF-SHA256 (RFC 5869) with:
+//   IKM  = KEM shared secret (32 bytes)
+//   salt = 32 random bytes carried in the packet
+//   info = canonical({domain, providerId, suiteId, recipientKeyId, contextDigest})
+// The application context is bound by its SHA-256 digest, not inlined: WebCrypto limits
+// HKDF info to 1024 bytes and real object contexts (with signed grants) exceed it. The full
+// context is still authenticated verbatim as AES-GCM AAD by the caller. Derivation v1
+// (a4abc80) inlined the context and failed for every real object; it was never persisted.
+export const WRAP_DERIVATION_DOMAIN = 'SIEPMU_PROVIDER_KEY_WRAP_V2';
 export async function deriveWrapKey(sharedSecret, salt, binding) {
   const secret = bytes(sharedSecret, 32, 'KEM shared secret');
+  members(binding, ['providerId', 'suiteId', 'recipientKeyId', 'context']);
+  const info = utf8.encode(
+    canonical({
+      domain: WRAP_DERIVATION_DOMAIN,
+      providerId: binding.providerId,
+      suiteId: binding.suiteId,
+      recipientKeyId: binding.recipientKeyId,
+      contextDigest: digest(binding.context),
+    }),
+  );
   try {
     const input = await crypto.subtle.importKey('raw', secret, 'HKDF', false, ['deriveBits']);
     return new Uint8Array(
@@ -93,7 +112,7 @@ export async function deriveWrapKey(sharedSecret, salt, binding) {
           name: 'HKDF',
           hash: 'SHA-256',
           salt: bytes(salt, 32),
-          info: utf8.encode(canonical({ domain: 'SIEPMU_PROVIDER_KEY_WRAP_V1', ...binding })),
+          info,
         },
         input,
         256,

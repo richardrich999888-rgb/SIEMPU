@@ -1,7 +1,7 @@
 // Public-key-only authority registry. Never import a client provider or private key here.
 import { createPublicKey, verify } from 'node:crypto';
 import { canonical } from '../../packages/protocol/canonical.mjs';
-import { providerKeyId } from '../../packages/crypto-provider/engine.mjs';
+import { providerKeyId, WRAP_SCHEMA_VERSION } from '../../packages/crypto-provider/engine.mjs';
 import {
   validateCryptoPolicy,
   cryptoPolicyDigest,
@@ -75,7 +75,7 @@ export function validatePqcEnvelope(e) {
     'ciphertext',
   ]);
   if (
-    w.schemaVersion !== 1 ||
+    w.schemaVersion !== WRAP_SCHEMA_VERSION ||
     w.providerId !== e.providerId ||
     w.suiteId !== e.cryptoSuite ||
     w.recipientKeyId !== e.recipientKeyId
@@ -117,6 +117,25 @@ export class CryptoPolicyRegistry {
       .prepare('SELECT * FROM crypto_keys ORDER BY key_id')
       .all()
       .map((r) => ({ deviceId: r.device_id, key: JSON.parse(r.descriptor), status: r.status }));
+  }
+  /** Registered public descriptor by key ID (any status), validated on read. */
+  publicKey(keyId) {
+    const row = this.db.prepare('SELECT descriptor FROM crypto_keys WHERE key_id=?').get(keyId);
+    if (!row) throw new Error('Crypto key not found');
+    return validatePqcPublicDescriptor(JSON.parse(row.descriptor));
+  }
+  /** Active public descriptors, for the authenticated directory. Empty when the lab is off. */
+  activeKeys() {
+    if (!this.allowPqcLab) return [];
+    return this.db
+      .prepare(
+        "SELECT device_id, descriptor FROM crypto_keys WHERE status='active' ORDER BY key_id",
+      )
+      .all()
+      .map((r) => ({
+        deviceId: r.device_id,
+        key: validatePqcPublicDescriptor(JSON.parse(r.descriptor)),
+      }));
   }
   register(deviceId, key) {
     if (!this.allowPqcLab) throw new Error('PQC laboratory mode disabled');

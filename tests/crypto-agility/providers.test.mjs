@@ -202,7 +202,9 @@ test('wrapping authenticates all metadata, scope, selected suite and recipient i
   const packet = await sender.wrapKey({ key, contentKey, context });
   assert.deepEqual(await recipient.unwrapKey({ keyId: key.keyId, packet, context }), contentKey);
   for (const [field, value] of [
-    ['schemaVersion', 2],
+    // Wrap v1 (context inlined in HKDF info) is retired; unknown versions never fall back.
+    ['schemaVersion', 1],
+    ['schemaVersion', 3],
     ['providerId', 'other-provider'],
     ['suiteId', 'unknown-suite'],
     ['recipientKeyId', '0'.repeat(64)],

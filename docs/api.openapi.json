@@ -1812,6 +1812,290 @@
         },
         "x-contract-coverage": "route-inventory-and-auth-guard"
       }
+    },
+    "/api/crypto/keys": {
+      "post": {
+        "summary": "Register this device's laboratory PQC public key (pending until activated)",
+        "operationId": "post_api_crypto_keys",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful JSON response.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard",
+        "x-device-binding-required": true,
+        "x-operation-proof": {
+          "operation": "crypto-key:register",
+          "bodyField": "proof",
+          "bodyDigest": "SHA256(canonical(request body excluding proof))",
+          "challengeEndpoint": "/api/auth/challenge"
+        },
+        "x-roles": ["operator", "viewer", "admin", "auditor"],
+        "x-laboratory": "Requires SIEPMU_ALLOW_PQC_LAB=1 for laboratory suites; see ADR-010."
+      }
+    },
+    "/api/admin/crypto": {
+      "get": {
+        "summary": "Crypto policy, policy digest and public key inventory",
+        "operationId": "get_api_admin_crypto",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful JSON response.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard",
+        "x-device-binding-required": true,
+        "x-roles": ["admin", "auditor"],
+        "x-laboratory": "Requires SIEPMU_ALLOW_PQC_LAB=1 for laboratory suites; see ADR-010."
+      }
+    },
+    "/api/admin/crypto/policy": {
+      "put": {
+        "summary": "Advance the suite policy by one revision and the authority epoch",
+        "operationId": "put_api_admin_crypto_policy",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful JSON response.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard",
+        "x-device-binding-required": true,
+        "x-operation-proof": {
+          "operation": "admin:PUT:/api/admin/crypto/policy",
+          "bodyField": "proof",
+          "bodyDigest": "SHA256(canonical(request body excluding proof))",
+          "challengeEndpoint": "/api/auth/challenge"
+        },
+        "x-roles": ["admin"],
+        "x-laboratory": "Requires SIEPMU_ALLOW_PQC_LAB=1 for laboratory suites; see ADR-010."
+      }
+    },
+    "/api/admin/crypto/keys/{id}": {
+      "patch": {
+        "summary": "Activate, retire or revoke a registered PQC key (id = 64-hex key ID); advances the epoch",
+        "operationId": "patch_api_admin_crypto_keys",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful JSON response.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard",
+        "x-device-binding-required": true,
+        "x-operation-proof": {
+          "operation": "admin:PATCH:/api/admin/crypto/keys/{id}",
+          "bodyField": "proof",
+          "bodyDigest": "SHA256(canonical(request body excluding proof))",
+          "challengeEndpoint": "/api/auth/challenge"
+        },
+        "x-roles": ["admin"],
+        "x-laboratory": "Requires SIEPMU_ALLOW_PQC_LAB=1 for laboratory suites; see ADR-010."
+      }
     }
   },
   "components": {

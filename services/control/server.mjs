@@ -110,7 +110,18 @@ export function createControlServer({
   server.headersTimeout = 10000;
   return server;
 }
+/**
+ * Parses SIEPMU_ALLOW_PQC_LAB. Only omission (disabled) or exactly "1" (enabled) is accepted;
+ * any other value fails closed at start-up rather than being interpreted.
+ * @param {string | undefined} value
+ */
+export function parsePqcLabFlag(value) {
+  if (value === undefined) return false;
+  if (value === '1') return true;
+  throw new Error('SIEPMU_ALLOW_PQC_LAB accepts only explicit 1 or omission');
+}
 export function startControl() {
+  const allowPqcLab = parsePqcLabFlag(process.env.SIEPMU_ALLOW_PQC_LAB);
   const dir = resolve(process.env.SIEPMU_DATA_DIR ?? '.data');
   for (const f of ['server-key.json', 'master.key', 'relay.secret']) {
     if ((statSync(resolve(dir, f)).mode & 0o077) !== 0)
@@ -127,6 +138,7 @@ export function startControl() {
     signingKey: JSON.parse(readFileSync(resolve(dir, 'server-key.json'), 'utf8')),
     masterKey: readFileSync(resolve(dir, 'master.key')),
     relay,
+    allowPqcLab,
     recoveryGuard: secureProfile()
       ? createRecoveryGuard({
           custodianKey: JSON.parse(readFileSync(process.env.SIEPMU_CUSTODIAN_PUBLIC_KEY, 'utf8')),

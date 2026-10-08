@@ -16,6 +16,9 @@ import {
 } from './primitives.mjs';
 
 const publicMembers = ['keyId', 'providerId', 'suiteId', 'purpose', 'publicKey'];
+/** Wrap packet format; v2 binds the context by digest in HKDF info (see primitives.mjs). */
+export const WRAP_SCHEMA_VERSION = 2;
+const WRAP_AAD_DOMAIN = 'SIEPMU_PROVIDER_KEY_WRAP_AAD_V2';
 const wrapMembers = [
   'schemaVersion',
   'providerId',
@@ -305,7 +308,7 @@ export class CryptoEngine {
       sharedSecret = result.sharedSecret;
       wrappingKey = await deriveWrapKey(sharedSecret, salt, binding);
       const metadata = {
-        schemaVersion: 1,
+        schemaVersion: WRAP_SCHEMA_VERSION,
         providerId: key.providerId,
         suiteId: key.suiteId,
         recipientKeyId: key.keyId,
@@ -314,7 +317,7 @@ export class CryptoEngine {
       };
       const aad = utf8.encode(
         canonical({
-          domain: 'SIEPMU_PROVIDER_KEY_WRAP_AAD_V1',
+          domain: WRAP_AAD_DOMAIN,
           context: binding.context,
           packet: metadata,
         }),
@@ -334,7 +337,7 @@ export class CryptoEngine {
     const packet = copy(input);
     const key = this.#private(keyId, 'encapsulate', legacy);
     if (
-      packet.schemaVersion !== 1 ||
+      packet.schemaVersion !== WRAP_SCHEMA_VERSION ||
       packet.providerId !== key.descriptor.providerId ||
       packet.suiteId !== key.descriptor.suiteId ||
       packet.recipientKeyId !== keyId
@@ -353,7 +356,7 @@ export class CryptoEngine {
       wrappingKey = await deriveWrapKey(sharedSecret, decode(packet.salt, 32), binding);
       const aad = utf8.encode(
         canonical({
-          domain: 'SIEPMU_PROVIDER_KEY_WRAP_AAD_V1',
+          domain: WRAP_AAD_DOMAIN,
           context: binding.context,
           packet: metadata,
         }),

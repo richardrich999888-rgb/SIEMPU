@@ -13,9 +13,12 @@ import { fileURLToPath } from 'node:url';
 import { storedEnvelope, storedObjectIntegrityReason } from '../admission/integrity.mjs';
 import {
   CLASSICAL_SCHEMA_VERSIONS,
+  PROVIDER_SCHEMA_VERSION,
   hasEnvelopeShape,
   hasMissionLabels,
 } from '../../packages/object-format/schema.mjs';
+import { CryptoPolicyRegistry, validatePqcEnvelope } from '../crypto-policy/registry.mjs';
+import { cryptoPolicyDigest } from '../../packages/crypto-provider/policy.mjs';
 import { decisionEvidence } from '../evidence/decision.mjs';
 import {
   canonical,
@@ -78,7 +81,16 @@ const publicLogin = (authority, body, context) => ({
   body: authority.login(body, context.ip ?? 'local'),
 });
 export class Authority {
-  constructor({ dbPath, signingKey, masterKey, hooks = {}, relay, recoveryGuard }) {
+  constructor({
+    dbPath,
+    signingKey,
+    masterKey,
+    hooks = {},
+    relay,
+    recoveryGuard,
+    allowPqcLab = false,
+  }) {
+    if (typeof allowPqcLab !== 'boolean') throw new TypeError('allowPqcLab must be boolean');
     this.key = signingKey;
     this.recoveryGuard = recoveryGuard;
     this.dispatchTail = Promise.resolve();
@@ -91,6 +103,9 @@ export class Authority {
       'PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA busy_timeout=5000;',
     );
     this.migrate();
+    // Public-key-only registry. Laboratory suites are unusable unless explicitly enabled AND
+    // listed by the persisted crypto policy (default policy: classical production suite only).
+    this.crypto = new CryptoPolicyRegistry(this.db, allowPqcLab);
     this.dummyPassword = passwordHash(randomBytes(20).toString('hex'));
   }
   migrate() {
@@ -468,7 +483,15 @@ export class Authority {
       !g.missionIds.includes(e.missionId)
     )
       return 'GRANT_SCOPE';
-    if (keyId(parse(rd.encryption_key)) !== e.recipientKeyId) return 'RECIPIENT_KEY_CHANGED';
+    if (
+      e.schemaVersion !== PROVIDER_SCHEMA_VERSION &&
+      keyId(parse(rd.encryption_key)) !== e.recipientKeyId
+    )
+      return 'RECIPIENT_KEY_CHANGED';
+    // Current crypto policy at release: suite in new or legacy list, lab gate, key status
+    // (revoked/retired), key-to-device binding and provider signature for v3.
+    const cryptoReason = this.crypto.reason(e, false);
+    if (cryptoReason) return cryptoReason;
     const edge = this.get(
       'SELECT allow FROM policies WHERE from_unit=? AND to_unit=? AND mission_id=?',
       su.unit_id,
@@ -481,7 +504,9 @@ export class Authority {
     const e = b.envelope;
     // Exact member set first: an unknown version or extra field is a schema error.
     assert(hasEnvelopeShape(e), 'ENVELOPE_SCHEMA');
-    assert(CLASSICAL_SCHEMA_VERSIONS.includes(e.schemaVersion), 'ENVELOPE_SCHEMA');
+    const provider = e.schemaVersion === PROVIDER_SCHEMA_VERSION;
+    assert(provider || CLASSICAL_SCHEMA_VERSIONS.includes(e.schemaVersion), 'ENVELOPE_SCHEMA');
+    assert(!provider || this.crypto.allowPqcLab, 'PQC_LAB_DISABLED', 403);
     assert(uuid(e.objectId));
     assert(
       e.senderUserId === s.user.id &&
@@ -499,7 +524,7 @@ export class Authority {
     assert(
       e.classification === 'DEMO' &&
         e.action === 'deliver' &&
-        e.cryptoSuite === 'P256-HKDF-SHA256-AES256GCM' &&
+        (provider || e.cryptoSuite === 'P256-HKDF-SHA256-AES256GCM') &&
         e.keyVersion === 1,
     );
     if (hasMissionLabels(e))
@@ -540,18 +565,32 @@ export class Authority {
       'DESTINATION_INVALID',
       403,
     );
-    assert(keyId(parse(rd.encryption_key)) === e.recipientKeyId, 'RECIPIENT_KEY_INVALID', 403);
     assert(decode(e.nonce).length === 12);
-    assert(
-      e.wrappedKey &&
-        Object.keys(e.wrappedKey).sort().join(',') === 'ciphertext,ephemeralPublicKey,iv,salt',
-    );
-    validateKey(e.wrappedKey.ephemeralPublicKey);
-    assert(
-      decode(e.wrappedKey.salt).length === 32 &&
-        decode(e.wrappedKey.iv).length === 12 &&
-        decode(e.wrappedKey.ciphertext).length === 48,
-    );
+    if (provider) {
+      // Structure, then policy: suite in newSuites, current policy revision, registered active
+      // keys bound to these devices, and a valid ML-DSA-65 provider signature.
+      try {
+        validatePqcEnvelope(e);
+      } catch {
+        fail(400, 'PQC_ENVELOPE_INVALID');
+      }
+    } else {
+      assert(keyId(parse(rd.encryption_key)) === e.recipientKeyId, 'RECIPIENT_KEY_INVALID', 403);
+      assert(
+        e.wrappedKey &&
+          Object.keys(e.wrappedKey).sort().join(',') === 'ciphertext,ephemeralPublicKey,iv,salt',
+      );
+      validateKey(e.wrappedKey.ephemeralPublicKey);
+      assert(
+        decode(e.wrappedKey.salt).length === 32 &&
+          decode(e.wrappedKey.iv).length === 12 &&
+          decode(e.wrappedKey.ciphertext).length === 48,
+      );
+    }
+    // Every schema passes the creation-time suite policy, so removing the classical suite from
+    // newSuites stops new classical objects (downgrade prevention at creation).
+    const cryptoReason = this.crypto.reason(e, true);
+    assert(!cryptoReason, cryptoReason ?? 'CRYPTO_POLICY', 403);
     const bytes = decode(b.ciphertext);
     assert(bytes.length >= 16 && bytes.length <= 1048592, 'OBJECT_SIZE', 413);
     assert(hash(bytes) === e.ciphertextHash, 'CIPHERTEXT_DIGEST');
@@ -631,6 +670,61 @@ export class Authority {
       hasMissionLabels(e) &&
       checkDuty(s.user.role, s.user.dutyRole, e.messagePriority, e.messageDomain)
     );
+  }
+  // A bound device registers its own laboratory PQC public key. It stays 'pending' until an
+  // administrator activates it, mirroring device approval. Private keys never reach the authority.
+  registerCryptoKey(s, key) {
+    return this.tx(() => {
+      s = this.bound(s);
+      assert(this.crypto.allowPqcLab, 'PQC_LAB_DISABLED', 403);
+      let registered;
+      try {
+        registered = this.crypto.register(s.device_id, key);
+      } catch (error) {
+        if (error.message === 'Crypto key already registered') fail(409, 'CRYPTO_KEY_EXISTS');
+        fail(400, 'CRYPTO_KEY_INVALID');
+      }
+      this.event('CRYPTO_KEY_REGISTERED', s.user_id, {
+        details: {
+          deviceId: s.device_id,
+          keyId: registered.key.keyId,
+          providerId: registered.key.providerId,
+          suiteId: registered.key.suiteId,
+          purpose: registered.key.purpose,
+        },
+      });
+      return registered;
+    });
+  }
+  // Key status and suite policy are authority changes: change() advances the epoch, so any
+  // release prepared under the previous key or policy state must re-validate.
+  setCryptoKeyStatus(s, keyId, status) {
+    return this.change(s, () => {
+      let updated;
+      try {
+        updated = this.crypto.setStatus(keyId, status);
+      } catch (error) {
+        if (error.message === 'Crypto key not found') fail(404, 'CRYPTO_KEY_NOT_FOUND');
+        fail(409, 'CRYPTO_KEY_TRANSITION_FORBIDDEN');
+      }
+      this.event('CRYPTO_KEY_STATUS_CHANGED', s.user_id, { details: { keyId, status } });
+      return updated;
+    });
+  }
+  updateCryptoPolicy(s, policy) {
+    return this.change(s, () => {
+      let next;
+      try {
+        next = this.crypto.updatePolicy(policy);
+      } catch (error) {
+        if (error.message === 'PQC laboratory mode disabled') fail(403, 'PQC_LAB_DISABLED');
+        fail(400, 'CRYPTO_POLICY_INVALID');
+      }
+      this.event('CRYPTO_POLICY_CHANGED', s.user_id, {
+        details: { revision: next.revision, policyDigest: cryptoPolicyDigest(next) },
+      });
+      return { policy: next };
+    });
   }
   prepare(s, id) {
     const result = this.tx(() => {
@@ -798,7 +892,11 @@ export class Authority {
             policyDigest: this.policyDigest(),
             session: s,
             state: r.state === 'DELIVERED' ? 'DELIVERED' : 'RELEASED',
-            extra: { issuanceEventId: receipt.payload.eventId, currentEpoch: epoch },
+            extra: {
+              issuanceEventId: receipt.payload.eventId,
+              currentEpoch: epoch,
+              crypto: this.crypto.evidence(parse(r.envelope)),
+            },
           }),
         );
         this.run(
@@ -815,6 +913,8 @@ export class Authority {
             policyDigest: this.policyDigest(),
             session: s,
             state: 'RELEASED',
+            // v3 only: provider, suite, key IDs and policy revision/digest at issuance.
+            extra: { crypto: this.crypto.evidence(parse(r.envelope)) },
           }),
         );
         this.hooks.beforeEvidence?.();
@@ -834,13 +934,18 @@ export class Authority {
         this.count('released');
       }
       this.hooks.beforeCommit?.();
+      const envelope = parse(r.envelope);
       return {
         object: this.object(this.get('SELECT * FROM objects WHERE id=?', id)),
-        envelope: parse(r.envelope),
+        envelope,
         signature: r.signature,
         senderSigningPublicKey: parse(
           this.get('SELECT signing_key FROM devices WHERE id=?', r.sender_device).signing_key,
         ),
+        // Public descriptor only; the recipient re-checks it against signed senderCryptoKeyId.
+        ...(envelope.schemaVersion === PROVIDER_SCHEMA_VERSION
+          ? { senderCryptoKey: this.crypto.publicKey(envelope.senderCryptoKeyId) }
+          : {}),
         receipt,
       };
     });
@@ -1040,8 +1145,20 @@ export class Authority {
         const devices = this.all(
           "SELECT d.* FROM devices d JOIN users u ON u.id=d.user_id WHERE d.status='approved' AND u.active=1",
         ).map((x) => this.device(x));
-        const payload = { users, devices, issuedAt: Date.now(), epoch: this.epoch().epoch };
-        return { users, devices, packet: packet(this.key, payload) };
+        const cryptoKeys = this.crypto.activeKeys();
+        const payload = {
+          users,
+          devices,
+          ...(cryptoKeys.length ? { cryptoKeys } : {}),
+          issuedAt: Date.now(),
+          epoch: this.epoch().epoch,
+        };
+        return {
+          users,
+          devices,
+          ...(cryptoKeys.length ? { cryptoKeys } : {}),
+          packet: packet(this.key, payload),
+        };
       });
     } else if (method === 'POST' && path === '/api/grants') {
       s = this.operation(s, b, 'grant');
@@ -1093,11 +1210,16 @@ export class Authority {
       const ciphertext = await this.relay.getBlob(value.object.ciphertextHash);
       assert(hash(ciphertext) === value.object.ciphertextHash, 'CIPHERTEXT_DIGEST', 502);
       value.ciphertext = ciphertext.toString('base64url');
+    } else if (method === 'POST' && path === '/api/crypto/keys') {
+      s = this.operation(s, b, 'crypto-key:register');
+      value = this.registerCryptoKey(s, b.key);
     } else if (path.startsWith('/api/admin/') || path === '/api/integration/validate') {
       s = this.bound(s);
       this.role(
         s,
-        method === 'GET' && path === '/api/admin/overview' ? ['admin', 'auditor'] : ['admin'],
+        method === 'GET' && ['/api/admin/overview', '/api/admin/crypto'].includes(path)
+          ? ['admin', 'auditor']
+          : ['admin'],
       );
       if (method !== 'GET') s = this.operation(s, b, 'admin:' + method + ':' + path);
       value = this.admin(method, path, b, s);
@@ -1142,6 +1264,21 @@ export class Authority {
         alerts: this.all('SELECT * FROM alerts ORDER BY timestamp DESC LIMIT 100'),
         metrics: this.metrics(),
       };
+    if (method === 'GET' && path === '/api/admin/crypto') {
+      const policy = this.crypto.policy();
+      return {
+        allowPqcLab: this.crypto.allowPqcLab,
+        policy,
+        policyDigest: cryptoPolicyDigest(policy),
+        inventory: this.crypto.inventory(),
+      };
+    }
+    if (method === 'PUT' && path === '/api/admin/crypto/policy')
+      return this.updateCryptoPolicy(s, b.policy);
+    if (method === 'PATCH' && /^\/api\/admin\/crypto\/keys\/[a-f0-9]{64}$/.test(path)) {
+      assert(['active', 'retired', 'revoked'].includes(b.status), 'INVALID_KEY_STATUS');
+      return this.setCryptoKeyStatus(s, path.slice('/api/admin/crypto/keys/'.length), b.status);
+    }
     if (method === 'POST' && path === '/api/admin/units') {
       assert(str(b.name, 80));
       return this.change(

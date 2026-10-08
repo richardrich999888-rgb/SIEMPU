@@ -119,6 +119,45 @@ function expectedBindings(payload, { objectDigest, epoch, objectId }) {
   return checked;
 }
 
+// Laboratory v3 provenance. The suite table is deliberately duplicated here rather than
+// imported from the authority's modules, so a defect there cannot silently widen what the
+// independent verifier accepts.
+const LAB_SUITES = Object.freeze({
+  'ML-KEM-768-ML-DSA-65-AES-256-GCM-v1': 'node-openssl-pqc-lab',
+  'ML-KEM-1024-ML-DSA-65-AES-256-GCM-v1': 'node-openssl-pqc-lab',
+  'X-WING-ML-DSA-65-AES-256-GCM-v1': 'noble-xwing-lab',
+});
+function strictCryptoEvidence(value) {
+  keys(value, [
+    'envelopeVersion',
+    'providerId',
+    'suiteId',
+    'suiteVersion',
+    'senderKeyId',
+    'recipientKeyId',
+    'creationPolicyRevision',
+    'currentPolicyRevision',
+    'policyDigest',
+  ]);
+  assert(value.envelopeVersion === 3 && value.suiteVersion === 1, 'Invalid crypto version');
+  assert(
+    Object.hasOwn(LAB_SUITES, value.suiteId) && LAB_SUITES[value.suiteId] === value.providerId,
+    'Unsupported crypto provider or suite',
+  );
+  for (const field of ['senderKeyId', 'recipientKeyId', 'policyDigest'])
+    assert(
+      typeof value[field] === 'string' && /^[a-f0-9]{64}$/.test(value[field]),
+      `Invalid crypto ${field}`,
+    );
+  assert(
+    Number.isSafeInteger(value.creationPolicyRevision) &&
+      value.creationPolicyRevision > 0 &&
+      Number.isSafeInteger(value.currentPolicyRevision) &&
+      value.currentPolicyRevision >= value.creationPolicyRevision,
+    'Invalid crypto policy revision',
+  );
+}
+
 // Intentionally independent of the admission service's evidence constructor.
 // Strict release mode accepts the current HTTP issuance schema only; legacy
 // packets remain inspectable through verifyEvidence without acceptance.
@@ -182,9 +221,16 @@ function strictReleaseSchema(payload) {
     'authorityEpoch',
     'deviceEvidence',
     'proofEvidence',
+    ...(Object.hasOwn(d, 'crypto') ? ['crypto'] : []),
   ]);
   if (Object.hasOwn(d, 'objectSchemaVersion'))
-    assert([1, 2].includes(d.objectSchemaVersion), 'Invalid object schema version');
+    assert([1, 2, 3].includes(d.objectSchemaVersion), 'Invalid object schema version');
+  // A v3 release must carry provenance, and provenance is only valid on a v3 release.
+  assert(
+    (d.objectSchemaVersion === 3) === Object.hasOwn(d, 'crypto'),
+    'Crypto provenance and object schema version disagree',
+  );
+  if (Object.hasOwn(d, 'crypto')) strictCryptoEvidence(d.crypto);
   for (const field of ['objectDigest', 'envelopeDigest', 'creationPolicyDigest', 'policyDigest']) {
     assert(sha256(d[field]), `Invalid release ${field}`);
   }

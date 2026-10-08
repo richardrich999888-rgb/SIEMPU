@@ -1,7 +1,29 @@
 import { canonical, decode, validateKey, verify } from '../control/primitives.mjs';
 
-import { envelopeFieldsFor, validEnvelopeVersion } from '../../packages/object-format/schema.mjs';
+import {
+  PROVIDER_SCHEMA_VERSION,
+  envelopeFieldsFor,
+  validEnvelopeVersion,
+} from '../../packages/object-format/schema.mjs';
+import { validatePqcEnvelope } from '../crypto-policy/registry.mjs';
 export { envelopeFieldsFor };
+
+const CLASSICAL_SUITE = 'P256-HKDF-SHA256-AES256GCM';
+const CLASSICAL_WRAP_FIELDS = 'ciphertext,ephemeralPublicKey,iv,salt';
+
+/** Classical P-256 key wrap: exact members and sizes; throws on malformed key material. */
+function classicalWrapValid(w) {
+  if (
+    !w ||
+    Object.keys(w).sort().join(',') !== CLASSICAL_WRAP_FIELDS ||
+    decode(w.salt).length !== 32 ||
+    decode(w.iv).length !== 12 ||
+    decode(w.ciphertext).length !== 48
+  )
+    return false;
+  validateKey(w.ephemeralPublicKey);
+  return true;
+}
 
 // Corrupt persistence must produce a durable HOLD, including when JSON is unreadable.
 export function storedEnvelope(row) {
@@ -47,7 +69,7 @@ export function storedObjectIntegrityReason(row, signingKey) {
       !validEnvelopeVersion(e) ||
       e.classification !== 'DEMO' ||
       e.action !== 'deliver' ||
-      e.cryptoSuite !== 'P256-HKDF-SHA256-AES256GCM' ||
+      (e.schemaVersion !== PROVIDER_SCHEMA_VERSION && e.cryptoSuite !== CLASSICAL_SUITE) ||
       e.keyVersion !== 1 ||
       !Number.isSafeInteger(e.createdAt) ||
       !Number.isSafeInteger(e.expiresAt) ||
@@ -58,15 +80,13 @@ export function storedObjectIntegrityReason(row, signingKey) {
       !/^[a-f0-9]{64}$/.test(e.recipientKeyId) ||
       typeof e.missionId !== 'string' ||
       !/^[A-Za-z0-9._:-]{1,80}$/.test(e.missionId) ||
-      decode(e.nonce).length !== 12 ||
-      !e.wrappedKey ||
-      Object.keys(e.wrappedKey).sort().join(',') !== 'ciphertext,ephemeralPublicKey,iv,salt' ||
-      decode(e.wrappedKey.salt).length !== 32 ||
-      decode(e.wrappedKey.iv).length !== 12 ||
-      decode(e.wrappedKey.ciphertext).length !== 48
+      decode(e.nonce).length !== 12
     )
       return 'OBJECT_ENVELOPE_INVALID';
-    validateKey(e.wrappedKey.ephemeralPublicKey);
+    // Each schema accepts only its own wrap format; v3 structure is checked here, while
+    // provider policy, key status and the ML-DSA signature are checked by the registry.
+    if (e.schemaVersion === PROVIDER_SCHEMA_VERSION) validatePqcEnvelope(e);
+    else if (!classicalWrapValid(e.wrappedKey)) return 'OBJECT_ENVELOPE_INVALID';
   } catch {
     return 'OBJECT_ENVELOPE_INVALID';
   }

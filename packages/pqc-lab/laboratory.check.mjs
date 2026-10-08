@@ -139,3 +139,94 @@ test('actual hybrid endpoint provider authenticates wrapping context and blocks 
     }),
   );
 });
+
+// Hybrid X-Wing (ML-KEM-768 + X25519, draft-connolly-cfrg-xwing-kem) through the real
+// authority path. Lives here, not in the root suite, because it needs the pinned Noble package.
+test('X-Wing hybrid v3 object releases through the authority with verified provenance', async (t) => {
+  const { coreFixture } = await import('../../tests/helpers/fixture.mjs');
+  const { createProviderObject, openProviderObject } = await import('./envelope.mjs');
+  const { createLabEndpoint, labContext } = await import('./endpoint.mjs');
+  const { createFilePayload, unpackPayload } = await import('../crypto/crypto.mjs');
+  const { CLASSICAL_PROVIDER_ID, CLASSICAL_SUITE_ID } = await import(
+    '../crypto-provider/classical.mjs'
+  );
+  const { verifyReleaseReceipt } = await import('../../apps/verifier/verify.mjs');
+  const { mkdtemp, rm } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const selection = { providerId: XWING_PROVIDER_ID, suiteId: XWING_SUITE };
+  const f = await coreFixture(t, {}, { allowPqcLab: true });
+  for (const name of ['alice', 'bob', 'admin']) await f.clients[name].authenticate();
+  const alice = await createLabEndpoint({ provider: createXwingLabProvider(), ...selection });
+  const bob = await createLabEndpoint({ provider: createXwingLabProvider(), ...selection });
+  for (const [client, key] of [
+    [f.clients.alice, alice.signingKey],
+    [f.clients.bob, bob.encapsulationKey],
+  ]) {
+    const registered = await client.request('POST', '/api/crypto/keys', {
+      key,
+      proof: await client.proof('crypto-key:register', { key }),
+    });
+    assert.equal(registered.status, 200, JSON.stringify(registered.body));
+    const active = await f.clients.admin.admin('PATCH', `/api/admin/crypto/keys/${key.keyId}`, {
+      status: 'active',
+    });
+    assert.equal(active.status, 200, JSON.stringify(active.body));
+  }
+  const classical = { providerId: CLASSICAL_PROVIDER_ID, suiteId: CLASSICAL_SUITE_ID };
+  const current = (await f.clients.admin.ok('GET', '/api/admin/crypto')).policy;
+  const policy = {
+    schemaVersion: 1,
+    revision: current.revision + 1,
+    mode: 'laboratory',
+    newSuites: [classical, selection],
+    legacySuites: [classical, selection],
+  };
+  assert.equal(
+    (await f.clients.admin.admin('PUT', '/api/admin/crypto/policy', { policy })).status,
+    200,
+  );
+  const bytes = native.randomBytes(2048);
+  const object = await createProviderObject({
+    engine: alice.engine,
+    context: labContext({
+      sender: f.profiles.alice,
+      recipient: f.profiles.bob,
+      creationGrant: await f.clients.alice.grant(),
+      selection,
+      senderCryptoKeyId: alice.signingKey.keyId,
+      recipientKeyId: bob.encapsulationKey.keyId,
+      suitePolicyRevision: policy.revision,
+      objectId: native.randomUUID(),
+      now: Date.now(),
+    }),
+    payload: createFilePayload('hybrid.bin', 'application/octet-stream', bytes),
+    recipientKey: bob.encapsulationKey,
+    senderKey: alice.signingKey,
+    identitySigningKey: f.profiles.alice.keys.signing.privateKey,
+  });
+  assert.equal(object.envelope.wrappedKey.encapsulation.algorithm, 'x-wing');
+  await f.clients.alice.submit(object);
+  await f.clients.alice.prepare(object.envelope.objectId);
+  const epoch = f.authority.epoch().epoch;
+  const claim = await f.clients.bob.claim(object.envelope.objectId, epoch);
+  assert.equal(claim.status, 200, JSON.stringify(claim.body));
+  const payload = await openProviderObject({
+    engine: bob.engine,
+    claim: claim.body,
+    senderKey: claim.body.senderCryptoKey,
+    senderIdentityPublicKey: claim.body.senderSigningPublicKey,
+    expected: { suiteId: XWING_SUITE },
+  });
+  assert.deepEqual(Buffer.from(unpackPayload(payload).bytes), bytes);
+  assert.equal(claim.body.receipt.payload.details.crypto.providerId, XWING_PROVIDER_ID);
+  const dir = await mkdtemp(join(tmpdir(), 'siepmu-xwing-verify-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const verified = await verifyReleaseReceipt(claim.body.receipt, f.provisioned.serverPublicKey, {
+    objectDigest: claim.body.object.ciphertextHash,
+    epoch,
+    objectId: object.envelope.objectId,
+    replayStore: join(dir, 'replay.sqlite'),
+  });
+  assert.equal(verified.strictReleaseVerified, true);
+});

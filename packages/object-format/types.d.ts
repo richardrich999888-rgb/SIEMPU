@@ -63,6 +63,35 @@ export interface EncryptedObject {
   signature: string;
   ciphertext: string;
 }
+/** Laboratory endpoint contract. Classical browser encrypt/decrypt rejects this version. */
+export type PqcLabContext = Omit<ObjectContextBase, 'cryptoSuite'> & {
+  schemaVersion: 3;
+  messagePriority: 'FLASH' | 'IMMEDIATE' | 'PRIORITY' | 'ROUTINE';
+  messageDomain: 'GENERAL' | 'INTEL';
+  providerId: 'node-openssl-pqc-lab' | 'noble-xwing-lab';
+  cryptoSuite: string;
+  suiteVersion: 1;
+  senderCryptoKeyId: string;
+  suitePolicyRevision: number;
+};
+/** Wrap v2: context bound by digest in HKDF info (ADR-010). */
+export interface ProviderWrappedKey {
+  schemaVersion: 2;
+  providerId: string;
+  suiteId: string;
+  recipientKeyId: string;
+  encapsulation: { algorithm: string; ciphertext: string };
+  salt: string;
+  nonce: string;
+  ciphertext: string;
+}
+export type PqcLabEnvelope = PqcLabContext & {
+  ciphertextHash: string;
+  nonce: string;
+  wrappedKey: ProviderWrappedKey;
+  providerSignature: string;
+};
+export type VersionedObjectEnvelope = ObjectEnvelope | PqcLabEnvelope;
 export interface Payload {
   kind: 'text' | 'file';
   name: string;

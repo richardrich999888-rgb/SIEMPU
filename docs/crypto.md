@@ -11,3 +11,22 @@ Local vault uses PBKDF2-SHA256 (600,000 iterations), random salt and AES-GCM; pa
 Protocol schema v2 additionally authenticates `messagePriority` and `messageDomain` in both sender signature and AEAD associated data. Version 1 is accepted only for users without a newly assigned duty role; recipients with a duty role hold all v1 objects rather than bypassing priority policy. Neither version provides the originally filed SAG/PQC dual-layer provider; approval and secure interoperability remain outstanding.
 
 No forward secrecy for static recipient keys, hardware custody, automatic key recovery/rotation, memory-erasure guarantee or SAG grading is claimed. Compromised endpoints or a malicious key directory/client distribution can defeat confidentiality.
+
+## Laboratory schema v3 (post-quantum candidates)
+
+Disabled by default. With `SIEPMU_ALLOW_PQC_LAB=1` and a crypto policy that lists the suite, a Node
+laboratory endpoint (`packages/pqc-lab/`) can exchange schema-v3 objects through the normal
+authority release transaction ([ADR-010](decisions/ADR-010-v3-laboratory-release-path.md)):
+
+| Step              | Mechanism                                                                                                              |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Content           | AES-256-GCM, random 32-byte key, AAD = canonical v3 context                                                            |
+| Key establishment | ML-KEM-768 or ML-KEM-1024 (OpenSSL via Node), or X-Wing hybrid (pinned Noble, lab job only)                            |
+| Key wrap (v2)     | HKDF-SHA256(KEM secret, salt, info binding provider/suite/recipient key/context digest) -> AES-256-GCM                 |
+| Signatures        | P-256 ECDSA device identity signature **and** ML-DSA-65 provider signature, both required                              |
+| Authority checks  | lab gate, suite in policy, policy revision, active keys bound to devices, provider signature, all usual release policy |
+| Evidence          | `details.crypto` in release evidence; verifier requires it exactly for `objectSchemaVersion` 3                         |
+
+The browser endpoint stays classical. These are candidate primitives in a laboratory composition:
+no SAG grading, FIPS module validation, independent review or IAF approval is implied, and
+software key handles are not hardware custody.
