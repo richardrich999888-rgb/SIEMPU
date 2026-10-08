@@ -122,7 +122,8 @@ test('clean application bundle boots without npm or remote package retrieval', (
       (x) =>
         x.path.includes('node_modules') ||
         x.path.endsWith('.key') ||
-        x.path.endsWith('demo-profiles.json'),
+        x.path.endsWith('demo-profiles.json') ||
+        x.path.includes('pqc-lab'),
     ),
     false,
   );

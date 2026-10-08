@@ -23,13 +23,17 @@ const validPath = (p) =>
   /^[A-Za-z0-9_./-]+$/.test(p) &&
   !p.startsWith('/') &&
   p.split('/').every((x) => x && x !== '.' && x !== '..');
-function files(root, prefix = '') {
+// Laboratory-only source never enters a signed release: it holds endpoint PQC
+// providers and an unaudited third-party dependency (see packages/pqc-lab/README.md).
+export const RELEASE_EXCLUDED_PATHS = Object.freeze(['packages/pqc-lab']);
+function files(root, prefix = '', excluded = []) {
   const out = [];
   for (const name of readdirSync(join(root, prefix)).sort()) {
-    const path = prefix ? prefix + '/' + name : name,
-      st = lstatSync(join(root, path));
+    const path = prefix ? prefix + '/' + name : name;
+    if (excluded.includes(path)) continue;
+    const st = lstatSync(join(root, path));
     if (st.isSymbolicLink() || !validPath(path)) throw new Error('PACKAGE_UNSAFE_PATH');
-    if (st.isDirectory()) out.push(...files(root, path));
+    if (st.isDirectory()) out.push(...files(root, path, excluded));
     else if (st.isFile()) out.push(path);
     else throw new Error('PACKAGE_SPECIAL_FILE');
   }
@@ -86,7 +90,13 @@ export function buildOfflineBundle({
     entries.push({ path, size: data.length, sha256: hash(data), mode });
   };
   for (const folder of ['apps', 'services', 'packages', 'database', 'scripts', 'deployment'])
-    for (const name of files(join(source, folder))) {
+    for (const name of files(
+      join(source, folder),
+      '',
+      RELEASE_EXCLUDED_PATHS.filter((x) => x.startsWith(folder + '/')).map((x) =>
+        x.slice(folder.length + 1),
+      ),
+    )) {
       if (!/\.(mjs|js|json|css|html|sql|md|yaml|yml|sh|svg|txt|ts)$/.test(name)) continue;
       add(join(source, folder, name), 'app/' + folder + '/' + name);
     }

@@ -1,7 +1,195 @@
-import { createWebCryptoProvider, negotiateSuite } from './providers/webcrypto.mjs';
-import { contextFields as contextKeys } from '../object-format/schema.mjs';
 import { canonical } from '../protocol/canonical.mjs';
-import { validMissionProfile } from '../mission/policy.mjs';
+
+// INVARIANT: this browser module statically imports ONLY canonical.mjs.
+// Deployed service workers intercept only the paths in their own ASSETS list; a
+// new module imported from here is never cached by an older worker, and offline
+// start-up then fails after an interrupted upgrade (tests/browser/shell-upgrade.mjs).
+// The wire contract and default provider therefore live in this file.
+// object-format/schema.mjs, mission/policy.mjs and providers/webcrypto.mjs re-export
+// them so that server modules keep stable import paths and one source of truth.
+
+// ---- Mission labels (DISC-14 PS-69 filed vocabulary; synthetic laboratory policy) ----
+export const MESSAGE_PRIORITIES = Object.freeze(['FLASH', 'IMMEDIATE', 'PRIORITY', 'ROUTINE']);
+export const MESSAGE_DOMAINS = Object.freeze(['GENERAL', 'INTEL']);
+/** @param {unknown} priority @param {unknown} domain */
+export function validMissionProfile(priority, domain) {
+  return (
+    typeof priority === 'string' &&
+    typeof domain === 'string' &&
+    MESSAGE_PRIORITIES.includes(priority) &&
+    MESSAGE_DOMAINS.includes(domain)
+  );
+}
+
+// ---- Versioned object wire contract ----
+// Shared wire-field contract for client encryption, submission and persisted-state checks.
+// Version selection is exact: an unknown version never falls back to another schema.
+const v1 = Object.freeze([
+  'schemaVersion',
+  'objectId',
+  'senderUserId',
+  'senderDeviceId',
+  'senderUnitId',
+  'recipientUserId',
+  'recipientDeviceId',
+  'recipientUnitId',
+  'recipientKeyId',
+  'missionId',
+  'classification',
+  'action',
+  'createdAt',
+  'expiresAt',
+  'creationGrant',
+  'cryptoSuite',
+  'keyVersion',
+]);
+const v2 = Object.freeze([...v1, 'messagePriority', 'messageDomain']);
+// v3 is the laboratory provider envelope: it names the provider, the suite version, the
+// sender's provider signing key and the suite-policy revision in force at creation.
+const v3 = Object.freeze([
+  ...v2,
+  'providerId',
+  'suiteVersion',
+  'senderCryptoKeyId',
+  'suitePolicyRevision',
+]);
+const classicalEnvelope = Object.freeze(['ciphertextHash', 'nonce', 'wrappedKey']);
+
+/** Classical schema versions accepted by the browser endpoint and classical admission. */
+export const CLASSICAL_SCHEMA_VERSIONS = Object.freeze([1, 2]);
+/** Laboratory provider schema version; accepted only when the authority enables the lab gate. */
+export const PROVIDER_SCHEMA_VERSION = 3;
+
+/** @param {unknown} version @returns {readonly string[]} empty when unsupported */
+export function contextFields(version) {
+  if (version === 1) return v1;
+  if (version === 2) return v2;
+  if (version === 3) return v3;
+  return [];
+}
+/** @param {unknown} version @returns {string[] | null} null when unsupported */
+export function envelopeFieldsFor(version) {
+  const fields = contextFields(version);
+  if (!fields.length) return null;
+  // The provider signature covers every other v3 member, so it is appended last.
+  return version === 3
+    ? [...fields, ...classicalEnvelope, 'providerSignature']
+    : [...fields, ...classicalEnvelope];
+}
+/**
+ * True when the exact member set of `value` matches its declared schema version.
+ * @param {unknown} value
+ */
+export function hasEnvelopeShape(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const envelope = /** @type {Record<string, unknown>} */ (value);
+  const fields = envelopeFieldsFor(envelope.schemaVersion);
+  return (
+    !!fields &&
+    Object.keys(envelope).length === fields.length &&
+    fields.every((field) => Object.hasOwn(envelope, field))
+  );
+}
+/**
+ * Every schema from v2 onward carries sender-signed priority and domain labels.
+ * Policy that depends on labels (duty roles, FLASH dual control) must use this
+ * predicate instead of comparing against one version number.
+ * @param {{schemaVersion?: unknown} | null | undefined} envelope
+ */
+export function hasMissionLabels(envelope) {
+  return envelope?.schemaVersion === 2 || envelope?.schemaVersion === 3;
+}
+/** @param {{schemaVersion?: number, messagePriority?: string, messageDomain?: string} | null} envelope */
+export function validEnvelopeVersion(envelope) {
+  return (
+    envelope?.schemaVersion === 1 ||
+    (hasMissionLabels(envelope) &&
+      validMissionProfile(envelope?.messagePriority, envelope?.messageDomain))
+  );
+}
+
+// ---- Default software provider (versioned provider port) ----
+// Versioned software-provider port. Opaque means non-exportable through this API,
+// not resistance to a compromised process, debugger, browser, or OS.
+export const DEMO_SUITE = 'P256-HKDF-SHA256-AES256GCM';
+/** @param {{version:number,id:string,suites:readonly string[]}} provider @param {string[]} offered @param {string[]} approved */
+export function negotiateSuite(provider, offered, approved) {
+  if (provider.version !== 1 || !provider.id) throw new Error('PROVIDER_VERSION_UNSUPPORTED');
+  const match = approved.find(
+    (suite) => offered.includes(suite) && provider.suites.includes(suite),
+  );
+  if (!match) throw new Error('NO_APPROVED_CRYPTO_SUITE');
+  return match;
+}
+/** @param {{id?:string,subtle?:SubtleCrypto}} [options] */
+export function createWebCryptoProvider({
+  id = 'webcrypto-software-v1',
+  subtle = globalThis.crypto.subtle,
+} = {}) {
+  /** @type {WeakMap<object,{key:CryptoKey,publicKey:JsonWebKey,usage:string}>} */
+  const handles = new WeakMap();
+  /** @param {unknown} value */
+  const isHandle = (value) => !!value && typeof value === 'object' && 'handleVersion' in value;
+  /** @param {JsonWebKey} value */
+  function entry(value) {
+    const result = handles.get(value);
+    if (!result) throw new Error('KEY_HANDLE_UNKNOWN_OR_DESTROYED');
+    return result;
+  }
+  /** @param {'ECDSA'|'ECDH'} name @param {'sign'|'deriveBits'} usage */
+  async function generate(name, usage) {
+    const keys = await subtle.generateKey(
+      { name, namedCurve: 'P-256' },
+      false,
+      usage === 'sign' ? ['sign', 'verify'] : ['deriveBits'],
+    );
+    const p = await subtle.exportKey('jwk', keys.publicKey);
+    const publicKey = Object.freeze({ kty: p.kty, crv: p.crv, x: p.x, y: p.y });
+    const handle = Object.freeze({
+      ...publicKey,
+      handleVersion: 1,
+      providerId: id,
+      handleId: crypto.randomUUID(),
+    });
+    handles.set(handle, { key: keys.privateKey, publicKey, usage });
+    return { publicKey, privateKey: handle };
+  }
+  return Object.freeze({
+    version: 1,
+    id,
+    suites: Object.freeze([DEMO_SUITE]),
+    subtle,
+    capabilities: Object.freeze({
+      opaquePrivateKeys: true,
+      hardwareBacked: false,
+      pqc: false,
+      sagGraded: false,
+    }),
+    /** @param {Uint8Array<ArrayBuffer>} bytes */
+    random: (bytes) => crypto.getRandomValues(bytes),
+    isHandle,
+    /** @param {JsonWebKey} handle */
+    publicKey: (handle) => entry(handle).publicKey,
+    /** @param {JsonWebKey} handle @param {string} usage */
+    resolve: (handle, usage) => {
+      const value = entry(handle);
+      if (value.usage !== usage) throw new Error('KEY_USAGE_DENIED');
+      return value.key;
+    },
+    /** @param {JsonWebKey} handle */
+    destroy: (handle) => {
+      entry(handle);
+      handles.delete(handle);
+    },
+    async generateDeviceHandles() {
+      return {
+        signing: await generate('ECDSA', 'sign'),
+        encryption: await generate('ECDH', 'deriveBits'),
+      };
+    },
+  });
+}
+
 /** @typedef {import('../object-format/types.js').PublicP256Jwk} PublicP256Jwk */
 /** @typedef {import('../object-format/types.js').PrivateP256Jwk} PrivateP256Jwk */
 /** @typedef {import('../object-format/types.js').ObjectContext} ObjectContext */
@@ -185,7 +373,7 @@ export function createObjectCryptography(provider = createWebCryptoProvider()) {
   /** @param {ObjectContext} context */
   function validateContext(context) {
     negotiateSuite(provider, [context.cryptoSuite], [SUITE]);
-    sameKeys(context, contextKeys(context.schemaVersion));
+    sameKeys(context, contextFields(context.schemaVersion));
     canonical(context);
     if (
       ![1, 2].includes(context.schemaVersion) ||
@@ -371,7 +559,7 @@ export function createObjectCryptography(provider = createWebCryptoProvider()) {
       throw new TypeError('Invalid encrypted object');
     const { envelope, signature, ciphertext: encoded } = submission;
     sameKeys(envelope, [
-      ...contextKeys(envelope.schemaVersion),
+      ...contextFields(envelope.schemaVersion),
       'ciphertextHash',
       'nonce',
       'wrappedKey',

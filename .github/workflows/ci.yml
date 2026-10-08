@@ -1,7 +1,8 @@
 name: CI
 on:
   push:
-    branches: [main, 'feature/**', 'security/**', 'release/**', 'hotfix/**', 'codex/**']
+    branches:
+      [main, 'feature/**', 'security/**', 'release/**', 'hotfix/**', 'codex/**', 'claude/**']
   pull_request:
   workflow_dispatch:
   workflow_call:
@@ -44,6 +45,24 @@ jobs:
             dist/manifest.json
           if-no-files-found: warn
           retention-days: 14
+  pqc-lab:
+    # Isolated laboratory package: pinned Noble (X-Wing) plus native OpenSSL ML-KEM/ML-DSA.
+    # Known-answer and interoperability evidence only; not module validation or approval.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, resolved 2026-10-07
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6, resolved 2026-10-07
+        with:
+          node-version: 24.21.0
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm ci --prefix packages/pqc-lab --ignore-scripts --no-audit --no-fund
+      - name: Native ML-KEM/ML-DSA NIST vectors and provider tests
+        run: node --test --test-concurrency=1 tests/pqc/*.test.mjs tests/crypto-agility/*.test.mjs
+      - name: X-Wing author vectors, Noble/OpenSSL interoperability and lab end-to-end checks
+        run: npm --prefix packages/pqc-lab test
   container:
     needs: native
     runs-on: ubuntu-24.04

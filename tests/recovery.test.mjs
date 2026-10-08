@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, readdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
@@ -9,6 +9,11 @@ import { backup, restore } from '../scripts/backup.mjs';
 import { createRelayServer } from '../services/relay/server.mjs';
 import { Authority } from '../services/control/core.mjs';
 import { packet } from '../services/control/primitives.mjs';
+
+// Every checked-in migration must be applied; derive the count instead of pinning it.
+const MIGRATION_COUNT = readdirSync(new URL('../database/migrations/', import.meta.url)).filter(
+  (name) => name.endsWith('.sql'),
+).length;
 test('encrypted backup restores schema, identity, revocation and evidence; tamper/old checkpoints fail', async () => {
   const temp = mkdtempSync(join(tmpdir(), 'siepmu-recovery-'));
   try {
@@ -47,7 +52,7 @@ test('encrypted backup restores schema, identity, revocation and evidence; tampe
         .get(profile.profiles.find((p) => p.username === 'eve').deviceId).status,
       'revoked',
     );
-    assert.equal(db.prepare('SELECT count(*) n FROM schema_migrations').get().n, 4);
+    assert.equal(db.prepare('SELECT count(*) n FROM schema_migrations').get().n, MIGRATION_COUNT);
     assert.equal(
       db.prepare('SELECT hash FROM evidence ORDER BY sequence DESC LIMIT 1').get().hash,
       checkpoint.payload.headHash,
@@ -89,7 +94,7 @@ test('versioned migrations upgrade v1 and reject a modified applied migration', 
     );
     db.close();
     const a = new Authority({ dbPath: join(temp, 'control.sqlite'), signingKey: key, masterKey });
-    assert.equal(a.get('SELECT count(*) n FROM schema_migrations').n, 4);
+    assert.equal(a.get('SELECT count(*) n FROM schema_migrations').n, MIGRATION_COUNT);
     a.run("UPDATE schema_migrations SET checksum='bad' WHERE version='001-initial.sql'");
     a.close();
     assert.throws(

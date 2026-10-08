@@ -10,11 +10,12 @@ import { DatabaseSync } from 'node:sqlite';
 import { readFileSync, readdirSync } from 'node:fs';
 import { randomUUID, randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { storedEnvelope, storedObjectIntegrityReason } from '../admission/integrity.mjs';
 import {
-  envelopeFieldsFor,
-  storedEnvelope,
-  storedObjectIntegrityReason,
-} from '../admission/integrity.mjs';
+  CLASSICAL_SCHEMA_VERSIONS,
+  hasEnvelopeShape,
+  hasMissionLabels,
+} from '../../packages/object-format/schema.mjs';
 import { decisionEvidence } from '../evidence/decision.mjs';
 import {
   canonical,
@@ -448,7 +449,7 @@ export class Authority {
     if (su.role !== 'operator' || !['operator', 'viewer'].includes(ru.role)) return 'ROLE_DENIED';
     // Duty roles are an additive, sponsor-unapproved restriction at the release boundary.
     if (su.duty_role || ru.duty_role) {
-      if (e.schemaVersion !== 2) return 'DUTY_PROFILE_REQUIRES_V2';
+      if (!hasMissionLabels(e)) return 'DUTY_PROFILE_REQUIRES_V2';
       if (
         (su.duty_role &&
           !senderDutyAllowed(su.role, su.duty_role, e.messagePriority, e.messageDomain)) ||
@@ -478,12 +479,10 @@ export class Authority {
   }
   validateSubmission(s, b) {
     const e = b.envelope;
-    assert(e && [1, 2].includes(e.schemaVersion) && uuid(e.objectId));
-    const expected = envelopeFieldsFor(e.schemaVersion);
-    assert(
-      Object.keys(e).length === expected.length && expected.every((k) => Object.hasOwn(e, k)),
-      'ENVELOPE_SCHEMA',
-    );
+    // Exact member set first: an unknown version or extra field is a schema error.
+    assert(hasEnvelopeShape(e), 'ENVELOPE_SCHEMA');
+    assert(CLASSICAL_SCHEMA_VERSIONS.includes(e.schemaVersion), 'ENVELOPE_SCHEMA');
+    assert(uuid(e.objectId));
     assert(
       e.senderUserId === s.user.id &&
         e.senderDeviceId === s.device.id &&
@@ -503,10 +502,10 @@ export class Authority {
         e.cryptoSuite === 'P256-HKDF-SHA256-AES256GCM' &&
         e.keyVersion === 1,
     );
-    if (e.schemaVersion === 2)
+    if (hasMissionLabels(e))
       assert(validMissionProfile(e.messagePriority, e.messageDomain), 'INVALID_MISSION_PROFILE');
     if (s.user.dutyRole) {
-      assert(e.schemaVersion === 2, 'DUTY_PROFILE_REQUIRES_V2', 403);
+      assert(hasMissionLabels(e), 'DUTY_PROFILE_REQUIRES_V2', 403);
       assert(
         senderDutyAllowed(s.user.role, s.user.dutyRole, e.messagePriority, e.messageDomain),
         'ROLE_PRIORITY_DENIED',
@@ -618,21 +617,23 @@ export class Authority {
       'OBJECT_NOT_FOUND',
       404,
     );
-    // Priority-sensitive metadata is not revealed through object-ID probe routes.
-    if (s.user.dutyRole) {
-      const e = parse(r.envelope);
-      const checkDuty = r.sender_id === s.user_id ? senderDutyAllowed : recipientDutyAllowed;
-      assert(
-        e.schemaVersion === 2 &&
-          checkDuty(s.user.role, s.user.dutyRole, e.messagePriority, e.messageDomain),
-        'OBJECT_NOT_FOUND',
-        404,
-      );
-    }
     return r;
   }
+  // Priority-sensitive metadata is not revealed to a duty-restricted party. Callers
+  // commit any HOLD and signed decision first, then conceal the result as 404.
+  // storedEnvelope() tolerates corrupt rows, so one unreadable envelope cannot
+  // fail an entire listing.
+  dutyVisible(s, row) {
+    if (!s.user.dutyRole) return true;
+    const e = storedEnvelope(row);
+    const checkDuty = row.sender_id === s.user_id ? senderDutyAllowed : recipientDutyAllowed;
+    return (
+      hasMissionLabels(e) &&
+      checkDuty(s.user.role, s.user.dutyRole, e.messagePriority, e.messageDomain)
+    );
+  }
   prepare(s, id) {
-    return this.tx(() => {
+    const result = this.tx(() => {
       s = this.bound(s);
       const r = this.owned(s, id);
       const reason = this.authorityReason(r),
@@ -667,12 +668,19 @@ export class Authority {
       );
       this.count('policyEvaluations');
       if (reason) this.alert('ADMISSION_HELD', s.user_id, reason);
-      return { object: this.object(this.get('SELECT * FROM objects WHERE id=?', id)), receipt };
+      return {
+        hidden: !this.dutyVisible(s, r),
+        value: { object: this.object(this.get('SELECT * FROM objects WHERE id=?', id)), receipt },
+      };
     });
+    // Throwing inside tx would roll back the signed decision; conceal only after commit.
+    assert(!result.hidden, 'OBJECT_NOT_FOUND', 404);
+    return result.value;
   }
   approvalReason(row) {
-    const e = parse(row.envelope);
-    if (e.schemaVersion !== 2 || e.messagePriority !== 'FLASH') return null;
+    const e = storedEnvelope(row);
+    // Every labelled schema (v2 and later) carries priority; FLASH never bypasses dual control.
+    if (!hasMissionLabels(e) || e.messagePriority !== 'FLASH') return null;
     const a = this.get('SELECT * FROM release_approvals WHERE object_id=?', row.id);
     if (!a || a.epoch !== this.epoch().epoch || a.envelope_digest !== hash(canonical(e)))
       return 'FLASH_APPROVAL_REQUIRED';
@@ -697,6 +705,7 @@ export class Authority {
       s = this.bound(s);
       const row = this.get('SELECT * FROM objects WHERE id=?', id);
       assert(row, 'NOT_FOUND', 404);
+      assert(!this.authorityReason(row), 'AUTHORITY_INVALID', 409);
       const e = parse(row.envelope);
       assert(
         s.user.role === 'operator' &&
@@ -707,12 +716,7 @@ export class Authority {
         'APPROVER_DENIED',
         403,
       );
-      assert(
-        e.schemaVersion === 2 && e.messagePriority === 'FLASH',
-        'APPROVAL_NOT_APPLICABLE',
-        409,
-      );
-      assert(!this.authorityReason(row), 'AUTHORITY_INVALID', 409);
+      assert(hasMissionLabels(e) && e.messagePriority === 'FLASH', 'APPROVAL_NOT_APPLICABLE', 409);
       assert(
         expectedEpoch === this.epoch().epoch && expectedDigest === hash(canonical(e)),
         'APPROVAL_CONTEXT_CHANGED',
@@ -776,6 +780,7 @@ export class Authority {
         this.count('held');
         return {
           denied: true,
+          hidden: !this.dutyVisible(s, r),
           object: this.object(this.get('SELECT * FROM objects WHERE id=?', id)),
           receipt,
         };
@@ -839,6 +844,10 @@ export class Authority {
         receipt,
       };
     });
+    if (out.denied) {
+      assert(!out.hidden, 'OBJECT_NOT_FOUND', 404);
+      delete out.hidden;
+    }
     if (!out.denied) this.hooks.afterCommit?.();
     return out;
   }
@@ -846,6 +855,7 @@ export class Authority {
     return this.tx(() => {
       s = this.bound(s);
       const r = this.owned(s, id);
+      assert(this.dutyVisible(s, r), 'OBJECT_NOT_FOUND', 404);
       assert(
         r.recipient_id === s.user_id && r.recipient_device === s.device_id,
         'RECIPIENT_ONLY',
@@ -1047,19 +1057,7 @@ export class Authority {
           s.user_id,
           s.user_id,
         )
-          .filter((x) => {
-            if (!s.user.dutyRole) return true;
-            const e = parse(x.envelope);
-            if (e.schemaVersion !== 2) return false;
-            return x.sender_id === s.user_id
-              ? senderDutyAllowed(s.user.role, s.user.dutyRole, e.messagePriority, e.messageDomain)
-              : recipientDutyAllowed(
-                  s.user.role,
-                  s.user.dutyRole,
-                  e.messagePriority,
-                  e.messageDomain,
-                );
-          })
+          .filter((x) => this.dutyVisible(s, x))
           .map((x) => this.object(x)),
       };
     } else if (method === 'POST' && /^\/api\/objects\/[^/]+\/authorize$/.test(path)) {

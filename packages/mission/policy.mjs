@@ -1,7 +1,8 @@
 // DISC-14 PS-69 filed role/priority vocabulary. Synthetic laboratory policy only.
 // A duty role is an additional restriction, not a source of new generic privileges.
-export const MESSAGE_PRIORITIES = Object.freeze(['FLASH', 'IMMEDIATE', 'PRIORITY', 'ROUTINE']);
-export const MESSAGE_DOMAINS = Object.freeze(['GENERAL', 'INTEL']);
+import { validMissionProfile } from '../crypto/crypto.mjs';
+// Label vocabulary is defined with the wire contract in crypto.mjs.
+export { MESSAGE_PRIORITIES, MESSAGE_DOMAINS, validMissionProfile } from '../crypto/crypto.mjs';
 export const DUTY_ROLES = Object.freeze([
   'UNIT_COMMANDER',
   'SIGNALS_OFFICER',
@@ -20,16 +21,6 @@ const priorityMatrix = Object.freeze({
   AUDIT_OFFICER: [],
   SYSTEM_ADMIN: [],
 });
-
-/** @param {unknown} priority @param {unknown} domain */
-export function validMissionProfile(priority, domain) {
-  return (
-    typeof priority === 'string' &&
-    typeof domain === 'string' &&
-    MESSAGE_PRIORITIES.includes(priority) &&
-    MESSAGE_DOMAINS.includes(domain)
-  );
-}
 
 /** @param {string} genericRole @param {string | null | undefined} dutyRole */
 export function compatibleDutyRole(genericRole, dutyRole) {

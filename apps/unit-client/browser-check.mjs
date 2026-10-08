@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import assert from 'node:assert/strict';
 import { totp } from '../../services/control/primitives.mjs';
+import { checkShellUpgrades } from '../../tests/browser/shell-upgrade.mjs';
 
 const base = new URL(process.env.SIEPMU_URL || 'http://127.0.0.1:8080');
 if (!['127.0.0.1', 'localhost', '[::1]'].includes(base.hostname))
@@ -213,6 +214,91 @@ async function enrollFreshDevice(admin) {
   return { page, context };
 }
 
+async function checkRoleTransition(admin, auditor) {
+  await admin.page.getByRole('button', { name: 'Units & users', exact: true }).click();
+  const generic = admin.page.getByLabel('Generic role for bravo', { exact: true });
+  const duty = admin.page.getByLabel('Duty position for bravo', { exact: true });
+  const row = admin.page.getByRole('row').filter({ has: generic });
+  const apply = async () => {
+    const button = await row
+      .getByRole('button', { name: 'Apply roles', exact: true })
+      .elementHandle();
+    await button.click();
+    await button.waitForElementState('hidden');
+    await admin.page.locator('#notice').filter({ hasText: 'saved atomically' }).waitFor();
+  };
+  await duty.selectOption('FIELD_OPERATOR');
+  await apply();
+  await generic.selectOption('auditor');
+  await duty.selectOption('AUDIT_OFFICER');
+  const mutation = admin.page.waitForRequest(
+    (request) => request.method() === 'PATCH' && request.url().includes('/api/admin/users/'),
+  );
+  await apply();
+  const request = await mutation;
+  assert.equal(request.postDataJSON().role, 'auditor');
+  assert.equal(request.postDataJSON().dutyRole, 'AUDIT_OFFICER');
+  await admin.page.locator('#notice').filter({ hasText: 'saved atomically' }).waitFor();
+  // Re-read authority data so selected options alone cannot satisfy this assertion.
+  const refresh = await admin.page
+    .getByRole('button', { name: 'Refresh console', exact: true })
+    .elementHandle();
+  await refresh.click();
+  await refresh.waitForElementState('hidden');
+  await generic.filter({ has: admin.page.locator('option[value="auditor"]:checked') }).waitFor();
+  assert.equal(await generic.inputValue(), 'auditor');
+  assert.equal(await duty.inputValue(), 'AUDIT_OFFICER');
+  await auditor.page.getByRole('button', { name: 'Refresh authority', exact: true }).click();
+  await auditor.page.getByRole('button', { name: 'Administration', exact: true }).click();
+  await auditor.page.getByText('Release and security observations', { exact: true }).waitFor();
+  await auditor.page.getByRole('button', { name: 'Units & users', exact: true }).click();
+  assert.equal(
+    await auditor.page.getByRole('button', { name: 'Apply roles', exact: true }).count(),
+    0,
+  );
+  assert.equal(
+    await auditor.page
+      .getByRole('button', { name: 'Create user & MFA enrollment', exact: true })
+      .count(),
+    0,
+  );
+  results.push(
+    'Administrator atomically changes operator/FIELD_OPERATOR to auditor/AUDIT_OFFICER; refreshed authority confirms both and auditor UI remains read-only',
+  );
+  await auditor.page.getByRole('button', { name: 'Evidence & integration', exact: true }).click();
+  await auditor.context.route(
+    '**/api/evidence/checkpoint',
+    async (route) => {
+      const response = await route.fetch();
+      const checkpoint = await response.json();
+      checkpoint.payload.sequence++;
+      await route.fulfill({ response, json: checkpoint });
+    },
+    { times: 1 },
+  );
+  await auditor.page.getByRole('button', { name: 'Save external checkpoint', exact: true }).click();
+  await auditor.page
+    .locator('#notice')
+    .filter({ hasText: 'signature could not be verified' })
+    .waitFor();
+  assert.equal(
+    await auditor.page
+      .getByText('No checkpoint signature checked in this view.', { exact: true })
+      .count(),
+    1,
+  );
+  const checkpointDownload = auditor.page.waitForEvent('download');
+  await auditor.page.getByRole('button', { name: 'Save external checkpoint', exact: true }).click();
+  await checkpointDownload;
+  await auditor.page
+    .getByText(/^Checkpoint signature verified with the pinned authority key:/)
+    .waitFor();
+  results.push(
+    'Read-only auditor rejects a tampered checkpoint and displays verified status only after a valid signature check',
+  );
+  await auditor.context.close();
+}
+
 async function checkConcurrentVaultLocks(owner) {
   const peer = await owner.context.newPage();
   await peer.goto(base.href);
@@ -310,12 +396,14 @@ async function exchangeFile(alice, bob) {
 }
 
 try {
+  await checkShellUpgrades(browser, results);
   await checkTrustStorageRecovery();
   const alice = await loginUser('alice');
   const bob = await loginUser('bob');
   const admin = await loginUser('admin');
   results.push('MFA, encrypted provisioning vault and device binding through real browser UI');
-  await enrollFreshDevice(admin);
+  const bravo = await enrollFreshDevice(admin);
+  await checkRoleTransition(admin, bravo);
   await checkConcurrentVaultLocks(alice);
   const message = `Synthetic browser exchange ${Date.now()} <img src=x onerror="globalThis.__siepmuXss=1">`;
   await createMessage(alice.page, message);
