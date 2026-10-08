@@ -3,7 +3,15 @@ import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { isTextPath, textIntegrityViolation } from './text-integrity.mjs';
 
-const excluded = new Set(['.git', '.data', 'node_modules', 'dist', 'artifacts', 'coverage']);
+const excluded = new Set([
+  '.git',
+  '.data',
+  'node_modules',
+  'dist',
+  'artifacts',
+  'coverage',
+  'target',
+]);
 async function walk(dir) {
   const files = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {

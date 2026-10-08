@@ -5,3 +5,5 @@ artifacts/
 coverage/
 package-lock.json
 LICENSE
+native/target/
+spec/vectors/

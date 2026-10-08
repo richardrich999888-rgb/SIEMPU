@@ -12,3 +12,5 @@ coverage
 **/*.key
 **/demo-profiles.json
 **/server-key.json
+native
+spec
