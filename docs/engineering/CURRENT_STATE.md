@@ -80,6 +80,10 @@ providers (ML-KEM-768/1024, ML-DSA-65 via OpenSSL; X-Wing via Noble) with NIST/a
 - Laboratory v3 PQC end-to-end path through the authority release transaction (ADR-010), with
   wrap v2 fixing the HKDF `info` size defect (defect 9 below).
 - Trust Before Release scripted demonstration, report and CI step.
+- Synthetic adapter negative/restart cases ported from PR #16 (`85e4c7d`).
+- Independent review package: `research/cryptographic-standards/V3_COMPOSITION.md` (byte-level
+  spec, intended properties P1–P6, assessor questions R1–R7, pinned wrap v2 vector reproduced in
+  Python), `HPKE_PQ_EVALUATION.md`, ADR-011 (HPKE base mode reserved as wrap v3, not adopted).
 
 ## Incomplete
 
@@ -102,5 +106,8 @@ PR #17 (draft) from this branch to `main`. Not to be merged automatically.
 
 ## Next executable tasks
 
-1. Independent review package for the v3 composition; evaluate RFC 9180 HPKE with PQ KEMs.
-2. Re-retrieve `research/defence-comparison/sources.json` D04-D15.
+1. Re-retrieve `research/defence-comparison/sources.json` D04-D15 (needs network access to the
+   original sources; not reachable from this environment).
+2. Re-check `HPKE_PQ_EVALUATION.md` against the published `draft-ietf-hpke-pq` revision (IETF
+   hosts blocked here); then prototype wrap v3 behind ADR-011's gates.
+3. Engage an independent cryptographic assessor with `V3_COMPOSITION.md` (external).

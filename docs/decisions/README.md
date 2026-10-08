@@ -14,5 +14,6 @@ The accepted implementation contract is [protocols/IMPLEMENTATION_CONTRACT.md](.
 | [008](ADR-008-laboratory-code-isolation.md)     | Laboratory PQC code never enters a release artefact                |
 | [009](ADR-009-duty-concealment-after-commit.md) | Duty-role concealment after the signed decision commits            |
 | [010](ADR-010-v3-laboratory-release-path.md)    | Laboratory schema-v3 objects use the normal release transaction    |
+| [011](ADR-011-hpke-pq-deferred.md)              | Wrap v2 kept for the laboratory; HPKE base mode planned as wrap v3 |
 
 Changes must state the reason, trust-boundary effect, migration impact and regression evidence. Never change a cryptographic or evidence encoding silently under the same protocol version.
