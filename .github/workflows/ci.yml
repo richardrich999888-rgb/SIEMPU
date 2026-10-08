@@ -115,6 +115,35 @@ jobs:
           path: artifacts/native/benchmark.json
           if-no-files-found: warn
           retention-days: 14
+  formal:
+    # TLA+ model of release, revocation and recovery (formal/README.md). The faithful model must
+    # pass and each deliberately broken design must violate its target property.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      TLA2TOOLS_URL: https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/tla2tools.jar
+      TLA2TOOLS_SHA256: 7beec0f04818732a62fa193731711a99aa4f11279499b2360a7d156c519ea78d
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, resolved 2026-10-07
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6, resolved 2026-10-07
+        with:
+          node-version: 24.21.0
+      - name: Fetch and verify pinned TLA+ tools
+        run: |
+          java -version
+          curl --fail --silent --show-error --location --output "$RUNNER_TEMP/tla2tools.jar" "$TLA2TOOLS_URL"
+          echo "$TLA2TOOLS_SHA256  $RUNNER_TEMP/tla2tools.jar" | sha256sum --check --strict
+      - name: Model-check faithful model and both mutants
+        run: SIEPMU_TLA2TOOLS="$RUNNER_TEMP/tla2tools.jar" npm run formal:check
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6, resolved 2026-10-07
+        if: always()
+        with:
+          name: formal-evidence
+          path: artifacts/formal/report.json
+          if-no-files-found: warn
+          retention-days: 14
   container:
     needs: native
     runs-on: ubuntu-24.04
