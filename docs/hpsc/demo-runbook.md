@@ -17,10 +17,10 @@ git clone https://github.com/richardrich999888-rgb/SIEMPU && cd SIEMPU
 git checkout <frozen SHA from FROZEN_BASELINE.md>
 npm ci --ignore-scripts                 # Node 24.21.0 (>=24.19 <25); openssl on PATH
 npm run build:native                    # optional: Rust verifier (cargo 1.97.0)
-npm run demo:trust-before-release && npm run demo:documents && npm run demo:monitoring   # dry run
+npm run demo:hpsc        # dry run of all four demos; index in artifacts/hpsc-rehearsal/index.md
 ```
 
-**Reset:** `rm -rf artifacts/demo artifacts/trust-before-release artifacts/demo-document-exchange artifacts/demo-monitoring-recovery`.
+**Reset:** `rm -rf artifacts/demo artifacts/trust-before-release artifacts/demo-document-exchange artifacts/demo-monitoring-recovery artifacts/hpsc-rehearsal`.
 
 The runs leave no other state behind.
 
