@@ -242,4 +242,313 @@ export async function signPacket(privateJwk, payload) {
     signature: await sign(privateJwk, payload),
     keyId: await keyId(publicJwk(privateJwk)),
   };
-×İø¶‰Ëkºwµçl(€ÑÉäì(€€€½¹ÍĞ½¹Ñ•¹Ñ-•ä€ô…İ…¥ĞÍÕ‰Ñ±”¹¥µÁ½ÉÑ-•ä É…Üœ°½¹Ñ•¹Ñ	åÑ•Ì°€Lµ4œ°™…±Í”°l•¹ÉåÁĞt¤ì(€€€½¹ÍĞ¥Á¡•ÉÑ•áĞ€ô¹•ÜU¥¹ĞáÉÉ…ä (€€€€€…İ…¥ĞÍÕ‰Ñ±”¹•¹ÉåÁĞ (€€€€€€€ì¹…µ”è€Lµ4œ°¥Øè¹½¹”°…‘‘¥Ñ¥½¹…±…Ñ„è……°Ñ…1•¹Ñ è€ÄÈàô°(€€€€€€€½¹Ñ•¹Ñ-•ä°(€€€€€€€ÕÑ˜à¹•¹½‘”¡…¹½¹¥…°¡Á…å±½…¤¤°(€€€€€€¤°(€€€€¤ì(€€€½¹ÍĞ•Á¡•µ•É…°€ô…İ…¥ĞÍÕ‰Ñ±”¹•¹•É…Ñ•-•ä¡ì¹…µ”è€ œ°¹…µ•‘ÕÉÙ”è€@´ÈÔØœô°ÑÉÕ”°l(€€€€€€‘•É¥Ù•	¥ÑÌœ°(€€€t¤ì(€€€½¹ÍĞ•Á¡•µ•É…±AÉ¥Ù…Ñ”€ô…İ…¥ĞÍÕ‰Ñ±”¹•áÁ½ÉÑ-•ä ©İ¬œ°•Á¡•µ•É…°¹ÁÉ¥Ù…Ñ•-•ä¤ì(€€€½¹ÍĞ•Á¡•µ•É…±AÕ‰±¥Œ€ôÁÕ‰±¥)İ¬¡…İ…¥ĞÍÕ‰Ñ±”¹•áÁ½ÉÑ-•ä ©İ¬œ°•Á¡•µ•É…°¹ÁÕ‰±¥-•ä¤¤ì(€€€½¹ÍĞİÉ…Á-•ä€ô…İ…¥ĞİÉ…ÁÁ¥¹-•ä¡•Á¡•µ•É…±AÉ¥Ù…Ñ”°É•¥Á¥•¹ÑAÕ‰±¥)İ¬°Í…±Ğ¤ì(€€€½¹ÍĞİÉ…ÁÁ•€ô…İ…¥ĞÍÕ‰Ñ±”¹•¹ÉåÁĞ (€€€€€ì¹…µ”è€Lµ4œ°¥Ø°…‘‘¥Ñ¥½¹…±…Ñ„è……°Ñ…1•¹Ñ è€ÄÈàô°(€€€€€İÉ…Á-•ä°(€€€€€½¹Ñ•¹Ñ	åÑ•Ì°(€€€€¤ì(€€€½¹ÍĞ•¹Ù•±½Á”€ôì(€€€€€€¸¸¹½¹Ñ•áĞ°(€€€€€¥Á¡•ÉÑ•áÑ!…Í è…İ…¥ĞÍ¡„ÈÔØ¡¥Á¡•ÉÑ•áĞ¤°(€€€€€¹½¹”èˆØĞ¡¹½¹”¤°(€€€€€İÉ…ÁÁ•‘-•äèì(€€€€€€€•Á¡•µ•É…±AÕ‰±¥-•äè•Á¡•µ•É…±AÕ‰±¥Œ°(€€€€€€€Í…±ĞèˆØĞ¡Í…±Ğ¤°(€€€€€€€¥ØèˆØĞ¡¥Ø¤°(€€€€€€€¥Á¡•ÉÑ•áĞèˆØĞ¡İÉ…ÁÁ•¤°(€€€€€ô°(€€€ôì(€€€É•ÑÕÉ¸ì(€€€€€•¹Ù•±½Á”°(€€€€€Í¥¹…ÑÕÉ”è…İ…¥ĞÍ¥¸¡Í•¹‘•ÉAÉ¥Ù…Ñ•)İ¬°•¹Ù•±½Á”¤°(€€€€€¥Á¡•ÉÑ•áĞèˆØĞ¡¥Á¡•ÉÑ•áĞ¤°(€€€ôì(€ô™¥¹…±±äì(€€€½¹Ñ•¹Ñ	åÑ•Ì¹™¥±° À¤ì(€ô)ô(¼¨¨Á…É…´í¹ÉåÁÑ•‘=‰©•ÑôÍÕ‰µ¥ÍÍ¥½¸Á…É…´í)Í½¹]•‰-•åôÉ•¥Á¥•¹ÑAÉ¥Ù…Ñ•)İ¬Á…É…´í)Í½¹]•‰-•åôÍ•¹‘•ÉAÕ‰±¥)İ¬É•ÑÕÉ¹ÌíAÉ½µ¥Í”ñA…å±½…ùô€¨¼)•áÁ½ÉĞ…Íå¹Œ™Õ¹Ñ¥½¸‘•ÉåÁÑ=‰©•Ğ¡ÍÕ‰µ¥ÍÍ¥½¸°É•¥Á¥•¹ÑAÉ¥Ù…Ñ•)İ¬°Í•¹‘•ÉAÕ‰±¥)İ¬¤ì(€¥˜€ …ÍÕ‰µ¥ÍÍ¥½¸ñğÑåÁ•½˜ÍÕ‰µ¥ÍÍ¥½¸€„ôô€½‰©•Ğœ¤(€€€Ñ¡É½Ü¹•ÜQåÁ•ÉÉ½È %¹Ù…±¥•¹ÉåÁÑ•½‰©•Ğœ¤ì(€½¹ÍĞì•¹Ù•±½Á”°Í¥¹…ÑÕÉ”°¥Á¡•ÉÑ•áĞè•¹½‘•ô€ôÍÕ‰µ¥ÍÍ¥½¸ì(€Í…µ•-•åÌ¡•¹Ù•±½Á”°•¹Ù•±½Á•¥•±‘Ì¡•¹Ù•±½Á”¹Í¡•µ…Y•ÉÍ¥½¸¤¤ì(€½¹ÍĞì¥Á¡•ÉÑ•áÑ!…Í °¹½¹”°İÉ…ÁÁ•‘-•ä°€¸¸¹½¹Ñ•áĞô€ô•¹Ù•±½Á”ì(€Ù…±¥‘…Ñ•½¹Ñ•áĞ¡½¹Ñ•áĞ¤ì(€¥˜€ „¡…İ…¥ĞÙ•É¥™ä¡Í•¹‘•ÉAÕ‰±¥)İ¬°•¹Ù•±½Á”°Í¥¹…ÑÕÉ”¤¤¤(€€€Ñ¡É½Ü¹•ÜÉÉ½È =‰©•ĞÍ¥¹…ÑÕÉ”¥¹Ù…±¥œ¤ì(€¥˜€¡½¹Ñ•áĞ¹É•¥Á¥•¹Ñ-•å%€„ôô€¡…İ…¥Ğ­•å%¡ÁÕ‰±¥)İ¬¡É•¥Á¥•¹ÑAÉ¥Ù…Ñ•)İ¬¤¤¤¤(€€€Ñ¡É½Ü¹•ÜÉÉ½È I•¥Á¥•¹Ğ­•ä%µ¥Íµ…Ñ œ¤ì(€½¹ÍĞ¥Á¡•ÉÑ•áĞ€ôÕ¹ˆØĞ¡•¹½‘•¤ì(€¥˜€ (€€€¥Á¡•ÉÑ•áĞ¹±•¹Ñ €ø5a}=9Q9Q}	eQL€¨€Èñğ(€€€¥Á¡•ÉÑ•áĞ¹±•¹Ñ €ğ€ÄØñğ(€€€¥Á¡•ÉÑ•áÑ!…Í €„ôô€¡…İ…¥ĞÍ¡„ÈÔØ¡¥Á¡•ÉÑ•áĞ¤¤(€€¤(€€€Ñ¡É½Ü¹•ÜÉÉ½È ¥Á¡•ÉÑ•áĞ¥¹Ñ•É¥Ñäµ¥Íµ…Ñ œ¤ì(€Í…µ•-•åÌ¡İÉ…ÁÁ•‘-•ä°l•Á¡•µ•É…±AÕ‰±¥-•äœ°€Í…±Ğœ°€¥Øœ°€¥Á¡•ÉÑ•áĞt¤ì(€½¹ÍĞİÉ…Á-•ä€ô…İ…¥ĞİÉ…ÁÁ¥¹-•ä (€€€É•¥Á¥•¹ÑAÉ¥Ù…Ñ•)İ¬°(€€€İÉ…ÁÁ•‘-•ä¹•Á¡•µ•É…±AÕ‰±¥-•ä°(€€€Í¥é•¡İÉ…ÁÁ•‘-•ä¹Í…±Ğ°€ÌÈ°€Í…±Ğœ¤°(€€¤ì(€½¹ÍĞ……€ôÕÑ˜à¹•¹½‘”¡…¹½¹¥…°¡½¹Ñ•áĞ¤¤ì(€±•Ğ½¹Ñ•¹Ñ	åÑ•Ìì(€ÑÉäì(€€€½¹Ñ•¹Ñ	åÑ•Ì€ô¹•ÜU¥¹ĞáÉÉ…ä (€€€€€…İ…¥ĞÍÕ‰Ñ±”¹‘•ÉåÁĞ (€€€€€€€ì(€€€€€€€€€¹…µ”è€Lµ4œ°(€€€€€€€€€¥ØèÍ¥é•¡İÉ…ÁÁ•‘-•ä¹¥Ø°€ÄÈ°€İÉ…À%Xœ¤°(€€€€€€€€€…‘‘¥Ñ¥½¹…±…Ñ„è……°(€€€€€€€€€Ñ…1•¹Ñ è€ÄÈà°(€€€€€€€ô°(€€€€€€€İÉ…Á-•ä°(€€€€€€€Í¥é•¡İÉ…ÁÁ•‘-•ä¹¥Á¡•ÉÑ•áĞ°€Ğà°€İÉ…ÁÁ•½¹Ñ•¹Ğ­•äœ¤°(€€€€€€¤°(€€€€¤ì(€€€½¹ÍĞ­•ä€ô…İ…¥ĞÍÕ‰Ñ±”¹¥µÁ½ÉÑ-•ä É…Üœ°½¹Ñ•¹Ñ	åÑ•Ì°€Lµ4œ°™…±Í”°l‘•ÉåÁĞt¤ì(€€€½¹ÍĞÁ±…¥¸€ô…İ…¥ĞÍÕ‰Ñ±”¹‘•ÉåÁĞ (€€€€€ì(€€€€€€€¹…µ”è€Lµ4œ°(€€€€€€€¥ØèÍ¥é•¡¹½¹”°€ÄÈ°€½¹Ñ•¹Ğ¹½¹”œ¤°(€€€€€€€…‘‘¥Ñ¥½¹…±…Ñ„è……°(€€€€€€€Ñ…1•¹Ñ è€ÄÈà°(€€€€€ô°(€€€€€­•ä°(€€€€€¥Á¡•ÉÑ•áĞ°(€€€€¤ì(€€€É•ÑÕÉ¸Ù…±¥‘…Ñ•A…å±½…¡)M=8¹Á…ÉÍ”¡‘•½‘•È¹‘•½‘”¡Á±…¥¸¤¤¤ì(€ô…Ñ ì(€€€Ñ¡É½Ü¹•ÜÉÉ½È ¹ÉåÁÑ•Á…å±½……ÕÑ¡•¹Ñ¥…Ñ¥½¸™…¥±•œ¤ì(€ô™¥¹…±±äì(€€€¥˜€¡½¹Ñ•¹Ñ	åÑ•Ì¤½¹Ñ•¹Ñ	åÑ•Ì¹™¥±° À¤ì(€ô)ô(¼¨¨Á…É…´íÍÑÉ¥¹ôÁ…ÍÍÁ¡É…Í”Á…É…´íU¥¹ĞáÉÉ…äñÉÉ…å	Õ™™•ÈùôÍ…±ĞÁ…É…´í-•åUÍ…•muôÕÍ…•ÌÉ•ÑÕÉ¹ÌíAÉ½µ¥Í”ñÉåÁÑ½-•äùô€¨¼)…Íå¹Œ™Õ¹Ñ¥½¸Ù…Õ±Ñ-•ä¡Á…ÍÍÁ¡É…Í”°Í…±Ğ°ÕÍ…•Ì¤ì(€¥˜€¡ÑåÁ•½˜Á…ÍÍÁ¡É…Í”€„ôô€ÍÑÉ¥¹œœñğÁ…ÍÍÁ¡É…Í”¹±•¹Ñ €ğ€ÄÈñğÁ…ÍÍÁ¡É…Í”¹±•¹Ñ €ø€ÄÀÈĞ¤(€€€Ñ¡É½Ü¹•ÜQåÁ•ÉÉ½È Y…Õ±ĞÁ…ÍÍÁ¡É…Í”µÕÍĞ½¹Ñ…¥¸€ÄËŠLÄÀÈĞ¡…É…Ñ•ÉÌœ¤ì(€½¹ÍĞ­•ä€ô…İ…¥ĞÍÕ‰Ñ±”¹¥µÁ½ÉÑ-•ä É…Üœ°ÕÑ˜à¹•¹½‘”¡Á…ÍÍÁ¡É…Í”¤°€A	-Èœ°™…±Í”°l(€€€€‘•É¥Ù•-•äœ°(€t¤ì(€É•ÑÕÉ¸ÍÕ‰Ñ±”¹‘•É¥Ù•-•ä (€€€ì¹…µ”è€A	-Èœ°Í…±Ğ°¥Ñ•É…Ñ¥½¹ÌèYU1Q}%QIQ%=9L°¡…Í è€M!´ÈÔØœô°(€€€­•ä°(€€€ì¹…µ”è€Lµ4œ°±•¹Ñ è€ÈÔØô°(€€€™…±Í”°(€€€ÕÍ…•Ì°(€€¤ì)ô(¼¨¨Á…É…´íÕ¹­¹½İ¹ôÙ…±Õ”Á…É…´íÍÑÉ¥¹ôÁ…ÍÍÁ¡É…Í”É•ÑÕÉ¹ÌíAÉ½µ¥Í”ñ¥µÁ½ÉĞ ˆ¸¸½½‰©•Ğµ™½Éµ…Ğ½ÑåÁ•Ì¹©Ìˆ¤¹Y…Õ±ÑA…­•Ğùô€¨¼)•áÁ½ÉĞ…Íå¹Œ™Õ¹Ñ¥½¸Í•…±Y…Õ±Ğ¡Ù…±Õ”°Á…ÍÍÁ¡É…Í”¤ì(€½¹ÍĞÍ…±Ğ€ôÉ…¹‘½´ ÌÈ¤°(€€€¥Ø€ôÉ…¹‘½´ ÄÈ¤ì(€½¹ÍĞµ•Ñ…‘…Ñ„€ôì(€€€Ù•ÉÍ¥½¸è€Ä°(€€€­‘˜è€A	-ÈµM!ÈÔØœ°(€€€¥Ñ•É…Ñ¥½¹ÌèYU1Q}%QIQ%=9L°(€€€Í…±ĞèˆØĞ¡Í…±Ğ¤°(€€€¥ØèˆØĞ¡¥Ø¤°(€ôì(€½¹ÍĞ­•ä€ô…İ…¥ĞÙ…Õ±Ñ-•ä¡Á…ÍÍÁ¡É…Í”°Í…±Ğ°l•¹ÉåÁĞt¤ì(€½¹ÍĞ¥Á¡•ÉÑ•áĞ€ô…İ…¥ĞÍÕ‰Ñ±”¹•¹ÉåÁĞ (€€€ì¹…µ”è€Lµ4œ°¥Ø°…‘‘¥Ñ¥½¹…±…Ñ„èÕÑ˜à¹•¹½‘”¡…¹½¹¥…°¡µ•Ñ…‘…Ñ„¤¤°Ñ…1•¹Ñ è€ÄÈàô°(€€€­•ä°(€€€ÕÑ˜à¹•¹½‘”¡…¹½¹¥…°¡Ù…±Õ”¤¤°(€€¤ì(€É•ÑÕÉ¸ì€¸¸¹µ•Ñ…‘…Ñ„°¥Á¡•ÉÑ•áĞèˆØĞ¡¥Á¡•ÉÑ•áĞ¤ôì)ô(¼¨¨Á…É…´í¥µÁ½ÉĞ ˆ¸¸½½‰©•Ğµ™½Éµ…Ğ½ÑåÁ•Ì¹©Ìˆ¤¹Y…Õ±ÑA…­•ÑôÁ…­•ĞÁ…É…´íÍÑÉ¥¹ôÁ…ÍÍÁ¡É…Í”É•ÑÕÉ¹ÌíAÉ½µ¥Í”ñÕ¹­¹½İ¸ùô€¨¼)•áÁ½ÉĞ…Íå¹Œ™Õ¹Ñ¥½¸½Á•¹Y…Õ±Ğ¡Á…­•Ğ°Á…ÍÍÁ¡É…Í”¤ì(€Í…µ•-•åÌ¡Á…­•Ğ°lÙ•ÉÍ¥½¸œ°€­‘˜œ°€¥Ñ•É…Ñ¥½¹Ìœ°€Í…±Ğœ°€¥Øœ°€¥Á¡•ÉÑ•áĞt¤ì(€½¹ÍĞì¥Á¡•ÉÑ•áĞ°€¸¸¹µ•Ñ…‘…Ñ„ô€ôÁ…­•Ğì(€¥˜€ (€€€µ•Ñ…‘…Ñ„¹Ù•ÉÍ¥½¸€„ôô€Äñğ(€€€µ•Ñ…‘…Ñ„¹­‘˜€„ôô€A	-ÈµM!ÈÔØœñğ(€€€µ•Ñ…‘…Ñ„¹¥Ñ•É…Ñ¥½¹Ì€„ôôYU1Q}%QIQ%=9L(€€¤(€€€Ñ¡É½Ü¹•ÜQåÁ•ÉÉ½È U¹ÍÕÁÁ½ÉÑ•Ù…Õ±Ğ™½Éµ…Ğœ¤ì(€½¹ÍĞÍ…±Ğ€ôÍ¥é•¡µ•Ñ…‘…Ñ„¹Í…±Ğ°€ÌÈ°€Ù…Õ±ĞÍ…±Ğœ¤°(€€€¥Ø€ôÍ¥é•¡µ•Ñ…‘…Ñ„¹¥Ø°€ÄÈ°€Ù…Õ±Ğ%Xœ¤ì(€½¹ÍĞ­•ä€ô…İ…¥ĞÙ…Õ±Ñ-•ä¡Á…ÍÍÁ¡É…Í”°Í…±Ğ°l‘•ÉåÁĞt¤ì(€ÑÉäì(€€€½¹ÍĞÁ±…¥¹Ñ•áĞ€ô…İ…¥ĞÍÕ‰Ñ±”¹‘•ÉåÁĞ (€€€€€ì¹…µ”è€Lµ4œ°¥Ø°…‘‘¥Ñ¥½¹…±…Ñ„èÕÑ˜à¹•¹½‘”¡…¹½¹¥…°¡µ•Ñ…‘…Ñ„¤¤°Ñ…1•¹Ñ è€ÄÈàô°(€€€€€­•ä°(€€€€€Õ¹ˆØĞ¡¥Á¡•ÉÑ•áĞ¤°(€€€€¤ì(€€€½¹ÍĞÙ…±Õ”€ô)M=8¹Á…ÉÍ”¡‘•½‘•È¹‘•½‘”¡Á±…¥¹Ñ•áĞ¤¤ì(€€€…¹½¹¥…°¡Ù…±Õ”¤ì(€€€É•ÑÕÉ¸Ù…±Õ”ì(€ô…Ñ ì(€€€Ñ¡É½Ü¹•ÜÉÉ½È Y…Õ±ĞÕ¹±½¬™…¥±•œ¤ì(€ô)ô(
+}
+/** @param {JsonWebKey} publicKey @param {import("../object-format/types.js").SignedPacket<unknown>} packet @returns {Promise<boolean>} */
+export async function verifyPacket(publicKey, packet) {
+  try {
+    sameKeys(packet, ['payload', 'signature', 'keyId']);
+    return (
+      packet.keyId === (await keyId(publicKey)) &&
+      (await verify(publicKey, packet.payload, packet.signature))
+    );
+  } catch {
+    return false;
+  }
+}
+/** @param {ObjectContext} context */
+function validateContext(context) {
+  sameKeys(context, contextFields(context.schemaVersion));
+  canonical(context);
+  if (
+    ![1, 2].includes(context.schemaVersion) ||
+    (context.schemaVersion === 2 &&
+      !validMissionProfile(context.messagePriority, context.messageDomain)) ||
+    context.keyVersion !== 1 ||
+    context.cryptoSuite !== SUITE ||
+    context.classification !== 'DEMO' ||
+    context.action !== 'deliver'
+  )
+    throw new TypeError('Unsupported object context');
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(context.objectId))
+    throw new TypeError('Object ID must be a UUID');
+  /** @type {(keyof Pick<ObjectContext, 'senderUserId' | 'senderDeviceId' | 'senderUnitId' | 'recipientUserId' | 'recipientDeviceId' | 'recipientUnitId' | 'missionId'>)[]} */
+  const identifiers = [
+    'senderUserId',
+    'senderDeviceId',
+    'senderUnitId',
+    'recipientUserId',
+    'recipientDeviceId',
+    'recipientUnitId',
+    'missionId',
+  ];
+  for (const k of identifiers) {
+    if (typeof context[k] !== 'string' || !/^[A-Za-z0-9._:-]{1,128}$/.test(context[k]))
+      throw new TypeError(`Invalid ${k}`);
+  }
+  if (typeof context.recipientKeyId !== 'string' || !/^[0-9a-f]{64}$/.test(context.recipientKeyId))
+    throw new TypeError('Invalid recipient key ID');
+  if (
+    !Number.isSafeInteger(context.createdAt) ||
+    context.createdAt < 0 ||
+    !Number.isSafeInteger(context.expiresAt) ||
+    context.expiresAt <= context.createdAt
+  )
+    throw new TypeError('Invalid object validity interval');
+  sameKeys(context.creationGrant, ['payload', 'signature', 'keyId']);
+  sized(context.creationGrant.signature, 64, 'grant signature');
+  if (
+    !context.creationGrant.payload ||
+    typeof context.creationGrant.payload !== 'object' ||
+    Array.isArray(context.creationGrant.payload)
+  )
+    throw new TypeError('Invalid creation grant');
+  if (!/^[0-9a-f]{64}$/.test(context.creationGrant.keyId))
+    throw new TypeError('Invalid grant key ID');
+}
+/** @param {JsonWebKey} privateKey @param {JsonWebKey} publicKey @param {Uint8Array<ArrayBuffer>} salt @returns {Promise<CryptoKey>} */
+async function wrappingKey(privateKey, publicKey, salt) {
+  const privateCrypto = await importJwk(privateKey, 'deriveBits');
+  const publicCrypto = await importJwk(publicKey, 'ecdhPublic');
+  const secret = new Uint8Array(
+    await subtle.deriveBits({ name: 'ECDH', public: publicCrypto }, privateCrypto, 256),
+  );
+  try {
+    const key = await subtle.importKey('raw', secret, 'HKDF', false, ['deriveKey']);
+    return await subtle.deriveKey(
+      { name: 'HKDF', hash: 'SHA-256', salt, info: WRAP_INFO },
+      key,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt'],
+    );
+  } finally {
+    secret.fill(0);
+  }
+}
+/** @param {Payload} payload @returns {Payload} */
+export function validatePayload(payload) {
+  sameKeys(payload, ['kind', 'name', 'mime', 'data']);
+  if (!['text', 'file'].includes(payload.kind)) throw new TypeError('Unsupported payload kind');
+  if (
+    typeof payload.name !== 'string' ||
+    payload.name.length < 1 ||
+    payload.name.length > 180 ||
+    /[\\/\x00-\x1f\x7f]/.test(payload.name) ||
+    ['.', '..'].includes(payload.name)
+  )
+    throw new TypeError('Unsafe file name');
+  if (
+    typeof payload.mime !== 'string' ||
+    payload.mime.length > 120 ||
+    !/^[a-z0-9!#$&^_.+-]+\/[a-z0-9!#$&^_.+-]+(?:;charset=utf-8)?$/.test(payload.mime)
+  )
+    throw new TypeError('Invalid MIME type');
+  const bytes = unb64(payload.data);
+  if (bytes.length > MAX_CONTENT_BYTES) throw new TypeError('Payload exceeds size limit');
+  if (payload.kind === 'text') {
+    if (!['text/plain', 'text/plain;charset=utf-8'].includes(payload.mime))
+      throw new TypeError('Text messages must use text/plain');
+    decoder.decode(bytes);
+  }
+  return payload;
+}
+/** @param {string} text @returns {Payload} */
+export function createTextPayload(text) {
+  if (typeof text !== 'string') throw new TypeError('Expected text');
+  return validatePayload({
+    kind: 'text',
+    name: 'message.txt',
+    mime: 'text/plain',
+    data: b64(utf8.encode(text)),
+  });
+}
+/** @param {string} name @param {string} mime @param {ByteInput} bytes @returns {Payload} */
+export function createFilePayload(name, mime, bytes) {
+  return validatePayload({
+    kind: 'file',
+    name,
+    mime: mime || 'application/octet-stream',
+    data: b64(bytes),
+  });
+}
+/** @param {Payload} payload */
+export function unpackPayload(payload) {
+  validatePayload(payload);
+  const bytes = unb64(payload.data);
+  return {
+    kind: payload.kind,
+    name: payload.name,
+    mime: payload.mime,
+    bytes,
+    ...(payload.kind === 'text' ? { text: decoder.decode(bytes) } : {}),
+  };
+}
+/** @param {ObjectContext} context @param {Payload} payload @param {JsonWebKey} recipientPublicJwk @param {JsonWebKey} senderPrivateJwk @returns {Promise<EncryptedObject>} */
+export async function encryptObject(context, payload, recipientPublicJwk, senderPrivateJwk) {
+  validateContext(context);
+  validatePayload(payload);
+  if (context.recipientKeyId !== (await keyId(recipientPublicJwk)))
+    throw new Error('Recipient key ID mismatch');
+  const aad = utf8.encode(canonical(context));
+  const contentBytes = random(32),
+    nonce = random(12),
+    salt = random(32),
+    iv = random(12);
+  try {
+    const contentKey = await subtle.importKey('raw', contentBytes, 'AES-GCM', false, ['encrypt']);
+    const ciphertext = new Uint8Array(
+      await subtle.encrypt(
+        { name: 'AES-GCM', iv: nonce, additionalData: aad, tagLength: 128 },
+        contentKey,
+        utf8.encode(canonical(payload)),
+      ),
+    );
+    const ephemeral = await subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, [
+      'deriveBits',
+    ]);
+    const ephemeralPrivate = await subtle.exportKey('jwk', ephemeral.privateKey);
+    const ephemeralPublic = publicJwk(await subtle.exportKey('jwk', ephemeral.publicKey));
+    const wrapKey = await wrappingKey(ephemeralPrivate, recipientPublicJwk, salt);
+    const wrapped = await subtle.encrypt(
+      { name: 'AES-GCM', iv, additionalData: aad, tagLength: 128 },
+      wrapKey,
+      contentBytes,
+    );
+    const envelope = {
+      ...context,
+      ciphertextHash: await sha256(ciphertext),
+      nonce: b64(nonce),
+      wrappedKey: {
+        ephemeralPublicKey: ephemeralPublic,
+        salt: b64(salt),
+        iv: b64(iv),
+        ciphertext: b64(wrapped),
+      },
+    };
+    return {
+      envelope,
+      signature: await sign(senderPrivateJwk, envelope),
+      ciphertext: b64(ciphertext),
+    };
+  } finally {
+    contentBytes.fill(0);
+  }
+}
+/** @param {EncryptedObject} submission @param {JsonWebKey} recipientPrivateJwk @param {JsonWebKey} senderPublicJwk @returns {Promise<Payload>} */
+export async function decryptObject(submission, recipientPrivateJwk, senderPublicJwk) {
+  if (!submission || typeof submission !== 'object')
+    throw new TypeError('Invalid encrypted object');
+  const { envelope, signature, ciphertext: encoded } = submission;
+  sameKeys(envelope, envelopeFields(envelope.schemaVersion));
+  const { ciphertextHash, nonce, wrappedKey, ...context } = envelope;
+  validateContext(context);
+  if (!(await verify(senderPublicJwk, envelope, signature)))
+    throw new Error('Object signature invalid');
+  if (context.recipientKeyId !== (await keyId(publicJwk(recipientPrivateJwk))))
+    throw new Error('Recipient key ID mismatch');
+  const ciphertext = unb64(encoded);
+  if (
+    ciphertext.length > MAX_CONTENT_BYTES * 2 ||
+    ciphertext.length < 16 ||
+    ciphertextHash !== (await sha256(ciphertext))
+  )
+    throw new Error('Ciphertext integrity mismatch');
+  sameKeys(wrappedKey, ['ephemeralPublicKey', 'salt', 'iv', 'ciphertext']);
+  const wrapKey = await wrappingKey(
+    recipientPrivateJwk,
+    wrappedKey.ephemeralPublicKey,
+    sized(wrappedKey.salt, 32, 'salt'),
+  );
+  const aad = utf8.encode(canonical(context));
+  let contentBytes;
+  try {
+    contentBytes = new Uint8Array(
+      await subtle.decrypt(
+        {
+          name: 'AES-GCM',
+          iv: sized(wrappedKey.iv, 12, 'wrap IV'),
+          additionalData: aad,
+          tagLength: 128,
+        },
+        wrapKey,
+        sized(wrappedKey.ciphertext, 48, 'wrapped content key'),
+      ),
+    );
+    const key = await subtle.importKey('raw', contentBytes, 'AES-GCM', false, ['decrypt']);
+    const plain = await subtle.decrypt(
+      {
+        name: 'AES-GCM',
+        iv: sized(nonce, 12, 'content nonce'),
+        additionalData: aad,
+        tagLength: 128,
+      },
+      key,
+      ciphertext,
+    );
+    return validatePayload(JSON.parse(decoder.decode(plain)));
+  } catch {
+    throw new Error('Encrypted payload authentication failed');
+  } finally {
+    if (contentBytes) contentBytes.fill(0);
+  }
+}
+/** @param {string} passphrase @param {Uint8Array<ArrayBuffer>} salt @param {KeyUsage[]} usages @returns {Promise<CryptoKey>} */
+async function vaultKey(passphrase, salt, usages) {
+  if (typeof passphrase !== 'string' || passphrase.length < 12 || passphrase.length > 1024)
+    throw new TypeError('Vault passphrase must contain 12â€“1024 characters');
+  const key = await subtle.importKey('raw', utf8.encode(passphrase), 'PBKDF2', false, [
+    'deriveKey',
+  ]);
+  return subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: VAULT_ITERATIONS, hash: 'SHA-256' },
+    key,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    usages,
+  );
+}
+/** @param {unknown} value @param {string} passphrase @returns {Promise<import("../object-format/types.js").VaultPacket>} */
+export async function sealVault(value, passphrase) {
+  const salt = random(32),
+    iv = random(12);
+  const metadata = {
+    version: 1,
+    kdf: 'PBKDF2-SHA256',
+    iterations: VAULT_ITERATIONS,
+    salt: b64(salt),
+    iv: b64(iv),
+  };
+  const key = await vaultKey(passphrase, salt, ['encrypt']);
+  const ciphertext = await subtle.encrypt(
+    { name: 'AES-GCM', iv, additionalData: utf8.encode(canonical(metadata)), tagLength: 128 },
+    key,
+    utf8.encode(canonical(value)),
+  );
+  return { ...metadata, ciphertext: b64(ciphertext) };
+}
+/** @param {import("../object-format/types.js").VaultPacket} packet @param {string} passphrase @returns {Promise<unknown>} */
+export async function openVault(packet, passphrase) {
+  sameKeys(packet, ['version', 'kdf', 'iterations', 'salt', 'iv', 'ciphertext']);
+  const { ciphertext, ...metadata } = packet;
+  if (
+    metadata.version !== 1 ||
+    metadata.kdf !== 'PBKDF2-SHA256' ||
+    metadata.iterations !== VAULT_ITERATIONS
+  )
+    throw new TypeError('Unsupported vault format');
+  const salt = sized(metadata.salt, 32, 'vault salt'),
+    iv = sized(metadata.iv, 12, 'vault IV');
+  const key = await vaultKey(passphrase, salt, ['decrypt']);
+  try {
+    const plaintext = await subtle.decrypt(
+      { name: 'AES-GCM', iv, additionalData: utf8.encode(canonical(metadata)), tagLength: 128 },
+      key,
+      unb64(ciphertext),
+    );
+    const value = JSON.parse(decoder.decode(plaintext));
+    canonical(value);
+    return value;
+  } catch {
+    throw new Error('Vault unlock failed');
+  }
+}

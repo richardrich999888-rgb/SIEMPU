@@ -469,296 +469,139 @@ export async function renderAdmin(root, helpers) {
         : null,
       el(
         'p',
-        { className: '�~���$z{-���jםon, signed enrollment, pre-approval rejection, administrator approval and binding',
-  );
-  return { page, context };
-}
-
-async function checkRoleTransition(admin, auditor) {
-  await admin.page.getByRole('button', { name: 'Units & users', exact: true }).click();
-  const generic = admin.page.getByLabel('Generic role for bravo', { exact: true });
-  const duty = admin.page.getByLabel('Duty position for bravo', { exact: true });
-  const row = admin.page.getByRole('row').filter({ has: generic });
-  const apply = async () => {
-    const button = await row
-      .getByRole('button', { name: 'Apply roles', exact: true })
-      .elementHandle();
-    await button.click();
-    await button.waitForElementState('hidden');
-    await admin.page.locator('#notice').filter({ hasText: 'saved atomically' }).waitFor();
-  };
-  await duty.selectOption('FIELD_OPERATOR');
-  await apply();
-  await generic.selectOption('auditor');
-  await duty.selectOption('AUDIT_OFFICER');
-  const mutation = admin.page.waitForRequest(
-    (request) => request.method() === 'PATCH' && request.url().includes('/api/admin/users/'),
-  );
-  await apply();
-  const request = await mutation;
-  assert.equal(request.postDataJSON().role, 'auditor');
-  assert.equal(request.postDataJSON().dutyRole, 'AUDIT_OFFICER');
-  await admin.page.locator('#notice').filter({ hasText: 'saved atomically' }).waitFor();
-  // Re-read authority data so selected options alone cannot satisfy this assertion.
-  const refresh = await admin.page
-    .getByRole('button', { name: 'Refresh console', exact: true })
-    .elementHandle();
-  await refresh.click();
-  await refresh.waitForElementState('hidden');
-  await generic.filter({ has: admin.page.locator('option[value="auditor"]:checked') }).waitFor();
-  assert.equal(await generic.inputValue(), 'auditor');
-  assert.equal(await duty.inputValue(), 'AUDIT_OFFICER');
-  await auditor.page.getByRole('button', { name: 'Refresh authority', exact: true }).click();
-  await auditor.page.getByRole('button', { name: 'Administration', exact: true }).click();
-  await auditor.page.getByText('Release and security observations', { exact: true }).waitFor();
-  await auditor.page.getByRole('button', { name: 'Units & users', exact: true }).click();
-  assert.equal(
-    await auditor.page.getByRole('button', { name: 'Apply roles', exact: true }).count(),
-    0,
-  );
-  assert.equal(
-    await auditor.page
-      .getByRole('button', { name: 'Create user & MFA enrollment', exact: true })
-      .count(),
-    0,
-  );
-  results.push(
-    'Administrator atomically changes operator/FIELD_OPERATOR to auditor/AUDIT_OFFICER; refreshed authority confirms both and auditor UI remains read-only',
-  );
-  await auditor.page.getByRole('button', { name: 'Evidence & integration', exact: true }).click();
-  await auditor.context.route(
-    '**/api/evidence/checkpoint',
-    async (route) => {
-      const response = await route.fetch();
-      const checkpoint = await response.json();
-      checkpoint.payload.sequence++;
-      await route.fulfill({ response, json: checkpoint });
-    },
-    { times: 1 },
-  );
-  await auditor.page.getByRole('button', { name: 'Save external checkpoint', exact: true }).click();
-  await auditor.page
-    .locator('#notice')
-    .filter({ hasText: 'signature could not be verified' })
-    .waitFor();
-  assert.equal(
-    await auditor.page
-      .getByText('No checkpoint signature checked in this view.', { exact: true })
-      .count(),
-    1,
-  );
-  const checkpointDownload = auditor.page.waitForEvent('download');
-  await auditor.page.getByRole('button', { name: 'Save external checkpoint', exact: true }).click();
-  await checkpointDownload;
-  await auditor.page
-    .getByText(/^Checkpoint signature verified with the pinned authority key:/)
-    .waitFor();
-  results.push(
-    'Read-only auditor rejects a tampered checkpoint and displays verified status only after a valid signature check',
-  );
-  await auditor.context.close();
-}
-
-async function checkConcurrentVaultLocks(owner) {
-  const peer = await owner.context.newPage();
-  await peer.goto(base.href);
-  const key = 'siepmu.browser-lock-regression';
-  await owner.page.evaluate((name) => localStorage.removeItem(name), key);
-  const attempt = (page, value) =>
-    page.evaluate(
-      async ({ key, value }) => {
-        const { commitEncryptedVaultLocked } = await import('/apps/unit-client/vault-store.mjs');
-        try {
-          await commitEncryptedVaultLocked(localStorage, navigator.locks, key, null, {
-            ciphertext: value,
-          });
-          return 'committed';
-        } catch (error) {
-          if (error.message.includes('another tab')) return 'stale';
-          throw error;
-        }
-      },
-      { key, value },
+        { className: 'warning section-gap' },
+        'Release is committed capability issuance, not physical packet transmission. A later policy change cannot recall a key already released.',
+      ),
     );
-  const outcomes = await Promise.all([
-    attempt(owner.page, 'first-sealed-fixture'),
-    attempt(peer, 'second-sealed-fixture'),
-  ]);
-  assert.deepEqual(outcomes.sort(), ['committed', 'stale']);
-  await owner.page.evaluate((name) => localStorage.removeItem(name), key);
-  await peer.close();
-  results.push(
-    'Actual browser Web Locks serialize two tabs and reject the stale encrypted-vault write',
-  );
-}
-
-async function exchangeFile(alice, bob) {
-  await alice.page.getByRole('button', { name: 'Secure exchange', exact: true }).click();
-  const recipient = provisioning.profiles.find((p) => p.username === 'bob');
-  await alice.page.getByLabel('Recipient device').selectOption(recipient.deviceId);
-  let submitted = 0;
-  const countSubmission = (request) => {
-    if (request.method() === 'POST' && request.url().endsWith('/api/objects')) submitted++;
-  };
-  alice.page.on('request', countSubmission);
-  await alice.page.getByLabel('Attach a file').setInputFiles({
-    name: '..',
-    mimeType: 'text/html',
-    buffer: Buffer.from('<script>syntheticUnsafeName</script>'),
-  });
-  await alice.page.getByRole('button', { name: 'Seal & submit securely', exact: true }).click();
-  await alice.page.locator('#notice').filter({ hasText: 'Unsafe file name' }).waitFor();
-  assert.equal(submitted, 0, 'Unsafe filename must fail before any object submission');
-  results.push('Unsafe dot-dot file name rejected in browser before object submission');
-
-  const filename = 'synthetic-evidence.txt';
-  const bytes = Buffer.from(
-    'SIEPMU synthetic UTF-8 file\nIntegrity check: தமிழ் · हिन्दी · Δ\n',
-    'utf8',
-  );
-  // An untrusted MIME hint is intentionally supplied; the client must treat it as opaque binary.
-  await alice.page
-    .getByLabel('Attach a file')
-    .setInputFiles({ name: filename, mimeType: 'text/html', buffer: bytes });
-  await alice.page.getByRole('button', { name: 'Seal & submit securely', exact: true }).click();
-  await alice.page.locator('.badge.ready').waitFor();
-  await bob.page.getByRole('button', { name: 'Refresh objects', exact: true }).click();
-  await bob.page.getByRole('button', { name: 'Validate release & decrypt', exact: true }).click();
-  await bob.page.locator('.object-body').filter({ hasText: filename }).waitFor();
-  await bob.page.evaluate(() => {
-    const original = URL.createObjectURL;
-    URL.createObjectURL = function (blob) {
-      globalThis.__siepmuDownloadMime = blob.type;
-      return original.call(this, blob);
-    };
-  });
-  const received = bob.page.waitForEvent('download');
-  await bob.page
-    .getByRole('button', { name: 'Download encrypted-transfer attachment', exact: true })
-    .click();
-  const download = await received;
-  assert.equal(download.suggestedFilename(), filename);
-  const stream = await download.createReadStream();
-  const chunks = [];
-  for await (const chunk of stream) chunks.push(chunk);
-  assert.deepEqual(Buffer.concat(chunks), bytes);
-  assert.equal(
-    await bob.page.evaluate(() => globalThis.__siepmuDownloadMime),
-    'application/octet-stream',
-  );
-  alice.page.off('request', countSubmission);
-  results.push(
-    'Real file-input encryption, recipient release/decryption and attachment download preserve exact UTF-8 bytes and filename',
-  );
-  results.push(
-    'Untrusted HTML MIME hint is replaced by application/octet-stream for attachment download',
-  );
-}
-
-try {
-  await checkShellUpgrades(browser, results);
-  await checkTrustStorageRecovery();
-  const alice = await loginUser('alice');
-  const bob = await loginUser('bob');
-  const admin = await loginUser('admin');
-  results.push('MFA, encrypted provisioning vault and device binding through real browser UI');
-  const bravo = await enrollFreshDevice(admin);
-  await checkRoleTransition(admin, bravo);
-  await checkConcurrentVaultLocks(alice);
-  const message = `Synthetic browser exchange ${Date.now()} <img src=x onerror="globalThis.__siepmuXss=1">`;
-  await createMessage(alice.page, message);
-  await alice.page.locator('.badge.ready').waitFor();
-  await bob.page.getByRole('button', { name: 'Objects & receipts', exact: true }).click();
-  await bob.page.getByRole('button', { name: 'Refresh objects', exact: true }).click();
-  await bob.page.getByRole('button', { name: 'Validate release & decrypt', exact: true }).click();
-  await bob.page.getByText(message, { exact: true }).waitFor();
-  assert.equal(await bob.page.evaluate(() => globalThis.__siepmuXss), undefined);
-  assert.equal(await bob.page.locator('.object-body img').count(), 0);
-  results.push(
-    'End-to-end text encryption, release, browser decryption, ACK and untrusted text rendering',
-  );
-  await exchangeFile(alice, bob);
-
-  await alice.page.getByRole('button', { name: 'Simulate disconnect', exact: true }).click();
-  const queuedMessage = `Queued during authority change ${Date.now()}`;
-  await createMessage(alice.page, queuedMessage);
-  await alice.page.locator('.badge.queued').waitFor();
-  await setPolicy(admin.page, false);
-  await alice.page.getByRole('button', { name: 'Reconnect & validate', exact: true }).click();
-  await alice.page.locator('.badge.held').first().waitFor();
-  results.push(
-    'Durable local queue and current-policy hold after simulated disconnect/reconnection',
-  );
-  await setPolicy(admin.page, true);
-  await alice.page
-    .getByRole('button', { name: 'Synchronize eligible objects', exact: true })
-    .click();
-  await alice.page.locator('.badge.ready').waitFor();
-  await bob.page.getByRole('button', { name: 'Refresh objects', exact: true }).click();
-  await bob.page.getByRole('button', { name: 'Validate release & decrypt', exact: true }).click();
-  await bob.page.getByText(queuedMessage, { exact: true }).waitFor();
-  results.push('Permitted current-policy release after explicit authority change');
-
-  const stored = await alice.page.evaluate(() =>
-    JSON.stringify(Object.fromEntries(Object.entries(localStorage))),
-  );
-  assert.ok(!stored.includes(message), 'Plaintext message must not appear in localStorage');
-  assert.ok(
-    !stored.includes(alice.profile.keys.signing.privateKey.d),
-    'Private key must not appear in localStorage',
-  );
-  assert.ok(
-    !stored.includes(alice.profile.password),
-    'Login password must not appear in localStorage',
-  );
-  assert.ok(
-    !stored.includes(alice.profile.totpSecret),
-    'TOTP seed must not appear in localStorage',
-  );
-  results.push(
-    'Encrypted local persistence and no stored bootstrap credentials/private key plaintext',
-  );
-
-  await alice.page.evaluate(() => navigator.serviceWorker.ready);
-  await alice.context.setOffline(true);
-  await alice.page.reload({ waitUntil: 'domcontentloaded' });
-  await alice.page.getByLabel('Vault username', { exact: true }).fill('alice');
-  await alice.page.getByLabel('Vault passphrase', { exact: true }).fill(vaultSecret);
-  await alice.page.getByRole('button', { name: 'Unlock encrypted vault', exact: true }).click();
-  await alice.page.locator('#identity').filter({ hasText: 'offline grant only' }).waitFor();
-  await createMessage(alice.page, `Offline browser-restart queue ${Date.now()}`);
-  await alice.page.locator('.badge.queued').waitFor();
-  results.push(
-    'Real browser offline reload, encrypted vault unlock and bounded local queue creation',
-  );
-  await alice.context.setOffline(false);
-  await alice.page.getByRole('button', { name: 'Reconnect & validate', exact: true }).click();
-  await alice.page.getByRole('button', { name: 'Authenticate with MFA', exact: true }).waitFor();
-  results.push('Fresh MFA required before post-reload server reconnection');
-
-  await bob.page.screenshot({ path: resolve(artifactDir, 'recipient.png'), fullPage: true });
-  await admin.page.screenshot({ path: resolve(artifactDir, 'authority.png'), fullPage: true });
-  assert.deepEqual(errors, [], 'No uncaught browser runtime errors');
-  console.log(
-    JSON.stringify({ status: 'PASS', browser: browser.version(), assertions: results }, null, 2),
-  );
-} catch (error) {
-  let index = 0;
-  for (const context of browser.contexts()) {
-    for (const page of context.pages()) {
-      await page
-        .screenshot({ path: resolve(artifactDir, `failure-${index++}.png`), fullPage: true })
-        .catch(() => {});
-    }
   }
-  console.error(
-    JSON.stringify(
-      { status: 'FAIL', assertionsCompleted: results, browserErrors: errors, error: error.message },
-      null,
-      2,
+  function evidenceView() {
+    const integrationOutput = el('div');
+    const checkpointStatus = el(
+      'p',
+      { role: 'status', className: 'hint' },
+      'No checkpoint signature checked in this view.',
+    );
+    const external = el('input', { required: true, value: `synthetic-${Date.now()}` });
+    const object = el('input', { required: true, placeholder: 'Existing synthetic object UUID' });
+    const destination = select(unitOptions);
+    const mission = el('input', {
+      required: true,
+      value: state.user.missionIds?.[0] || 'DEMO-MISSION',
+    });
+    return el(
+      'div',
+      {},
+      panel(
+        'Cryptographic evidence',
+        'Download a signed chain and an independently retained checkpoint. Verify with the separate command-line verifier and a trusted public key.',
+        el(
+          'div',
+          { className: 'form-actions' },
+          button(
+            'Export evidence chain',
+            action(async () => {
+              const exported = await api('/api/evidence/export');
+              await verified(exported.checkpoint, 'Evidence checkpoint');
+              download(exported, `siepmu-evidence-${Date.now()}.json`);
+              notify('Evidence exported. Use the independent verifier to validate the full chain.');
+            }),
+          ),
+          button(
+            'Save external checkpoint',
+            action(async () => {
+              const checkpoint = await api('/api/evidence/checkpoint');
+              const payload = await verified(checkpoint, 'Evidence checkpoint');
+              checkpointStatus.textContent = `Checkpoint signature verified with the pinned authority key: sequence ${payload.sequence}, issued ${new Date(payload.issuedAt).toLocaleString()}. Full-chain and independent-custody checks remain external.`;
+              download(checkpoint, `siepmu-checkpoint-${Date.now()}.json`);
+              notify(
+                'Checkpoint downloaded. Retain it independently to detect later suffix truncation.',
+              );
+            }),
+            'quiet',
+          ),
+          button(
+            'Export pinned public key',
+            () => download(state.pin, 'siepmu-authority-public-key.json'),
+            'quiet',
+          ),
+        ),
+        checkpointStatus,
+        el('div', { className: 'divider' }),
+        el(
+          'pre',
+          {},
+          'node apps/verifier/verify.mjs evidence.json authority-public-key.json --checkpoint saved-checkpoint.json',
+        ),
+        hint(
+          'A valid signature establishes integrity and signer identity. It does not establish the factual truth of a decision or certify the deployment.',
+        ),
+      ),
+      canWrite
+        ? panel(
+            'Controlled integration boundary',
+            'Synthetic schema validation only. No existing military network or service is connected.',
+            el(
+              'form',
+              {
+                className: 'inline-form',
+                onSubmit: action(async () => {
+                  const result = await adminMutation('/api/integration/validate', 'POST', {
+                    schemaVersion: 1,
+                    externalId: external.value.trim(),
+                    objectId: object.value.trim(),
+                    destinationUnitId: destination.value,
+                    missionId: mission.value.trim(),
+                  });
+                  integrationOutput.replaceChildren(el('pre', {}, JSON.stringify(result, null, 2)));
+                  notify('Synthetic integration request validated. No external delivery occurred.');
+                }),
+              },
+              field('External synthetic reference', external),
+              field('Object identifier', object),
+              field('Destination unit', destination),
+              field('Mission', mission),
+              el(
+                'div',
+                { className: 'full' },
+                el('button', { type: 'submit' }, 'Validate synthetic request'),
+              ),
+            ),
+            integrationOutput,
+          )
+        : null,
+    );
+  }
+  const views = {
+    overview: ['Overview', overviewView],
+    identities: ['Units & users', identityView],
+    devices: ['Devices & sessions', deviceView],
+    policies: ['Policies', policiesView],
+    evidence: ['Evidence & integration', evidenceView],
+  };
+  function showTab(name) {
+    active = name;
+    state.adminTab = name;
+    tabs.replaceChildren(
+      ...Object.entries(views).map(([key, [label]]) =>
+        button(label, () => showTab(key), key === active ? 'active' : ''),
+      ),
+    );
+    tabRoot.replaceChildren(views[name][1]());
+  }
+  root.replaceChildren(
+    el(
+      'div',
+      { className: 'panel-heading' },
+      el(
+        'div',
+        {},
+        el('h2', {}, 'Current authority, visible decisions'),
+        hint('Operational controls and security evidence for the synthetic demonstrator.'),
+      ),
+      refresh,
     ),
+    tabs,
+    tabRoot,
   );
-  throw error;
-} finally {
-  await browser.close();
+  showTab(active in views ? active : 'overview');
 }

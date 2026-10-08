@@ -1597,7 +1597,8 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-contract-coverage": "route-inventory-an×«h‘éì¶»§q«^ured": true
+        "x-contract-coverage": "route-inventory-and-auth-guard",
+        "x-device-binding-required": true
       }
     },
     "/api/evidence/checkpoint": {
