@@ -1,8 +1,18 @@
 import { buildInfo } from './build-info.mjs';
+import {
+  DUTY_ROLES,
+  validMissionProfile,
+  compatibleDutyRole,
+  senderDutyAllowed,
+  recipientDutyAllowed,
+} from '../../packages/mission/policy.mjs';
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync, readdirSync } from 'node:fs';
 import { randomUUID, randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { storedEnvelope, storedObjectIntegrityReason } from '../admission/integrity.mjs';
+import { decisionEvidence } from '../evidence/decision.mjs';
+import { hasEnvelopeShape } from '../../packages/crypto/crypto.mjs';
 import {
   canonical,
   hash,
@@ -136,6 +146,7 @@ export class Authority {
           username: row.username,
           unitId: row.unit_id,
           role: row.role,
+          dutyRole: row.duty_role ?? null,
           missionIds: parse(row.missions),
           active: !!row.active,
         }
@@ -157,7 +168,7 @@ export class Authority {
   }
   object(row) {
     if (!row) return null;
-    const e = parse(row.envelope);
+    const e = storedEnvelope(row) ?? {};
     return {
       id: row.id,
       objectId: row.id,
@@ -169,6 +180,8 @@ export class Authority {
       recipientUnitId: e.recipientUnitId,
       missionId: e.missionId,
       classification: e.classification,
+      messagePriority: e.messagePriority ?? null,
+      messageDomain: e.messageDomain ?? null,
       state: row.state,
       reason: row.reason,
       preparedEpoch: row.prepared_epoch,
@@ -400,6 +413,15 @@ export class Authority {
     });
   }
   authorityReason(row) {
+    const sender = this.get('SELECT signing_key FROM devices WHERE id=?', row.sender_device);
+    let signingKey;
+    try {
+      signingKey = sender && parse(sender.signing_key);
+    } catch {
+      return 'OBJECT_SIGNATURE_INVALID';
+    }
+    const integrityReason = storedObjectIntegrityReason(row, signingKey);
+    if (integrityReason) return integrityReason;
     const e = parse(row.envelope),
       now = Date.now(),
       g = e.creationGrant?.payload;
@@ -419,6 +441,17 @@ export class Authority {
     if (sd?.status !== 'approved' || rd?.status !== 'approved') return 'DEVICE_REVOKED';
     if (sd.user_id !== su.id || rd.user_id !== ru.id) return 'DEVICE_OWNER_MISMATCH';
     if (su.role !== 'operator' || !['operator', 'viewer'].includes(ru.role)) return 'ROLE_DENIED';
+    // Duty roles are an additive, sponsor-unapproved restriction at the release boundary.
+    if (su.duty_role || ru.duty_role) {
+      if (e.schemaVersion !== 2) return 'DUTY_PROFILE_REQUIRES_V2';
+      if (
+        (su.duty_role &&
+          !senderDutyAllowed(su.role, su.duty_role, e.messagePriority, e.messageDomain)) ||
+        (ru.duty_role &&
+          !recipientDutyAllowed(ru.role, ru.duty_role, e.messagePriority, e.messageDomain))
+      )
+        return 'ROLE_PRIORITY_DENIED';
+    }
     if (su.unit_id !== e.senderUnitId || ru.unit_id !== e.recipientUnitId) return 'UNIT_CHANGED';
     if (!parse(su.missions).includes(e.missionId) || !parse(ru.missions).includes(e.missionId))
       return 'MISSION_DENIED';
@@ -440,33 +473,8 @@ export class Authority {
   }
   validateSubmission(s, b) {
     const e = b.envelope;
-    assert(e && e.schemaVersion === 1 && uuid(e.objectId));
-    const expected = [
-      'schemaVersion',
-      'objectId',
-      'senderUserId',
-      'senderDeviceId',
-      'senderUnitId',
-      'recipientUserId',
-      'recipientDeviceId',
-      'recipientUnitId',
-      'recipientKeyId',
-      'missionId',
-      'classification',
-      'action',
-      'createdAt',
-      'expiresAt',
-      'creationGrant',
-      'cryptoSuite',
-      'keyVersion',
-      'ciphertextHash',
-      'nonce',
-      'wrappedKey',
-    ];
-    assert(
-      Object.keys(e).length === expected.length && expected.every((k) => Object.hasOwn(e, k)),
-      'ENVELOPE_SCHEMA',
-    );
+    assert(hasEnvelopeShape(e), 'ENVELOPE_SCHEMA');
+    assert(uuid(e.objectId));
     assert(
       e.senderUserId === s.user.id &&
         e.senderDeviceId === s.device.id &&
@@ -486,6 +494,16 @@ export class Authority {
         e.cryptoSuite === 'P256-HKDF-SHA256-AES256GCM' &&
         e.keyVersion === 1,
     );
+    if (e.schemaVersion === 2)
+      assert(validMissionProfile(e.messagePriority, e.messageDomain), 'INVALID_MISSION_PROFILE');
+    if (s.user.dutyRole) {
+      assert(e.schemaVersion === 2, 'DUTY_PROFILE_REQUIRES_V2', 403);
+      assert(
+        senderDutyAllowed(s.user.role, s.user.dutyRole, e.messagePriority, e.messageDomain),
+        'ROLE_PRIORITY_DENIED',
+        403,
+      );
+    }
     assert(
       Number.isSafeInteger(e.createdAt) &&
         Number.isSafeInteger(e.expiresAt) &&
@@ -593,8 +611,17 @@ export class Authority {
     );
     return r;
   }
+  dutyVisible(s, row) {
+    if (!s.user.dutyRole) return true;
+    const e = storedEnvelope(row);
+    const checkDuty = row.sender_id === s.user_id ? senderDutyAllowed : recipientDutyAllowed;
+    return (
+      e?.schemaVersion === 2 &&
+      checkDuty(s.user.role, s.user.dutyRole, e.messagePriority, e.messageDomain)
+    );
+  }
   prepare(s, id) {
-    return this.tx(() => {
+    const result = this.tx(() => {
       s = this.bound(s);
       const r = this.owned(s, id);
       const reason = this.authorityReason(r),
@@ -614,16 +641,30 @@ export class Authority {
         epoch,
         id,
       );
-      const receipt = this.event('ADMISSION', s.user_id, {
-        objectId: id,
-        decision: state,
-        reason: reason ?? 'CURRENT_AUTHORITY_VALID',
-        details: { objectDigest: r.digest, preparedEpoch: epoch },
-      });
+      const receipt = this.event(
+        'ADMISSION',
+        s.user_id,
+        decisionEvidence({
+          row: r,
+          authority: this.epoch(),
+          policyDigest: this.policyDigest(),
+          session: s,
+          state,
+          reason,
+          extra: { preparedEpoch: epoch },
+        }),
+      );
       this.count('policyEvaluations');
       if (reason) this.alert('ADMISSION_HELD', s.user_id, reason);
-      return { object: this.object(this.get('SELECT * FROM objects WHERE id=?', id)), receipt };
+      return {
+        hidden: !this.dutyVisible(s, r),
+        value: { object: this.object(this.get('SELECT * FROM objects WHERE id=?', id)), receipt },
+      };
     });
+    // Commit the internal HOLD and signed decision before concealing restricted
+    // priority metadata. Throwing this error inside tx would undo the evidence.
+    assert(!result.hidden, 'OBJECT_NOT_FOUND', 404);
+    return result.value;
   }
   claim(s, id, expectedEpoch) {
     assert(Number.isSafeInteger(expectedEpoch) && expectedEpoch > 0);
@@ -645,16 +686,24 @@ export class Authority {
           epoch,
           id,
         );
-        const receipt = this.event('RELEASE_DENIED', s.user_id, {
-          objectId: id,
-          decision: 'HELD',
-          reason,
-          details: { objectDigest: r.digest, expectedEpoch, currentEpoch: epoch },
-        });
+        const receipt = this.event(
+          'RELEASE_DENIED',
+          s.user_id,
+          decisionEvidence({
+            row: r,
+            authority: this.epoch(),
+            policyDigest: this.policyDigest(),
+            session: s,
+            state: 'HELD',
+            reason,
+            extra: { expectedEpoch, currentEpoch: epoch },
+          }),
+        );
         this.alert('RELEASE_DENIED', s.user_id, reason);
         this.count('held');
         return {
           denied: true,
+          hidden: !this.dutyVisible(s, r),
           object: this.object(this.get('SELECT * FROM objects WHERE id=?', id)),
           receipt,
         };
@@ -663,40 +712,34 @@ export class Authority {
       let receipt;
       if (old) {
         receipt = parse(old.receipt);
-        this.event('RELEASE_RETRY', s.user_id, {
-          objectId: id,
-          decision: 'RELEASED',
-          details: { issuanceEventId: receipt.payload.eventId, currentEpoch: epoch },
-        });
+        this.event(
+          'RELEASE_RETRY',
+          s.user_id,
+          decisionEvidence({
+            row: r,
+            authority: this.epoch(),
+            policyDigest: this.policyDigest(),
+            session: s,
+            state: r.state === 'DELIVERED' ? 'DELIVERED' : 'RELEASED',
+            extra: { issuanceEventId: receipt.payload.eventId, currentEpoch: epoch },
+          }),
+        );
         this.run(
           "UPDATE objects SET reason=NULL,state=CASE WHEN state='DELIVERED' THEN state ELSE 'RELEASED' END WHERE id=?",
           id,
         );
       } else {
-        const e = parse(r.envelope);
-        receipt = this.event('RELEASE_ISSUED', s.user_id, {
-          objectId: id,
-          decision: 'RELEASED',
-          reason: 'CURRENT_AUTHORITY_VALID',
-          details: {
-            objectDigest: r.digest,
-            envelopeDigest: hash(canonical(e)),
-            senderUserId: r.sender_id,
-            senderDeviceId: r.sender_device,
-            recipientUserId: r.recipient_id,
-            recipientDeviceId: r.recipient_device,
-            destinationUnitId: e.recipientUnitId,
-            missionId: e.missionId,
-            action: e.action,
-            creationGrantId: e.creationGrant.payload.grantId,
-            creationEpoch: e.creationGrant.payload.creationEpoch,
+        receipt = this.event(
+          'RELEASE_ISSUED',
+          s.user_id,
+          decisionEvidence({
+            row: r,
+            authority: this.epoch(),
             policyDigest: this.policyDigest(),
-            revocationVersion: this.epoch().revocation_version,
-            authorityEpoch: epoch,
-            deviceEvidence: 'software-proof-of-possession',
-            proofEvidence: s.proofEvidence ?? { source: 'internal-call-no-http-proof' },
-          },
-        });
+            session: s,
+            state: 'RELEASED',
+          }),
+        );
         this.hooks.beforeEvidence?.();
         this.run(
           'INSERT INTO issuances VALUES(?,?,?,?)',
@@ -724,6 +767,10 @@ export class Authority {
         receipt,
       };
     });
+    if (out.denied) {
+      assert(!out.hidden, 'OBJECT_NOT_FOUND', 404);
+      delete out.hidden;
+    }
     if (!out.denied) this.hooks.afterCommit?.();
     return out;
   }
@@ -731,6 +778,7 @@ export class Authority {
     return this.tx(() => {
       s = this.bound(s);
       const r = this.owned(s, id);
+      assert(this.dutyVisible(s, r), 'OBJECT_NOT_FOUND', 404);
       assert(
         r.recipient_id === s.user_id && r.recipient_device === s.device_id,
         'RECIPIENT_ONLY',
@@ -903,7 +951,9 @@ export class Authority {
           'SELECT * FROM objects WHERE sender_id=? OR recipient_id=? ORDER BY created_at DESC',
           s.user_id,
           s.user_id,
-        ).map((x) => this.object(x)),
+        )
+          .filter((x) => this.dutyVisible(s, x))
+          .map((x) => this.object(x)),
       };
     } else if (method === 'POST' && /^\/api\/objects\/[^/]+\/(prepare|claim|ack)$/.test(path)) {
       const [, id, op] = path.match(/^\/api\/objects\/([^/]+)\/(prepare|claim|ack)$/);
@@ -923,9 +973,9 @@ export class Authority {
               receipt: value.receipt,
             },
           };
-        value.ciphertext = (await this.relay.getBlob(value.object.ciphertextHash)).toString(
-          'base64url',
-        );
+        const ciphertext = await this.relay.getBlob(value.object.ciphertextHash);
+        assert(hash(ciphertext) === value.object.ciphertextHash, 'CIPHERTEXT_DIGEST', 502);
+        value.ciphertext = ciphertext.toString('base64url');
       }
     } else if (path.startsWith('/api/admin/') || path === '/api/integration/validate') {
       s = this.bound(s);
@@ -994,6 +1044,8 @@ export class Authority {
           str(b.password, 256) &&
           b.password.length >= 12 &&
           roles.includes(b.role) &&
+          (b.dutyRole === undefined ||
+            (DUTY_ROLES.includes(b.dutyRole) && compatibleDutyRole(b.role, b.dutyRole))) &&
           Array.isArray(b.missionIds) &&
           b.missionIds.length <= 32 &&
           b.missionIds.every(mission),
@@ -1005,7 +1057,7 @@ export class Authority {
         () => {
           const id = randomUUID();
           this.run(
-            'INSERT INTO users(id,username,password,totp,unit_id,role,missions) VALUES(?,?,?,?,?,?,?)',
+            'INSERT INTO users(id,username,password,totp,unit_id,role,missions,duty_role) VALUES(?,?,?,?,?,?,?,?)',
             id,
             b.username,
             passwordHash(b.password),
@@ -1013,6 +1065,7 @@ export class Authority {
             b.unitId,
             b.role,
             canonical(b.missionIds),
+            b.dutyRole ?? null,
           );
           return {
             user: this.user(this.get('SELECT * FROM users WHERE id=?', id)),
@@ -1032,10 +1085,12 @@ export class Authority {
     if (method === 'PATCH' && userMatch) {
       const fields = Object.keys(b).filter((x) => x !== 'proof');
       assert(
-        fields.length > 0 && fields.every((x) => ['active', 'role', 'missionIds'].includes(x)),
+        fields.length > 0 &&
+          fields.every((x) => ['active', 'role', 'missionIds', 'dutyRole'].includes(x)),
       );
       if ('active' in b) assert(typeof b.active === 'boolean');
       if ('role' in b) assert(roles.includes(b.role));
+      if ('dutyRole' in b) assert(DUTY_ROLES.includes(b.dutyRole), 'INVALID_DUTY_ROLE');
       if ('missionIds' in b)
         assert(
           Array.isArray(b.missionIds) && b.missionIds.length <= 32 && b.missionIds.every(mission),
@@ -1046,14 +1101,19 @@ export class Authority {
           const u = this.get('SELECT * FROM users WHERE id=?', userMatch[1]);
           assert(u, 'NOT_FOUND', 404);
           assert(
+            compatibleDutyRole(b.role ?? u.role, b.dutyRole ?? u.duty_role),
+            'DUTY_ROLE_INCOMPATIBLE',
+          );
+          assert(
             !(u.id === s.user_id && (b.active === false || (b.role && b.role !== 'admin'))),
             'SELF_LOCKOUT',
           );
           this.run(
-            'UPDATE users SET active=?,role=?,missions=? WHERE id=?',
+            'UPDATE users SET active=?,role=?,missions=?,duty_role=? WHERE id=?',
             'active' in b ? +b.active : u.active,
             b.role ?? u.role,
             b.missionIds ? canonical(b.missionIds) : u.missions,
+            b.dutyRole ?? u.duty_role,
             u.id,
           );
           return { user: this.user(this.get('SELECT * FROM users WHERE id=?', u.id)) };

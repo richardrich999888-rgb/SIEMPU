@@ -52,7 +52,10 @@ export async function sourceDigest(root = process.cwd()) {
     .filter(Boolean)
     .filter(
       (p) =>
-        /^(?:apps|services|packages|scripts|tests|database|deployment|\.github)\//.test(p) ||
+        /^(?:apps|services|packages|scripts|tests|tools|database|deployment|deploy|infrastructure|security|\.github)\//.test(
+          p,
+        ) ||
+        p === 'docs/api.openapi.json' ||
         /^(?:package(?:-lock)?\.json|CLAIMS_REGISTER\.yaml|Dockerfile|compose\.yaml|Makefile|eslint\.config\.mjs|tsconfig\.json|\.prettier(?:rc\.json|ignore)|\.env\.example|\.gitignore)$/.test(
           p,
         ),

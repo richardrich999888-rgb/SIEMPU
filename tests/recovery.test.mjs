@@ -47,7 +47,7 @@ test('encrypted backup restores schema, identity, revocation and evidence; tampe
         .get(profile.profiles.find((p) => p.username === 'eve').deviceId).status,
       'revoked',
     );
-    assert.equal(db.prepare('SELECT count(*) n FROM schema_migrations').get().n, 2);
+    assert.equal(db.prepare('SELECT count(*) n FROM schema_migrations').get().n, 4);
     assert.equal(
       db.prepare('SELECT hash FROM evidence ORDER BY sequence DESC LIMIT 1').get().hash,
       checkpoint.payload.headHash,
@@ -89,7 +89,7 @@ test('versioned migrations upgrade v1 and reject a modified applied migration', 
     );
     db.close();
     const a = new Authority({ dbPath: join(temp, 'control.sqlite'), signingKey: key, masterKey });
-    assert.equal(a.get('SELECT count(*) n FROM schema_migrations').n, 2);
+    assert.equal(a.get('SELECT count(*) n FROM schema_migrations').n, 4);
     a.run("UPDATE schema_migrations SET checksum='bad' WHERE version='001-initial.sql'");
     a.close();
     assert.throws(
