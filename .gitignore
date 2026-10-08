@@ -14,6 +14,8 @@ coverage/
 artifacts/
 dist/
 *.log
+# Frozen, content-free service logs are part of committed evidence (hashed in its manifest).
+!docs/trl5/evidence/**/*.log
 .DS_Store
 native/target/
 formal/states/
