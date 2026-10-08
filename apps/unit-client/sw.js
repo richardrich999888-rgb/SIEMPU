@@ -2,7 +2,7 @@
  * Bump CACHE whenever any shell asset changes; deploy the release directory atomically.
  * Each installed cache is an immutable generation. Never refresh one module in isolation.
  */
-const CACHE = 'siepmu-public-shell-v6';
+const CACHE = 'siepmu-public-shell-v7';
 const ASSETS = [
   '/',
   '/unit',
@@ -17,6 +17,8 @@ const ASSETS = [
   '/apps/unit-client/challenge.mjs',
   '/apps/unit-client/trust.mjs',
   '/apps/unit-client/authority-pin.mjs',
+  '/apps/unit-client/decisions.mjs',
+  '/apps/unit-client/capabilities.mjs',
   '/apps/admin-console/admin.mjs',
   '/apps/admin-console/admin.css',
   // crypto.mjs must import only canonical.mjs: older workers cache only their own

@@ -19,6 +19,8 @@
     "apps/unit-client/challenge.mjs",
     "apps/unit-client/authority-pin.mjs",
     "services/control/primitives.mjs",
-    "services/control/build-info.mjs"
+    "services/control/build-info.mjs",
+    "apps/unit-client/decisions.mjs",
+    "apps/unit-client/capabilities.mjs"
   ]
 }
