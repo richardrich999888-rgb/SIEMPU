@@ -42,6 +42,9 @@ packages/pqc-lab/      LAB ONLY endpoint ML-KEM/ML-DSA/X-Wing providers (exclude
 packages/transport/    TLS 1.3 / mTLS              packages/release/  signed offline bundles
 database/migrations/   checksummed SQL (never edit an applied migration)
 deployment/            secure lab PKI/harness, 10-zone netem testbed, fault proxy
+native/                Rust reference components (evidence-verify), exact-pinned, ADR-011
+spec/                  language-neutral contracts + vectors generated from the Node reference
+formal/                TLA+ model of release/revocation/recovery (faithful + mutant configs)
 ```
 
 Details: `.claude/skills/siepmu-architecture/`.
@@ -63,6 +66,10 @@ Details: `.claude/skills/siepmu-architecture/`.
   upgrade invariant; see ADR-007).
 - No secrets in Git. No suppression of CodeQL/secret-scan findings. No lowering of gates.
 - Never remove or weaken a negative security test to get green.
+- `spec/vectors/` outcomes are captured from the Node reference, never hand-edited; a changed
+  reference outcome is a contract change (update the spec and ADR-011 deliberately).
+- UI modules explain decisions and gate views only; the authority stays the sole enforcement
+  point. A new authority reason code needs an entry in `apps/unit-client/decisions.mjs` (tested).
 
 Full list and rationale: `.claude/skills/siepmu-authorization/` and `docs/decisions/`.
 
@@ -79,10 +86,15 @@ npm run test:engineering  # TLS, custody, FLASH, monitoring, offline release, pr
 npm ci --prefix packages/pqc-lab --ignore-scripts && npm --prefix packages/pqc-lab test
 npm run test:browser:isolated   # Chromium; needs Playwright browser
 python3 research/trl56/validate.py --self-test
+npm run build:native && npm run test:native   # Rust verifier vs Node: vectors, real evidence, mutations
+npm run test:mission      # 18-step Core Mission Workflow, classical + lab PQC (needs build:native)
+SIEPMU_TLA2TOOLS=/path/tla2tools.jar npm run formal:check   # TLC; faithful passes, mutants fail
+(cd native && cargo fmt --check && cargo clippy --all-targets --locked -- -D warnings && cargo test --locked)
 ```
 
 Run one file: `node --test --test-concurrency=1 tests/<file>.test.mjs`. CI: `.github/workflows/ci.yml`
-(native, pqc-lab, container, browser, testbed) and `security.yml` (regression, secrets, CodeQL).
+(native, rust-native, formal, pqc-lab, container, browser, testbed) and `security.yml`
+(regression, secrets, CodeQL).
 
 ## Evidence and claims rules
 

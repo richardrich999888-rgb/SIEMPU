@@ -9,17 +9,19 @@ Read `docs/engineering/CURRENT_STATE.md` first for the exact SHA this describes.
 
 ## Processes and trust zones
 
-| Process              | Entry point                                               | Holds                                                                           | Must never hold                   |
-| -------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------- | --------------------------------- |
-| Web gateway          | `services/web/server.mjs`                                 | static shell, same-origin proxy to authority                                    | plaintext, keys, DB               |
-| Control authority    | `services/control/server.mjs` -> `core.mjs` (`Authority`) | users, devices, policy, epoch, **opaque wrapped keys**, evidence chain (SQLite) | plaintext, recipient private keys |
-| Ciphertext relay     | `services/relay/server.mjs`                               | ciphertext blobs by SHA-256 (separate SQLite)                                   | keys, plaintext, policy           |
-| Checkpoint custodian | `services/evidence/server.mjs`, `custody.mjs`             | independently signed evidence heads                                             | authority signing key             |
-| Security collector   | `services/monitoring/server.mjs`, `collector.mjs`         | signed redacted telemetry                                                       | content, keys, tokens             |
-| Integration adapter  | `services/integration/server.mjs`, `adapter.mjs`          | synthetic external schema checks                                                | real military interfaces          |
-| Browser endpoint     | `apps/unit-client/app.mjs`, `packages/crypto/crypto.mjs`  | device keys (encrypted vault), plaintext                                        | —                                 |
-| Admin console        | `apps/admin-console/admin.mjs`                            | role-gated views                                                                | content                           |
-| Verifier             | `apps/verifier/verify.mjs`                                | public keys, exported evidence                                                  | —                                 |
+| Process                | Entry point                                                      | Holds                                                                           | Must never hold                   |
+| ---------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------- | --------------------------------- |
+| Web gateway            | `services/web/server.mjs`                                        | static shell, same-origin proxy to authority                                    | plaintext, keys, DB               |
+| Control authority      | `services/control/server.mjs` -> `core.mjs` (`Authority`)        | users, devices, policy, epoch, **opaque wrapped keys**, evidence chain (SQLite) | plaintext, recipient private keys |
+| Ciphertext relay       | `services/relay/server.mjs`                                      | ciphertext blobs by SHA-256 (separate SQLite)                                   | keys, plaintext, policy           |
+| Checkpoint custodian   | `services/evidence/server.mjs`, `custody.mjs`                    | independently signed evidence heads                                             | authority signing key             |
+| Security collector     | `services/monitoring/server.mjs`, `collector.mjs`                | signed redacted telemetry                                                       | content, keys, tokens             |
+| Integration adapter    | `services/integration/server.mjs`, `adapter.mjs`                 | synthetic external schema checks                                                | real military interfaces          |
+| Browser endpoint       | `apps/unit-client/app.mjs`, `packages/crypto/crypto.mjs`         | device keys (encrypted vault), plaintext                                        | —                                 |
+| UI decision/role model | `apps/unit-client/decisions.mjs`, `capabilities.mjs` (ADR-012)   | content-free explanations; deny-by-default view gating                          | enforcement (authority only)      |
+| Rust verifier          | `native/evidence-verify` (ADR-011, `spec/SIEPMU-EVIDENCE-v1.md`) | public keys, exported evidence (general mode only)                              | private keys, replay store        |
+| Admin console          | `apps/admin-console/admin.mjs`                                   | role-gated views                                                                | content                           |
+| Verifier               | `apps/verifier/verify.mjs`                                       | public keys, exported evidence                                                  | —                                 |
 
 Local dev ports: web 8080, control 8081, relay 8082 (`README.md`). The secure profile
 (`deployment/secure/harness.mjs`) runs all five services over TLS 1.3 with mTLS identities.
