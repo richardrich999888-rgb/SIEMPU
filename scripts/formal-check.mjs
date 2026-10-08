@@ -39,6 +39,7 @@ function runTlc(config) {
         '-workers',
         'auto',
         '-deadlock',
+        '-noGenerateSpecTE',
         '-metadir',
         meta,
         '-config',
