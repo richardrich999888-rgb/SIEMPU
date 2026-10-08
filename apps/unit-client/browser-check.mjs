@@ -446,7 +446,7 @@ try {
   await setPolicy(admin.page, false);
   await alice.page.getByRole('button', { name: 'Reconnect & validate', exact: true }).click();
   await alice.page.locator('.badge.held').first().waitFor();
-  // The hold is explained in operator terms with the authority code preserved (ADR-012).
+  // The hold is explained in operator terms with the authority code preserved (ADR-013).
   const notice = alice.page.locator('.decision', { hasText: 'Code: POLICY_DENIED' }).first();
   await notice.waitFor();
   assert.match(await notice.innerText(), /No current exchange policy/);

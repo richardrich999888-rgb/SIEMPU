@@ -1,6 +1,9 @@
-# ADR-011: Rust adoption through specified, differentially tested reference components
+# ADR-012: Rust adoption through specified, differentially tested reference components
 
 Status: accepted for the evidence verifier, 2026-10-08. Further components require their own evidence.
+
+Renumbered from ADR-011 on merge into the integration branch (source `4af847b`, branch
+`claude/siepmu-trl56-recovery-9o6qet`); ADR-011 on this branch is the HPKE-PQ deferral.
 
 ## Context
 

@@ -6,6 +6,9 @@ const roots = ['apps', 'services', 'packages', 'scripts', 'database'];
 const excludedScripts = new Set([
   'scripts/demo.mjs',
   'scripts/trust-before-release.mjs',
+  'scripts/demo-document-exchange.mjs',
+  'scripts/demo-monitoring-recovery.mjs',
+  'scripts/lib/demo-report.mjs',
   'scripts/benchmark.mjs',
   'scripts/container-acceptance.mjs',
   'scripts/release.mjs',

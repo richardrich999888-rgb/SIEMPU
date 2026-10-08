@@ -153,6 +153,13 @@ export class IntegrationEndpoint {
     return result;
   }
   async receive(objectId, senderPublicKey) {
+    return (await this.receiveWithRelease(objectId, senderPublicKey)).plaintext;
+  }
+  /**
+   * Claims, verifies and decrypts an object, returning the plaintext together with the
+   * authority-signed release receipt (needed to acknowledge delivery).
+   */
+  async receiveWithRelease(objectId, senderPublicKey) {
     const control = await this.signed('/api/control');
     if (control.payload.expiresAt <= Date.now()) throw new Error('CONTROL_STALE');
     const body = { expectedEpoch: control.payload.epoch };
@@ -167,10 +174,33 @@ export class IntegrationEndpoint {
       userId: this.profile.userId,
       deviceId: this.profile.deviceId,
     });
-    return this.crypto.decryptObject(
+    const plaintext = await this.crypto.decryptObject(
       result,
       this.profile.keys.encryption.privateKey,
       senderPublicKey,
     );
+    return { plaintext, release: result.receipt, object: result.object };
+  }
+  /** Objects visible to this user (as sender or recipient), as reported by the authority. */
+  async listObjects() {
+    return (await this.call('GET', '/api/objects')).objects;
+  }
+  /**
+   * Acknowledges delivery of a released object. Returns the authority-signed DELIVERY_ACK
+   * receipt after checking its signature and scope.
+   */
+  async acknowledge(objectId, release) {
+    const body = { receiptId: release.payload.eventId };
+    const result = await this.call('POST', `/api/objects/${objectId}/ack`, {
+      ...body,
+      proof: await this.proof('ack:' + objectId, body),
+    });
+    if (
+      !(await this.crypto.verifyPacket(this.authorityKey, result.receipt)) ||
+      result.receipt.payload.objectId !== objectId ||
+      result.receipt.payload.eventType !== 'DELIVERY_ACK'
+    )
+      throw new Error('DELIVERY_RECEIPT');
+    return result.receipt;
   }
 }

@@ -29,7 +29,10 @@ Key wrapping in the engine: KEM shared secret -> HKDF-SHA256 (32-byte salt, doma
 info binding provider, suite, recipient key ID and context) -> AES-256-GCM over the 32-byte
 content key with canonical AAD. This is a KEM/DEM composition, not a new combiner. No custom
 hybrid combiner exists; the hybrid property comes only from X-Wing's published construction.
-HPKE (RFC 9180) with PQ KEMs is the standards-track alternative for independent review.
+HPKE base mode with PQ KEMs (`draft-ietf-hpke-pq`) is reserved as wrap v3 but not adopted
+(ADR-011, `research/cryptographic-standards/HPKE_PQ_EVALUATION.md`). The byte-level spec for review
+is `research/cryptographic-standards/V3_COMPOSITION.md`; wrap v2 bytes are pinned by
+`tests/crypto-agility/wrap-derivation.test.mjs`, so any change needs a new wrap schema version.
 
 ## Versions are separate
 

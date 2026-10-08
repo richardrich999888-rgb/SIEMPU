@@ -27,7 +27,7 @@ import {
 } from './trust.mjs';
 
 /**
- * Renders an authority decision code as an operator explanation (ADR-012). Anything that is not
+ * Renders an authority decision code as an operator explanation (ADR-013). Anything that is not
  * shaped like an authority code (for example a local network error) is shown verbatim.
  * @param {string} reason
  */

@@ -18,8 +18,8 @@ Read `docs/engineering/CURRENT_STATE.md` first for the exact SHA this describes.
 | Security collector     | `services/monitoring/server.mjs`, `collector.mjs`                | signed redacted telemetry                                                       | content, keys, tokens             |
 | Integration adapter    | `services/integration/server.mjs`, `adapter.mjs`                 | synthetic external schema checks                                                | real military interfaces          |
 | Browser endpoint       | `apps/unit-client/app.mjs`, `packages/crypto/crypto.mjs`         | device keys (encrypted vault), plaintext                                        | —                                 |
-| UI decision/role model | `apps/unit-client/decisions.mjs`, `capabilities.mjs` (ADR-012)   | content-free explanations; deny-by-default view gating                          | enforcement (authority only)      |
-| Rust verifier          | `native/evidence-verify` (ADR-011, `spec/SIEPMU-EVIDENCE-v1.md`) | public keys, exported evidence (general mode only)                              | private keys, replay store        |
+| UI decision/role model | `apps/unit-client/decisions.mjs`, `capabilities.mjs` (ADR-013)   | content-free explanations; deny-by-default view gating                          | enforcement (authority only)      |
+| Rust verifier          | `native/evidence-verify` (ADR-012, `spec/SIEPMU-EVIDENCE-v1.md`) | public keys, exported evidence (general mode only)                              | private keys, replay store        |
 | Admin console          | `apps/admin-console/admin.mjs`                                   | role-gated views                                                                | content                           |
 | Verifier               | `apps/verifier/verify.mjs`                                       | public keys, exported evidence                                                  | —                                 |
 

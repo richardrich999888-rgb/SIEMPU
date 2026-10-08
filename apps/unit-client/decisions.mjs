@@ -1,4 +1,4 @@
-// Operator-facing explanations of authority decisions (ADR-012).
+// Operator-facing explanations of authority decisions (ADR-013).
 //
 // Pure and content-free by construction: every function takes only a decision code or object
 // state, never message content, identities or key material, so an explanation cannot disclose

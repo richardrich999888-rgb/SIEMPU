@@ -1,4 +1,4 @@
-# ADR-012: TypeScript-checked UI modules without a framework or build step
+# ADR-013: TypeScript-checked UI modules without a framework or build step
 
 Status: accepted, 2026-10-08. Revisit when the criteria below are met.
 

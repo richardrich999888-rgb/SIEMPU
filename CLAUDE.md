@@ -42,7 +42,7 @@ packages/pqc-lab/      LAB ONLY endpoint ML-KEM/ML-DSA/X-Wing providers (exclude
 packages/transport/    TLS 1.3 / mTLS              packages/release/  signed offline bundles
 database/migrations/   checksummed SQL (never edit an applied migration)
 deployment/            secure lab PKI/harness, 10-zone netem testbed, fault proxy
-native/                Rust reference components (evidence-verify), exact-pinned, ADR-011
+native/                Rust reference components (evidence-verify), exact-pinned, ADR-012
 spec/                  language-neutral contracts + vectors generated from the Node reference
 formal/                TLA+ model of release/revocation/recovery (faithful + mutant configs)
 ```
@@ -67,7 +67,7 @@ Details: `.claude/skills/siepmu-architecture/`.
 - No secrets in Git. No suppression of CodeQL/secret-scan findings. No lowering of gates.
 - Never remove or weaken a negative security test to get green.
 - `spec/vectors/` outcomes are captured from the Node reference, never hand-edited; a changed
-  reference outcome is a contract change (update the spec and ADR-011 deliberately).
+  reference outcome is a contract change (update the spec and ADR-012 deliberately).
 - UI modules explain decisions and gate views only; the authority stays the sole enforcement
   point. A new authority reason code needs an entry in `apps/unit-client/decisions.mjs` (tested).
 

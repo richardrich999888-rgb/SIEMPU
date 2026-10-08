@@ -13,9 +13,14 @@ Never copy a result forward to a new SHA.
 | `7ac38e3` | TLA+ model                                                 | CI 37760088995 cancelled by next push; Security 37760089191 PASS                                                                                                    |
 | `693327f` | Remove generated TLC traces                                | CI 37760213427 PASS; Security 37760213262 PASS                                                                                                                      |
 | `68c8cc2` | Alert-epoch monitoring fix; Core Mission Workflow          | CI 37761417035 PASS; Security 37761417036 PASS                                                                                                                      |
-| `7b01d1a` | Decision explanations, capability model (ADR-012)          | **CI 37762135413 PASS, all 7 jobs** (native, rust-native incl. mission workflow, formal, pqc-lab, browser, container, testbed 75/75); **Security 37762135250 PASS** |
+| `7b01d1a` | Decision explanations, capability model (ADR-013)          | **CI 37762135413 PASS, all 7 jobs** (native, rust-native incl. mission workflow, formal, pqc-lab, browser, container, testbed 75/75); **Security 37762135250 PASS** |
 
 Run URLs: `https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/<id>`.
+
+PR #17's branch advanced concurrently to `0e8d1b9` (adapter negative cases ported, HPKE-PQ evaluation
+as ADR-011, Rust ADR renumbered to ADR-012, HPSC demos, the same telemetry fix). It is merged into this
+branch with a merge commit; the UI ADR is therefore ADR-013. Hosted results for the merge commit are
+on PR #18.
 
 ## Local verification on `7b01d1a` content (Node 24.21.0, rustc 1.97.0, OpenJDK 21, 4 vCPU)
 
@@ -35,9 +40,12 @@ Run URLs: `https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/<id>`.
 15. **Monitoring silently stopped after the first alert followed by any epoch change**: alert events
     were stamped with the export-time epoch, the collector rejected every later batch with
     `TELEMETRY_CONFLICT` (`32e1585`, migration 006). Present on the hosted-green baseline; found by
-    the mission workflow's positive controls.
+    the mission workflow's positive controls. A concurrent session fixed the same defect on the PR #17
+    branch (`0e8d1b9`) with an equivalent migration 006; on merging that base into this branch its
+    migration text, collector and core changes were kept (one canonical 006 checksum), plus this
+    branch's legacy-schema backfill test.
 
-## Implemented in this session (details: ADR-011, ADR-012, formal/README.md, MISSION_WORKFLOW.md)
+## Implemented in this session (details: ADR-012, ADR-013, formal/README.md, MISSION_WORKFLOW.md)
 
 - Rust reference evidence verifier (general mode) with language-neutral spec and generated vectors.
   Measured: 1.6–5.7x lower peak RSS, 0.54–0.89x Node speed (pure-Rust P-256 verify is ~2x slower).
@@ -52,8 +60,8 @@ Run URLs: `https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/<id>`.
 - Rust: strict release mode with replay store; HSM/TPM/PKCS#11 native custody (no hardware).
 - Deployment: no Kubernetes/K3s profile executed; PostgreSQL/multi-replica not attempted (would need
   proof of equivalent release/revocation consistency; the TLA+ model is the starting point).
-- PR #16 adapter negative cases (freshness, ambiguous restart quarantine, capacity) still not ported.
-- Hybrid KEM combiner and HPKE evaluation still awaiting independent cryptographic review.
+- The v3 composition review package and HPKE-PQ evaluation (ADR-011, on the base branch) still
+  await independent cryptographic review.
 - Node reference still accepts spec divergences D1–D3 (lone surrogates, invalid UTF-8, duplicate
   members); changing that is a deliberate contract change, not yet made.
 
@@ -65,11 +73,10 @@ authorisation, formal TRL assignment.
 
 ## Next executable tasks
 
-1. Port PR #16 adapter negative cases onto `services/integration/` (WP16 gap).
-2. Security/evaluation view in the admin console using `capabilities.mjs` (evidence verification,
+1. Security/evaluation view in the admin console using `capabilities.mjs` (evidence verification,
    crypto inventory, recovery and monitoring health), with browser tests.
-3. Extend the TLA+ model to FLASH approval revocation and multi-recipient instances (bigger machine).
-4. Decide (ADR) whether the Node verifier should adopt D1–D3 rejection.
+2. Extend the TLA+ model to FLASH approval revocation and multi-recipient instances (bigger machine).
+3. Decide (ADR) whether the Node verifier should adopt D1–D3 rejection.
 
 ## Record of the previous session (PR #17 branch, kept for provenance)
 
@@ -103,6 +110,9 @@ need typecheck evaluation.
 | `7d0f568`          | —                                                                                      | runs cancelled by the next push                                                                                                                       |
 | `fa3f524`          | CI 37731906364                                                                         | native FAIL: truncated V8 coverage file (SIGKILL raced worker exit), fixed in `17fe1bf`                                                               |
 | `17fe1bf`          | CI 37732307142 / 37732310353; Security 37732307170 / 37732310464 (push / pull_request) | **ALL PASS**: native (incl. Trust Before Release), pqc-lab, browser, container, testbed; Security (CodeQL gate, secrets, regression)                  |
+| `85e4c7d`          | CI 37754418709; Security 37754418448 (pull_request)                                    | **ALL PASS**: native (incl. Trust Before Release), pqc-lab, browser, container, testbed; Security                                                     |
+| `aa1ab91`          | Security 37755304070 / 37755313266                                                     | secret-scan FAIL: gitleaks `generic-api-key` on a public HKDF known-answer constant; exact fingerprint added (documented exception policy)            |
+| `ec0ea61`          | CI 37755495149 / 37755500534; Security 37755495108 / 37755500358 (push / pull_request) | **ALL PASS** incl. secret-scan, testbed, Trust Before Release; PR #17 mergeable (clean)                                                               |
 
 Resolved: the testbed failed exactly one netem profile (15 of 75) here and on PR #15's own SHA.
 N8 targeted the interface named `eth1`, whose network depends on Docker's attachment order; it
@@ -110,7 +120,7 @@ is now selected by address (`f7b94bd`, hosted 75/75).
 
 ### Local verification (Node 24.21.0, Linux container)
 
-- `npm run validate` PASS on `4e422c7` content: 228/228 tests, about 97 % lines.
+- `npm run validate` PASS on `aa1ab91` content: 237/237 tests, 97.5 % lines.
 - `npm run test:e2e` 3/3; PQC lab 7/7 (incl. X-Wing end-to-end); Chromium shell-upgrade 3/3.
 - Trust Before Release 14/14 (`docs/engineering/TRUST_BEFORE_RELEASE.md`).
 
@@ -149,10 +159,13 @@ providers (ML-KEM-768/1024, ML-DSA-65 via OpenSSL; X-Wing via Noble) with NIST/a
 - Laboratory v3 PQC end-to-end path through the authority release transaction (ADR-010), with
   wrap v2 fixing the HKDF `info` size defect (defect 9 below).
 - Trust Before Release scripted demonstration, report and CI step.
+- Synthetic adapter negative/restart cases ported from PR #16 (`85e4c7d`).
+- Independent review package: `research/cryptographic-standards/V3_COMPOSITION.md` (byte-level
+  spec, intended properties P1–P6, assessor questions R1–R7, pinned wrap v2 vector reproduced in
+  Python), `HPKE_PQ_EVALUATION.md`, ADR-011 (HPKE base mode reserved as wrap v3, not adopted).
 
 ### Incomplete
 
-- PR #16 adapter negative tests (freshness, ambiguous restart quarantine, capacity) not ported.
 - `research/defence-comparison/sources.json` D04–D15 must be re-retrieved.
 - Live re-verification of the iDEX PS-69 page (not reachable from the build environment).
 
@@ -172,6 +185,8 @@ PR #17 (draft) from this branch to `main`. Not to be merged automatically.
 
 ### Next executable tasks
 
-1. Port PR #16 adapter negative cases onto `services/integration/`.
-2. Independent review package for the v3 composition; evaluate RFC 9180 HPKE with PQ KEMs.
-3. Re-retrieve `research/defence-comparison/sources.json` D04-D15.
+1. Re-retrieve `research/defence-comparison/sources.json` D04-D15 (needs network access to the
+   original sources; not reachable from this environment).
+2. Re-check `HPKE_PQ_EVALUATION.md` against the published `draft-ietf-hpke-pq` revision (IETF
+   hosts blocked here); then prototype wrap v3 behind ADR-011's gates.
+3. Engage an independent cryptographic assessor with `V3_COMPOSITION.md` (external).

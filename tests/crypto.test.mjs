@@ -396,7 +396,7 @@ test('detached verifier accepts signed packets and chained evidence with saved c
 });
 test('detached verifier member check is unambiguous for names containing the old separator', async () => {
   // Regression: members were compared as sort().join('|'), so one member named "keyId|payload"
-  // matched the expected pair. Found while porting the verifier to Rust (ADR-011).
+  // matched the expected pair. Found while porting the verifier to Rust (ADR-012).
   await assert.rejects(
     verifyEvidence({ 'keyId|payload': 'x', signature: 'y' }, authority.signing.publicKey),
     /Unexpected or missing packet members/,

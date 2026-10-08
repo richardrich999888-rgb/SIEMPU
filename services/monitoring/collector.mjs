@@ -22,7 +22,7 @@ export function redactSecurityEvents(authority) {
       eventId: hash(a.id),
       eventType: token.test(a.kind) ? a.kind : 'SECURITY_EVENT',
       timestamp: a.timestamp,
-      // Epoch recorded with the alert: an export must never change an already-sent event.
+      // Epoch at the time the alert was raised (migration 006), never the export-time epoch.
       epoch: a.epoch,
       correlationId: hash(a.id),
       reason: token.test(a.reason) ? a.reason : 'REQUEST_DENIED',

@@ -1,4 +1,4 @@
-// Permission-separated interface model (ADR-012).
+// Permission-separated interface model (ADR-013).
 //
 // Mirrors, and never extends, the role checks the control authority enforces in
 // services/control/core.mjs. It decides only what an interface offers; every operation is still

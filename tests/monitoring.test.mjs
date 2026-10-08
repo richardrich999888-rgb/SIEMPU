@@ -65,10 +65,9 @@ test('independent collector authenticates, redacts, deduplicates, acknowledges a
   assert.equal(tiny.list().length, 0);
 });
 
-test('alert telemetry stays identical across exports after an epoch change', async (t) => {
-  // Regression: alert events carried the authority's current epoch at export time, so the
-  // same eventId changed digest after any epoch change and the collector rejected every later
-  // batch with TELEMETRY_CONFLICT (found by the Core Mission Workflow positive controls).
+test('telemetry keeps flowing after an authority epoch change (re-exported alerts are stable)', async (t) => {
+  // Regression: alerts were stamped with the export-time epoch, so after any authority change a
+  // re-exported alert conflicted with its earlier copy and the collector rejected every batch.
   const f = await coreFixture(t),
     keys = pair(),
     now = Date.now();
@@ -78,19 +77,33 @@ test('alert telemetry stays identical across exports after an epoch change', asy
     signingKey: keys.privateKey,
   });
   t.after(() => collector.close());
-  f.authority.tx(() => f.authority.alert('REQUEST_DENIED', null, 'CREDENTIAL_REJECTED'));
+  f.authority.tx(() => f.authority.alert('AUTH_FAILURE', null, 'LOGIN_DENIED'));
   const before = redactSecurityEvents(f.authority);
-  collector.ingest(packet(f.authority.key, before), now + 1000);
-  f.authority.tx(() =>
-    f.authority.run('UPDATE authority SET epoch=epoch+1,revocation_version=revocation_version+1'),
-  );
+  assert.ok(collector.ingest(packet(f.authority.key, before), now + 1000).payload.accepted > 0);
+  const epochBefore = f.authority.epoch().epoch;
+  f.authority.tx(() => f.authority.run('UPDATE authority SET epoch=epoch+1 WHERE id=1'));
+  assert.equal(f.authority.epoch().epoch, epochBefore + 1);
+  f.authority.tx(() => f.authority.alert('ACCESS_DENIED', null, 'ROLE_FORBIDDEN'));
   const after = redactSecurityEvents(f.authority);
-  const alertId = before.events.find((e) => e.eventType === 'REQUEST_DENIED').eventId;
-  assert.deepEqual(
-    after.events.find((e) => e.eventId === alertId),
-    before.events.find((e) => e.eventId === alertId),
+  const alertEpochs = after.events.filter((e) =>
+    ['AUTH_FAILURE', 'ACCESS_DENIED'].includes(e.eventType),
   );
-  assert.doesNotThrow(() => collector.ingest(packet(f.authority.key, after), now + 1000));
+  assert.deepEqual(alertEpochs.map((e) => [e.eventType, e.epoch]).sort(), [
+    ['ACCESS_DENIED', epochBefore + 1],
+    ['AUTH_FAILURE', epochBefore],
+  ]);
+  // The second batch re-sends the old alert unchanged and adds the new one: no conflict.
+  const result = collector.ingest(packet(f.authority.key, after), now + 1000);
+  assert.equal(result.payload.accepted, 1);
+  assert.ok(collector.list().some((row) => row.event.eventType === 'ACCESS_DENIED'));
+});
+
+test('migration 006 backfills the epoch of alerts raised before it', async (t) => {
+  const f = await coreFixture(t);
+  f.authority.tx(() => f.authority.alert('AUTH_FAILURE', null, 'LOGIN_DENIED'));
+  const rows = f.authority.all('SELECT epoch FROM alerts');
+  assert.ok(rows.length > 0);
+  for (const row of rows) assert.ok(Number.isSafeInteger(row.epoch) && row.epoch >= 1);
 });
 
 test('alert epoch migration backfills legacy rows once with a fixed epoch', async () => {

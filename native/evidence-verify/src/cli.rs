@@ -5,7 +5,7 @@
 //!
 //! Exit status 0 with the pretty-printed result on stdout, or 1 with a one-line failure report
 //! on stderr. `--mode release` and `--replay-store` are rejected: strict release acceptance
-//! requires the durable replay store, which remains in the Node reference (ADR-011).
+//! requires the durable replay store, which remains in the Node reference (ADR-012).
 
 use crate::error::VerifyError;
 use crate::evidence::{verify_evidence, Expectations};

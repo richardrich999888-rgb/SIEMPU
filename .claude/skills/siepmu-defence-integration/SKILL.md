@@ -14,17 +14,15 @@ detail is needed, stop and record the question.
 
 ## Existing synthetic integration
 
-| Component       | Path                                                        | Behaviour                                                                                                                      |
-| --------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Adapter service | `services/integration/server.mjs`, `adapter.mjs`            | Independent process; mTLS identity; authenticated schema validation; sender/destination policy; replay prevention; idempotency |
-| Adapter client  | `packages/integration/client.mjs`                           | Signed synthetic submissions                                                                                                   |
-| Authority route | `POST /api/integration/validate` (admin-scoped, `core.mjs`) | Validates synthetic schema only                                                                                                |
-| Tests           | `tests/independent-services.test.mjs`                       | mTLS, exchange, idempotency, redaction, acknowledgement                                                                        |
-| Docs            | `docs/independent-services.md`                              |                                                                                                                                |
+| Component       | Path                                                                        | Behaviour                                                                                                                      |
+| --------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Adapter service | `services/integration/server.mjs`, `adapter.mjs`                            | Independent process; mTLS identity; authenticated schema validation; sender/destination policy; replay prevention; idempotency |
+| Adapter client  | `packages/integration/client.mjs`                                           | Signed synthetic submissions                                                                                                   |
+| Authority route | `POST /api/integration/validate` (admin-scoped, `core.mjs`)                 | Validates synthetic schema only                                                                                                |
+| Tests           | `tests/independent-services.test.mjs`, `tests/integration-adapter.test.mjs` | mTLS, exchange, idempotency, redaction, acknowledgement; freshness, scope, capacity, restart resumption                        |
+| Docs            | `docs/independent-services.md`                                              |                                                                                                                                |
 
-Follow-up (not done): port the PR #16 adapter negative cases (stale freshness, ambiguous in-flight
-restart quarantine, durable admission capacity) onto this adapter. See
-`docs/engineering/RECONCILIATION_MATRIX.md`.
+Ported in intent onto `services/integration/` (`tests/integration-adapter.test.mjs`): freshness (stale and future), schema, sender/destination scope, replay and idempotency conflict, explicit durable capacity (`ADAPTER_CAPACITY`, no eviction), and ambiguous-restart _resumption_ (re-forwards the persisted sealed object; the authority's idempotent submission returns the original object). PR #16's quarantine-on-restart was not adopted: resumption is safe here and avoids stranding committed objects. Signature cases do not apply (source authenticated by mTLS pin).
 
 ## Boundary rules
 
