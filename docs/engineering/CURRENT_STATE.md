@@ -83,7 +83,6 @@ providers (ML-KEM-768/1024, ML-DSA-65 via OpenSSL; X-Wing via Noble) with NIST/a
 
 ## Incomplete
 
-- PR #16 adapter negative tests (freshness, ambiguous restart quarantine, capacity) not ported.
 - `research/defence-comparison/sources.json` D04–D15 must be re-retrieved.
 - Live re-verification of the iDEX PS-69 page (not reachable from the build environment).
 
@@ -103,6 +102,5 @@ PR #17 (draft) from this branch to `main`. Not to be merged automatically.
 
 ## Next executable tasks
 
-1. Port PR #16 adapter negative cases onto `services/integration/`.
-2. Independent review package for the v3 composition; evaluate RFC 9180 HPKE with PQ KEMs.
-3. Re-retrieve `research/defence-comparison/sources.json` D04-D15.
+1. Independent review package for the v3 composition; evaluate RFC 9180 HPKE with PQ KEMs.
+2. Re-retrieve `research/defence-comparison/sources.json` D04-D15.

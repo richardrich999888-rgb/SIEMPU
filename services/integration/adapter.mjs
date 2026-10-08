@@ -2,9 +2,17 @@ import { DatabaseSync } from 'node:sqlite';
 import { canonical, hash } from '../control/primitives.mjs';
 import { createTransportServer } from '../../packages/transport/tls.mjs';
 
+/** Default ceiling on durable idempotency records. Records are never evicted (eviction would
+ * reopen replay); once full, new request IDs are refused until an operator archives the store. */
+export const DEFAULT_MAX_ENTRIES = 100000;
+/** Accepted clock skew between the synthetic source and the adapter, in either direction. */
+export const FRESHNESS_WINDOW_MS = 300000;
+
 export class SyntheticAdapter {
-  constructor({ database, endpoint, destinations }) {
-    Object.assign(this, { endpoint, destinations });
+  constructor({ database, endpoint, destinations, maxEntries = DEFAULT_MAX_ENTRIES }) {
+    if (!Number.isSafeInteger(maxEntries) || maxEntries < 1)
+      throw new TypeError('maxEntries must be a positive integer');
+    Object.assign(this, { endpoint, destinations, maxEntries });
     this.tail = Promise.resolve();
     this.db = new DatabaseSync(database);
     this.db.exec(
@@ -17,7 +25,7 @@ export class SyntheticAdapter {
         'destinationUserId,issuedAt,payload,requestId,senderUserId,version' ||
       request.version !== 1 ||
       !Number.isSafeInteger(request.issuedAt) ||
-      Math.abs(Date.now() - request.issuedAt) > 300000 ||
+      Math.abs(Date.now() - request.issuedAt) > FRESHNESS_WINDOW_MS ||
       !/^[a-f0-9-]{36}$/.test(request.requestId)
     )
       throw new Error('ADAPTER_SCHEMA_OR_REPLAY');
@@ -38,6 +46,8 @@ export class SyntheticAdapter {
       if (row && row.digest !== digest) throw new Error('IDEMPOTENCY_CONFLICT');
       if (row?.result) return JSON.parse(row.result);
       if (!row) {
+        const { n } = this.db.prepare('SELECT COUNT(*) AS n FROM requests').get();
+        if (n >= this.maxEntries) throw new Error('ADAPTER_CAPACITY');
         const sealed = await this.endpoint.seal(destination, request.payload);
         this.db
           .prepare('INSERT INTO requests VALUES(?,?,?,NULL)')
