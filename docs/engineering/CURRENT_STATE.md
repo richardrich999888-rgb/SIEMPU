@@ -21,18 +21,24 @@ need typecheck evaluation.
 
 ## Hosted CI results (exact SHAs)
 
-| SHA                | Workflow / run                       | Result                                                                                                                                                             |
-| ------------------ | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `a4abc80` (PR #16) | CI 37716985109, Security 37716985101 | FAIL: native (check, lint, format, coverage), regression (`sarif-gate.test.mjs`), CodeQL gate (`SyntaxError`); container skipped. Root cause: five corrupted files |
-| `2fc827e`          | CI 37727941433                       | native FAIL (`test:coverage`, intermittent, see below); pqc-lab PASS; browser PASS; container/testbed skipped                                                      |
-| `a932cce`          | CI 37728343565                       | native PASS; pqc-lab PASS; browser PASS; container and testbed: see run                                                                                            |
-| `a932cce`          | Security 37728343538                 | PASS (dependency/regression, secret scan, CodeQL gate)                                                                                                             |
+| SHA                | Run                                                | Result                                                                                                     |
+| ------------------ | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `a4abc80` (PR #16) | CI 37716985109, Security 37716985101               | FAIL: native, regression, CodeQL gate; container skipped. Root cause: five corrupted files                 |
+| `32b4a1c` (PR #15) | CI 37716389026 (push) / 37716393630 (pull_request) | push: **testbed FAIL**; pull_request: PASS. Same SHA; testbed is runner-dependent                          |
+| `2fc827e`          | CI 37727941433                                     | native FAIL (`EADDRINUSE` race, fixed in `7655f7b`); pqc-lab, browser PASS                                 |
+| `a932cce`          | CI 37728343565; Security 37728343538               | native, pqc-lab, browser, container PASS; testbed FAIL 60/75; Security PASS                                |
+| `cfdaae1`          | CI 37729846135; Security 37729846172               | native, pqc-lab, browser, container PASS; testbed FAIL 60/75; Security PASS                                |
+| `4e422c7`          | CI 37730428069; Security 37730428089               | native PASS (incl. Trust Before Release on runner), pqc-lab PASS, browser PASS; testbed/container: see run |
+
+Open: the netem testbed fails exactly one profile (15 of 75 exchanges, all 8 non-exchange
+samples pass). The same failure occurs on PR #15's own SHA, so it predates this branch.
+`deployment/testbed/run.mjs` now prints failure rows to the job log to identify the profile.
 
 ## Local verification (Node 24.21.0, Linux container)
 
-- `npm run validate` PASS on `2fc827e`: 208/208 tests, 97.57 % lines, 88.96 % branches.
-- `npm run test:e2e` 3/3; PQC lab `npm --prefix packages/pqc-lab test` 6/6.
-- Chromium `tests/browser/shell-upgrade.mjs` 3/3 (merged service worker).
+- `npm run validate` PASS on `4e422c7` content: 228/228 tests, about 97 % lines.
+- `npm run test:e2e` 3/3; PQC lab 7/7 (incl. X-Wing end-to-end); Chromium shell-upgrade 3/3.
+- Trust Before Release 14/14 (`docs/engineering/TRUST_BEFORE_RELEASE.md`).
 
 ## Defects found and fixed on this branch
 
@@ -56,12 +62,15 @@ monitoring collector, synthetic adapter, FLASH dual control (provisional policy)
 signed offline release, classical provider port, provider engine with key lifecycle, PQC lab
 providers (ML-KEM-768/1024, ML-DSA-65 via OpenSSL; X-Wing via Noble) with NIST/author vectors.
 
+## Completed on this branch since reconciliation
+
+- Laboratory v3 PQC end-to-end path through the authority release transaction (ADR-010), with
+  wrap v2 fixing the HKDF `info` size defect (defect 9 below).
+- Trust Before Release scripted demonstration, report and CI step.
+
 ## Incomplete
 
-- **PQC end-to-end application flow**: authority v3 submission/release path, endpoint v3 envelope
-  (`packages/pqc-lab/envelope.mjs` was destroyed in PR #16 and never imported), v3 evidence in
-  verifier. In progress on this branch.
-- Trust-Before-Release scripted demonstration and evidence report.
+- Testbed one-profile failure (above).
 - PR #16 adapter negative tests (freshness, ambiguous restart quarantine, capacity) not ported.
 - `research/defence-comparison/sources.json` D04–D15 must be re-retrieved.
 - Live re-verification of the iDEX PS-69 page (not reachable from the build environment).
@@ -76,8 +85,13 @@ SAG grading, IAF identity/PKI and interface specifications, relevant-environment
 independent security assessment, sponsor acceptance, hardware custody procurement, operational
 authorisation, formal TRL assignment.
 
-## Next executable task
+## Open pull request
 
-Implement the v3 laboratory end-to-end path (endpoint envelope, authority admission/release behind
-`SIEPMU_ALLOW_PQC_LAB`, crypto-policy registry wiring, signed crypto evidence, verifier), then the
-Trust-Before-Release demonstration script and report.
+PR #17 (draft) from this branch to `main`. Not to be merged automatically.
+
+## Next executable tasks
+
+1. Root-cause and fix the testbed profile failure using the job-log failure rows.
+2. Port PR #16 adapter negative cases onto `services/integration/`.
+3. Independent review package for the v3 composition; evaluate RFC 9180 HPKE with PQ KEMs.
+4. Re-retrieve `research/defence-comparison/sources.json` D04-D15.

@@ -56,12 +56,30 @@ const unit = async (role, command, arg) =>
   );
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 const containerId = async (role) => await docker(['ps', '-q', role]);
+/** Returns the link in the unit-a namespace that carries its address on the 'external' network. */
+async function externalLink(id, ns, links) {
+  const attached = JSON.parse(
+    await run('docker', ['inspect', '-f', '{{json .NetworkSettings.Networks}}', id]),
+  );
+  const external = Object.entries(attached).find(([name]) => /(^|_)external$/.test(name));
+  assert.ok(external?.[1]?.IPAddress, 'unit-a has no address on the external network');
+  const addresses = JSON.parse(await ns(['ip', '-j', 'addr', 'show']));
+  const owner = addresses.find((a) =>
+    (a.addr_info ?? []).some((info) => info.local === external[1].IPAddress),
+  );
+  const link = links.find((l) => l.ifname === owner?.ifname);
+  assert.ok(link, 'external network interface not found in unit-a namespace');
+  return link;
+}
 async function network(profile, apply = true) {
   const id = await containerId('unit-a'),
     pid = await run('docker', ['inspect', '-f', '{{.State.Pid}}', id]);
   const ns = async (args) => run('sudo', ['nsenter', '-t', pid, '-n', ...args]);
   const links = JSON.parse(await ns(['ip', '-j', 'link', 'show'])).filter((l) => l.ifname !== 'lo');
-  const targetLinks = profile === 'N8' ? links.filter((link) => link.ifname === 'eth1') : links;
+  // N8 isolates only the WAN-facing 'external' network. Interface names (eth0/eth1) follow
+  // Docker's attachment order, which is not stable across engine versions, so the interface
+  // is identified by the container's address on that network. Missing mapping fails closed.
+  const targetLinks = profile === 'N8' ? [await externalLink(id, ns, links)] : links;
   if (apply)
     for (const link of targetLinks) {
       await ns(['tc', 'qdisc', 'del', 'dev', link.ifname, 'root']).catch(() => {});

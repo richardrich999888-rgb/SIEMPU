@@ -16,40 +16,40 @@ format, coverage) and 37716985101 (`sarif-gate.test.mjs`; CodeQL gate `SyntaxErr
 `scripts/sarif-gate.mjs`) are fully explained by these files. The container job was skipped
 because `native` failed. Reproduced locally on Node 24.21.0 with identical gate outcomes.
 
-| File                                       | Recovery                                                                               |
-| ------------------------------------------ | -------------------------------------------------------------------------------------- |
-| `scripts/sarif-gate.mjs`                   | PR #15 version (intact, same function)                                                 |
-| `docs/deployment.md`, `docs/testing.md`    | PR #15 versions                                                                        |
-| `packages/pqc-lab/envelope.mjs`            | Not recoverable after byte 3373; no module imported it. Rewritten in the PQC milestone |
-| `research/defence-comparison/sources.json` | D01–D03 exact; D04 partial; D05–D15 flagged `RECORD_LOST_IN_PUBLICATION`               |
+| File                                       | Recovery                                                                                 |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `scripts/sarif-gate.mjs`                   | PR #15 version (intact, same function)                                                   |
+| `docs/deployment.md`, `docs/testing.md`    | PR #15 versions                                                                          |
+| `packages/pqc-lab/envelope.mjs`            | Not recoverable after byte 3373; no module imported it. Rewritten in `cfdaae1` (ADR-010) |
+| `research/defence-comparison/sources.json` | D01–D03 exact; D04 partial; D05–D15 flagged `RECORD_LOST_IN_PUBLICATION`                 |
 
 Prevention: `scripts/text-integrity.mjs` (run by `npm run check`) detects all five.
 
 ## Divergent shared files (23)
 
-| File                                                     | Taken                                                | Reason                                                                                    |
-| -------------------------------------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `.github/workflows/ci.yml`                               | PR #15 + new `pqc-lab` job, `claude/**` push trigger | PR #16 deleted the netem testbed job and engineering evidence step                        |
-| `apps/admin-console/admin.mjs`                           | PR #16                                               | Strict superset: atomic role+duty update, observations panel, checkpoint signature status |
-| `apps/unit-client/browser-check.mjs`                     | PR #16                                               | Adds Chromium shell-upgrade and role-transition checks                                    |
-| `apps/unit-client/sw.js`                                 | Merged                                               | PR #16 immutable cache-first generations; cache v6 (ADR-007)                              |
-| `apps/verifier/verify.mjs`                               | PR #15, PQC milestone ports v3 crypto evidence       | PR #16 dropped `objectSchemaVersion` checks                                               |
-| `deployment/secure/lab-pki.mjs`                          | PR #15                                               | PR #16 rewrite drops CRL, revocation, expiry issuance used by TLS tests                   |
-| `docs/api.openapi.json`                                  | PR #15                                               | PR #16 lacks PR #15 routes (authorize, custody)                                           |
-| `docs/deployment.md`, `docs/testing.md`                  | PR #15                                               | PR #16 corrupted                                                                          |
-| `docs/protocols/IMPLEMENTATION_CONTRACT.md`              | PR #15 + PR #16 contract paragraphs                  | Both statements hold on the integrated code                                               |
-| `package.json`                                           | PR #15                                               | PR #16 removed `test:engineering`, testbed and offline-release scripts                    |
-| `packages/crypto/crypto.mjs`                             | Merged                                               | PR #15 provider interface; PR #16 self-contained module graph (ADR-007)                   |
-| `packages/mission/policy.mjs`                            | Merged                                               | Labels re-exported from `crypto.mjs`                                                      |
-| `packages/object-format/types.d.ts`                      | PR #15, PQC milestone ports v3 types                 |                                                                                           |
-| `scripts/sarif-gate.mjs`                                 | PR #15                                               | PR #16 corrupted                                                                          |
-| `services/admission/integrity.mjs`                       | PR #15, PQC milestone ports v3 path                  | PR #15 uses the shared schema module                                                      |
-| `services/control/core.mjs`                              | PR #15 + PR #16 `dutyVisible` + v3-safe label checks | PR #16 removed custody quarantine, FLASH approval, static routing (ADR-009)               |
-| `services/control/server.mjs`                            | PR #15, PQC milestone ports `SIEPMU_ALLOW_PQC_LAB`   | PR #16 removed TLS, custody, telemetry; its flag was never read by `Authority`            |
-| `services/evidence/decision.mjs`                         | PR #15, PQC milestone ports crypto evidence          |                                                                                           |
-| `services/relay/client.mjs`, `services/relay/server.mjs` | PR #15                                               | PR #16 removed TLS client/server                                                          |
-| `services/web/server.mjs`                                | PR #15                                               | PR #16 removed TLS 1.3 upstream pinning and secure-origin checks                          |
-| `tests/verifier-replay.test.mjs`                         | PR #15, PQC milestone ports v3 provenance cases      |                                                                                           |
+| File                                                     | Taken                                                          | Reason                                                                                    |
+| -------------------------------------------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `.github/workflows/ci.yml`                               | PR #15 + new `pqc-lab` job, `claude/**` push trigger           | PR #16 deleted the netem testbed job and engineering evidence step                        |
+| `apps/admin-console/admin.mjs`                           | PR #16                                                         | Strict superset: atomic role+duty update, observations panel, checkpoint signature status |
+| `apps/unit-client/browser-check.mjs`                     | PR #16                                                         | Adds Chromium shell-upgrade and role-transition checks                                    |
+| `apps/unit-client/sw.js`                                 | Merged                                                         | PR #16 immutable cache-first generations; cache v6 (ADR-007)                              |
+| `apps/verifier/verify.mjs`                               | PR #15 + v3 crypto provenance (`cfdaae1`)                      | PR #16 dropped `objectSchemaVersion` checks                                               |
+| `deployment/secure/lab-pki.mjs`                          | PR #15                                                         | PR #16 rewrite drops CRL, revocation, expiry issuance used by TLS tests                   |
+| `docs/api.openapi.json`                                  | PR #15                                                         | PR #16 lacks PR #15 routes (authorize, custody)                                           |
+| `docs/deployment.md`, `docs/testing.md`                  | PR #15                                                         | PR #16 corrupted                                                                          |
+| `docs/protocols/IMPLEMENTATION_CONTRACT.md`              | PR #15 + PR #16 contract paragraphs                            | Both statements hold on the integrated code                                               |
+| `package.json`                                           | PR #15                                                         | PR #16 removed `test:engineering`, testbed and offline-release scripts                    |
+| `packages/crypto/crypto.mjs`                             | Merged                                                         | PR #15 provider interface; PR #16 self-contained module graph (ADR-007)                   |
+| `packages/mission/policy.mjs`                            | Merged                                                         | Labels re-exported from `crypto.mjs`                                                      |
+| `packages/object-format/types.d.ts`                      | PR #15 + v3 types, wrap v2 (`cfdaae1`)                         |                                                                                           |
+| `scripts/sarif-gate.mjs`                                 | PR #15                                                         | PR #16 corrupted                                                                          |
+| `services/admission/integrity.mjs`                       | PR #15 + v3 branch (`cfdaae1`)                                 | PR #15 uses the shared schema module                                                      |
+| `services/control/core.mjs`                              | PR #15 + PR #16 `dutyVisible` + v3-safe label checks           | PR #16 removed custody quarantine, FLASH approval, static routing (ADR-009)               |
+| `services/control/server.mjs`                            | PR #15 + strict `SIEPMU_ALLOW_PQC_LAB` (`cfdaae1`)             | PR #16 removed TLS, custody, telemetry; its flag was never read by `Authority`            |
+| `services/evidence/decision.mjs`                         | PR #15 + validated crypto evidence (`cfdaae1`)                 |                                                                                           |
+| `services/relay/client.mjs`, `services/relay/server.mjs` | PR #15                                                         | PR #16 removed TLS client/server                                                          |
+| `services/web/server.mjs`                                | PR #15                                                         | PR #16 removed TLS 1.3 upstream pinning and secure-origin checks                          |
+| `tests/verifier-replay.test.mjs`                         | PR #15; v3 provenance cases in `tests/pqc/end-to-end.test.mjs` |                                                                                           |
 
 ## Branch-unique subsystems
 
