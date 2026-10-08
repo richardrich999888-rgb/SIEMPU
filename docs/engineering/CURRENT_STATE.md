@@ -21,18 +21,21 @@ need typecheck evaluation.
 
 ## Hosted CI results (exact SHAs)
 
-| SHA                | Run                                                | Result                                                                                                     |
-| ------------------ | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `a4abc80` (PR #16) | CI 37716985109, Security 37716985101               | FAIL: native, regression, CodeQL gate; container skipped. Root cause: five corrupted files                 |
-| `32b4a1c` (PR #15) | CI 37716389026 (push) / 37716393630 (pull_request) | push: **testbed FAIL**; pull_request: PASS. Same SHA; testbed is runner-dependent                          |
-| `2fc827e`          | CI 37727941433                                     | native FAIL (`EADDRINUSE` race, fixed in `7655f7b`); pqc-lab, browser PASS                                 |
-| `a932cce`          | CI 37728343565; Security 37728343538               | native, pqc-lab, browser, container PASS; testbed FAIL 60/75; Security PASS                                |
-| `cfdaae1`          | CI 37729846135; Security 37729846172               | native, pqc-lab, browser, container PASS; testbed FAIL 60/75; Security PASS                                |
-| `4e422c7`          | CI 37730428069; Security 37730428089               | native PASS (incl. Trust Before Release on runner), pqc-lab PASS, browser PASS; testbed/container: see run |
+| SHA                | Run                                                | Result                                                                                                                                                |
+| ------------------ | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `a4abc80` (PR #16) | CI 37716985109, Security 37716985101               | FAIL: native, regression, CodeQL gate; container skipped. Root cause: five corrupted files                                                            |
+| `32b4a1c` (PR #15) | CI 37716389026 (push) / 37716393630 (pull_request) | push: **testbed FAIL**; pull_request: PASS. Same SHA; testbed is runner-dependent                                                                     |
+| `2fc827e`          | CI 37727941433                                     | native FAIL (`EADDRINUSE` race, fixed in `7655f7b`); pqc-lab, browser PASS                                                                            |
+| `a932cce`          | CI 37728343565; Security 37728343538               | native, pqc-lab, browser, container PASS; testbed FAIL 60/75; Security PASS                                                                           |
+| `cfdaae1`          | CI 37729846135; Security 37729846172               | native, pqc-lab, browser, container PASS; testbed FAIL 60/75; Security PASS                                                                           |
+| `4e422c7`          | CI 37730428069; Security 37730428089               | native (incl. Trust Before Release), pqc-lab, browser PASS; testbed cancelled by next push; **Security FAIL**: CodeQL `js/insufficient-password-hash` |
+| `f7b94bd`          | CI 37730762294; Security 37730762398               | **all CI jobs PASS incl. testbed 75/75** (N8 interface fix); Security FAIL (same CodeQL finding)                                                      |
+| `d4ff627`          | CI 37731395525; Security 37731395528               | **Security PASS** (CodeQL fixed); browser FAIL: test race fixed in `7d0f568`                                                                          |
+| `7d0f568`          | see PR #17 checks                                  | pending at time of writing                                                                                                                            |
 
-Open: the netem testbed fails exactly one profile (15 of 75 exchanges, all 8 non-exchange
-samples pass). The same failure occurs on PR #15's own SHA, so it predates this branch.
-`deployment/testbed/run.mjs` now prints failure rows to the job log to identify the profile.
+Resolved: the testbed failed exactly one netem profile (15 of 75) here and on PR #15's own SHA.
+N8 targeted the interface named `eth1`, whose network depends on Docker's attachment order; it
+is now selected by address (`f7b94bd`, hosted 75/75).
 
 ## Local verification (Node 24.21.0, Linux container)
 
@@ -54,6 +57,13 @@ samples pass). The same failure occurs on PR #15's own SHA, so it predates this 
    `deployment/secure/ports.mjs` (ports below the ephemeral range). This is the most likely cause of
    the `2fc827e` hosted failure, whose log was not retrievable (artefact host blocked); the CI job
    log now prints a failure excerpt so a recurrence will identify the test.
+9. PR #16 `CryptoEngine.wrapKey` inlined the context into HKDF `info` (WebCrypto limit 1024 bytes);
+   every real object failed. Wrap v2 binds a context digest (ADR-010).
+10. Client-chosen initial passwords entered the operation-proof request hash (unsalted SHA-256,
+    persisted with the challenge) beside their scrypt hash; CodeQL `js/insufficient-password-hash`.
+    The authority now generates them (`d4ff627`).
+11. Testbed N8 severed the enclave link on some Docker engines (`f7b94bd`).
+12. Browser acceptance race: a stale READY badge could satisfy the wait for a new object (`7d0f568`).
 
 ## Implemented (engineering axis) — see WORK_PACKAGE_REGISTER.md
 
@@ -70,7 +80,6 @@ providers (ML-KEM-768/1024, ML-DSA-65 via OpenSSL; X-Wing via Noble) with NIST/a
 
 ## Incomplete
 
-- Testbed one-profile failure (above).
 - PR #16 adapter negative tests (freshness, ambiguous restart quarantine, capacity) not ported.
 - `research/defence-comparison/sources.json` D04–D15 must be re-retrieved.
 - Live re-verification of the iDEX PS-69 page (not reachable from the build environment).
@@ -91,7 +100,7 @@ PR #17 (draft) from this branch to `main`. Not to be merged automatically.
 
 ## Next executable tasks
 
-1. Root-cause and fix the testbed profile failure using the job-log failure rows.
+1. Confirm CI and Security green on one SHA (latest head of PR #17).
 2. Port PR #16 adapter negative cases onto `services/integration/`.
 3. Independent review package for the v3 composition; evaluate RFC 9180 HPKE with PQ KEMs.
 4. Re-retrieve `research/defence-comparison/sources.json` D04-D15.
