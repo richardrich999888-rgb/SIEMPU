@@ -1,6 +1,6 @@
 import { createServer as httpServer, request as httpRequest } from 'node:http';
 import { createServer as httpsServer, request as httpsRequest } from 'node:https';
-import { readFileSync, statSync } from 'node:fs';
+import { closeSync, fstatSync, openSync, readFileSync } from 'node:fs';
 import { X509Certificate, constants } from 'node:crypto';
 
 /** @typedef {import('node:https').ServerOptions & {clientFingerprints?: string[]}} ServerTLS */
@@ -16,9 +16,19 @@ export function secureProfile(env = process.env) {
 }
 /** @param {string | undefined} path @param {boolean} [secret] */
 function readMaterial(path, secret = false) {
-  if (!path || !statSync(path).isFile()) throw new Error('Required TLS material missing');
-  if (secret && statSync(path).mode & 0o077) throw new Error('TLS key permissions must be 0600');
-  return readFileSync(path);
+  if (!path) throw new Error('Required TLS material missing');
+  // Inspect and read the same open descriptor. This avoids a pathname
+  // time-of-check/time-of-use race when TLS material is rotated.
+  let fd;
+  try {
+    fd = openSync(path, 'r');
+    const stat = fstatSync(fd);
+    if (!stat.isFile()) throw new Error('Required TLS material missing');
+    if (secret && stat.mode & 0o077) throw new Error('TLS key permissions must be 0600');
+    return readFileSync(fd);
+  } finally {
+    if (fd !== undefined) closeSync(fd);
+  }
 }
 /** @param {string} value */
 export const fingerprint = (value) => value.replaceAll(':', '').toLowerCase();

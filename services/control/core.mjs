@@ -1062,33 +1062,39 @@ export class Authority {
           })
           .map((x) => this.object(x)),
       };
-    } else if (
-      method === 'POST' &&
-      /^\/api\/objects\/[^/]+\/(prepare|claim|ack|authorize)$/.test(path)
-    ) {
-      const [, id, op] = path.match(/^\/api\/objects\/([^/]+)\/(prepare|claim|ack|authorize)$/);
+    } else if (method === 'POST' && /^\/api\/objects\/[^/]+\/authorize$/.test(path)) {
+      const [, id] = path.match(/^\/api\/objects\/([^/]+)\/authorize$/);
       assert(uuid(id));
-      s = this.operation(s, b, op + ':' + id);
-      if (op === 'authorize')
-        value = this.authorizeRelease(s, id, b.expectedDigest, b.expectedEpoch);
-      else if (op === 'prepare') value = this.prepare(s, id);
-      else if (op === 'ack') value = this.ack(s, id, b.receiptId);
-      else {
-        value = this.claim(s, id, b.expectedEpoch);
-        if (value.denied)
-          return {
-            status: 409,
-            body: {
-              error: 'Admission held',
-              code: value.object.reason,
-              object: value.object,
-              receipt: value.receipt,
-            },
-          };
-        const ciphertext = await this.relay.getBlob(value.object.ciphertextHash);
-        assert(hash(ciphertext) === value.object.ciphertextHash, 'CIPHERTEXT_DIGEST', 502);
-        value.ciphertext = ciphertext.toString('base64url');
-      }
+      s = this.operation(s, b, 'authorize:' + id);
+      value = this.authorizeRelease(s, id, b.expectedDigest, b.expectedEpoch);
+    } else if (method === 'POST' && /^\/api\/objects\/[^/]+\/prepare$/.test(path)) {
+      const [, id] = path.match(/^\/api\/objects\/([^/]+)\/prepare$/);
+      assert(uuid(id));
+      s = this.operation(s, b, 'prepare:' + id);
+      value = this.prepare(s, id);
+    } else if (method === 'POST' && /^\/api\/objects\/[^/]+\/ack$/.test(path)) {
+      const [, id] = path.match(/^\/api\/objects\/([^/]+)\/ack$/);
+      assert(uuid(id));
+      s = this.operation(s, b, 'ack:' + id);
+      value = this.ack(s, id, b.receiptId);
+    } else if (method === 'POST' && /^\/api\/objects\/[^/]+\/claim$/.test(path)) {
+      const [, id] = path.match(/^\/api\/objects\/([^/]+)\/claim$/);
+      assert(uuid(id));
+      s = this.operation(s, b, 'claim:' + id);
+      value = this.claim(s, id, b.expectedEpoch);
+      if (value.denied)
+        return {
+          status: 409,
+          body: {
+            error: 'Admission held',
+            code: value.object.reason,
+            object: value.object,
+            receipt: value.receipt,
+          },
+        };
+      const ciphertext = await this.relay.getBlob(value.object.ciphertextHash);
+      assert(hash(ciphertext) === value.object.ciphertextHash, 'CIPHERTEXT_DIGEST', 502);
+      value.ciphertext = ciphertext.toString('base64url');
     } else if (path.startsWith('/api/admin/') || path === '/api/integration/validate') {
       s = this.bound(s);
       this.role(
