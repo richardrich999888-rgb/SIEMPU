@@ -394,6 +394,23 @@ test('detached verifier accepts signed packets and chained evidence with saved c
   assert.equal(result.externalCheckpointVerified, true);
   await assert.rejects(verifyEvidence(chain, bob.signing.publicKey), /key ID/);
 });
+test('detached verifier member check is unambiguous for names containing the old separator', async () => {
+  // Regression: members were compared as sort().join('|'), so one member named "keyId|payload"
+  // matched the expected pair. Found while porting the verifier to Rust (ADR-011).
+  await assert.rejects(
+    verifyEvidence({ 'keyId|payload': 'x', signature: 'y' }, authority.signing.publicKey),
+    /Unexpected or missing packet members/,
+  );
+  const chain = await evidence();
+  chain.checkpoint = await signPacket(authority.signing.privateKey, {
+    'headHash|issuedAt': chain.checkpoint.payload.headHash,
+    sequence: chain.checkpoint.payload.sequence,
+  });
+  await assert.rejects(
+    verifyEvidence(chain, authority.signing.publicKey),
+    /Unexpected or missing packet members/,
+  );
+});
 test('detached verifier detects tamper, ordering and deletion', async () => {
   const chain = await evidence();
   const tamper = copy(chain);

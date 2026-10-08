@@ -13,8 +13,12 @@ function assert(condition, message) {
 }
 function keys(value, names) {
   assert(value && typeof value === 'object' && !Array.isArray(value), 'Expected object');
+  // Compare member lists element-wise. Joining with a separator is ambiguous: a single member
+  // named "keyId|payload" would otherwise satisfy the expected pair "keyId", "payload".
+  const actual = Object.keys(value).sort();
+  const expected = [...names].sort();
   assert(
-    Object.keys(value).sort().join('|') === [...names].sort().join('|'),
+    actual.length === expected.length && actual.every((name, index) => name === expected[index]),
     'Unexpected or missing packet members',
   );
 }
