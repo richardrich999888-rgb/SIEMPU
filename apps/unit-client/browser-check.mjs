@@ -332,6 +332,19 @@ async function checkConcurrentVaultLocks(owner) {
   );
 }
 
+// Bounded retry: a single refresh can race the sender's prepare round trip.
+const REFRESH_ATTEMPTS = 20;
+const REFRESH_INTERVAL_MS = 250;
+async function refreshUntilReleasable(page) {
+  const action = page.getByRole('button', { name: 'Validate release & decrypt', exact: true });
+  for (let i = 0; i < REFRESH_ATTEMPTS; i++) {
+    await page.getByRole('button', { name: 'Refresh objects', exact: true }).click();
+    if ((await action.count()) > 0) return;
+    await page.waitForTimeout(REFRESH_INTERVAL_MS);
+  }
+  throw new Error('Recipient never observed a releasable object');
+}
+
 async function exchangeFile(alice, bob) {
   await alice.page.getByRole('button', { name: 'Secure exchange', exact: true }).click();
   const recipient = provisioning.profiles.find((p) => p.username === 'bob');
@@ -357,12 +370,19 @@ async function exchangeFile(alice, bob) {
     'utf8',
   );
   // An untrusted MIME hint is intentionally supplied; the client must treat it as opaque binary.
+  const cardsBefore = await alice.page.locator('.object-card').count();
   await alice.page
     .getByLabel('Attach a file')
     .setInputFiles({ name: filename, mimeType: 'text/html', buffer: bytes });
   await alice.page.getByRole('button', { name: 'Seal & submit securely', exact: true }).click();
-  await alice.page.locator('.badge.ready').waitFor();
-  await bob.page.getByRole('button', { name: 'Refresh objects', exact: true }).click();
+  // An earlier object's card can still show a stale READY badge, so wait for the NEW card
+  // (outbox renders newest first) rather than any READY badge.
+  await alice.page.waitForFunction(
+    (n) => document.querySelectorAll('.object-card').length === n,
+    cardsBefore + 1,
+  );
+  await alice.page.locator('.object-card').first().locator('.badge.ready').waitFor();
+  await refreshUntilReleasable(bob.page);
   await bob.page.getByRole('button', { name: 'Validate release & decrypt', exact: true }).click();
   await bob.page.locator('.object-body').filter({ hasText: filename }).waitFor();
   await bob.page.evaluate(() => {
