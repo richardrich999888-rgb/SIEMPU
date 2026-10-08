@@ -36,6 +36,7 @@ need typecheck evaluation.
 | `17fe1bf`          | CI 37732307142 / 37732310353; Security 37732307170 / 37732310464 (push / pull_request) | **ALL PASS**: native (incl. Trust Before Release), pqc-lab, browser, container, testbed; Security (CodeQL gate, secrets, regression)                  |
 | `85e4c7d`          | CI 37754418709; Security 37754418448 (pull_request)                                    | **ALL PASS**: native (incl. Trust Before Release), pqc-lab, browser, container, testbed; Security                                                     |
 | `aa1ab91`          | Security 37755304070 / 37755313266                                                     | secret-scan FAIL: gitleaks `generic-api-key` on a public HKDF known-answer constant; exact fingerprint added (documented exception policy)            |
+| `ec0ea61`          | CI 37755495149 / 37755500534; Security 37755495108 / 37755500358 (push / pull_request) | **ALL PASS** incl. secret-scan, testbed, Trust Before Release; PR #17 mergeable (clean)                                                               |
 
 Resolved: the testbed failed exactly one netem profile (15 of 75) here and on PR #15's own SHA.
 N8 targeted the interface named `eth1`, whose network depends on Docker's attachment order; it
@@ -43,7 +44,7 @@ is now selected by address (`f7b94bd`, hosted 75/75).
 
 ## Local verification (Node 24.21.0, Linux container)
 
-- `npm run validate` PASS on `4e422c7` content: 228/228 tests, about 97 % lines.
+- `npm run validate` PASS on `aa1ab91` content: 237/237 tests, 97.5 % lines.
 - `npm run test:e2e` 3/3; PQC lab 7/7 (incl. X-Wing end-to-end); Chromium shell-upgrade 3/3.
 - Trust Before Release 14/14 (`docs/engineering/TRUST_BEFORE_RELEASE.md`).
 
