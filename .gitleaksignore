@@ -1,3 +1,7 @@
 # Exact historical false positive: ordinary endpoint-assets prose, not a credential.
 # Verified against docs/threat-model/README.md line 7 in this immutable commit.
 596b74c4a31091b7312760ef4360bba7eb21dcac:docs/threat-model/README.md:generic-api-key:7
+# Exact false positive: pinned known-answer output of HKDF-SHA256 over public synthetic inputs
+# (IKM 00..1f, salt 20..3f) in a composition regression test, reproduced independently in
+# research/cryptographic-standards/V3_COMPOSITION.md. It protects nothing. Verified at this commit.
+aa1ab91253142f37c60919a1e14553ea9d59e479:tests/crypto-agility/wrap-derivation.test.mjs:generic-api-key:40

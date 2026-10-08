@@ -34,6 +34,8 @@ need typecheck evaluation.
 | `7d0f568`          | —                                                                                      | runs cancelled by the next push                                                                                                                       |
 | `fa3f524`          | CI 37731906364                                                                         | native FAIL: truncated V8 coverage file (SIGKILL raced worker exit), fixed in `17fe1bf`                                                               |
 | `17fe1bf`          | CI 37732307142 / 37732310353; Security 37732307170 / 37732310464 (push / pull_request) | **ALL PASS**: native (incl. Trust Before Release), pqc-lab, browser, container, testbed; Security (CodeQL gate, secrets, regression)                  |
+| `85e4c7d`          | CI 37754418709; Security 37754418448 (pull_request)                                    | **ALL PASS**: native (incl. Trust Before Release), pqc-lab, browser, container, testbed; Security                                                     |
+| `aa1ab91`          | Security 37755304070 / 37755313266                                                     | secret-scan FAIL: gitleaks `generic-api-key` on a public HKDF known-answer constant; exact fingerprint added (documented exception policy)            |
 
 Resolved: the testbed failed exactly one netem profile (15 of 75) here and on PR #15's own SHA.
 N8 targeted the interface named `eth1`, whose network depends on Docker's attachment order; it
