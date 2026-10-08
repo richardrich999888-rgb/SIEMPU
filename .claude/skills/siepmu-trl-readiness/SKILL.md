@@ -58,3 +58,11 @@ unless an external body's decision document is cited.
 
 Every status change cites evidence on an exact SHA; no axis-3+ claim without an external record;
 `python3 research/trl56/validate.py --self-test` and `npm run audit:claims` pass.
+
+## Current assessment (integration branch)
+
+The authoritative CTE matrix for the integration branch is `docs/trl/cte-trl-matrix.json`
+(report `docs/trl/TRL_ASSESSMENT.md`): system provisional TRL 4; CTE-03/04/05/06 are TRL 5
+candidates; CTE-07/08/09 at TRL 3. `tests/trl-matrix.test.mjs` fails if any element exceeds 4
+while the relevant environment is undefined, or if an external axis is marked complete.
+`research/trl56/cte-readiness-matrix.csv` remains the frozen `main` baseline.
