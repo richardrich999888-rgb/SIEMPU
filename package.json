@@ -50,7 +50,8 @@
     "vectors:check": "node scripts/evidence-vectors.mjs --check",
     "formal:check": "node scripts/formal-check.mjs",
     "test:mission": "node scripts/mission-workflow.mjs",
-    "trl5:validate": "node scripts/trl5-validation.mjs"
+    "trl5:validate": "node scripts/trl5-validation.mjs",
+    "kat": "node assurance/kat/run.mjs"
   },
   "devDependencies": {
     "@types/node": "24.10.0",
