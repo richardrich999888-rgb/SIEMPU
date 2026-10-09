@@ -8,3 +8,4 @@ LICENSE
 native/target/
 spec/vectors/
 docs/trl5/evidence/
+docs/assurance/kat-conformance.md
