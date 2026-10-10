@@ -6,6 +6,24 @@ describe earlier branches and are kept for provenance.
 Update this file from executed results whenever major work completes, and before ending a session.
 Never copy a result forward to a new SHA.
 
+## Crypto-assurance branch `assurance/kat-and-gap-2026-10` (local only, not pushed)
+
+Branched from `2b3f9ab` (PR #19 head). Commits `f6bd66d`..`e7a0a1f`. Not pushed: pushing awaits
+the owner's explicit approval.
+
+- KAT harness `assurance/kat/` (`npm run kat`): 9/9 vendored vector cases and 21/21 failure-mode
+  checks pass; SHA-256, AES-256-GCM, HKDF and ECDSA are NOT-RUN until NIST files are placed under
+  `./vectors/`; report `docs/assurance/kat-conformance.md` (generated at `f6bd66d`).
+- Gap analysis `docs/assurance/fips-sag-gap-analysis.md` (planned tasks A-01..A-15).
+- Claims audit `docs/assurance/claims-audit.md` (generated at `deb6f0f`, 587 hits, 5 proposed
+  corrections not applied) and CI gate `scripts/check-claims.sh` (wired into the native job).
+- D-T5-01 baseline `docs/assurance/d-t5-01-baseline.md` (generated at `edfc92d`).
+- Local results on `e7a0a1f`: `npm test` 315/315 (289 before), `npm run validate` PASS,
+  `test:security` 124/124, `cargo test --locked --release` (native/) 28/28 before and after.
+
+**Next executable task on this branch:** place NIST CAVP SHA-256, GCM and ECDSA SigVer files and
+RFC 5869 HKDF cases under `./vectors/`, re-run `npm run kat`, and regenerate the report.
+
 ## TRL 5 advancement sprint (branch `claude/siepmu-trl5-24h-validation`)
 
 | SHA       | Content                                                                             | Result                                                                                                                                                     |
