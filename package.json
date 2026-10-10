@@ -51,7 +51,9 @@
     "formal:check": "node scripts/formal-check.mjs",
     "test:mission": "node scripts/mission-workflow.mjs",
     "trl5:validate": "node scripts/trl5-validation.mjs",
-    "kat": "node assurance/kat/run.mjs"
+    "kat": "node assurance/kat/run.mjs",
+    "check:claims": "bash scripts/check-claims.sh",
+    "claims:audit": "node scripts/claims-audit.mjs --write docs/assurance/claims-audit.md"
   },
   "devDependencies": {
     "@types/node": "24.10.0",

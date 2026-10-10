@@ -57,8 +57,8 @@ the places that carry the security argument (canonical encoding, signature check
 
 - Rust is justified for this component by **implementation diversity and memory** (1.6–5.7× lower
   peak RSS, 0.5 MB static binary, no runtime), **not speed**. The pure-Rust P-256 backend is ~2× slower
-  than OpenSSL. If verification throughput matters, evaluate `aws-lc-rs` (AWS-LC, assembly, FIPS-validated
-  module family) behind the same `TrustedKey` interface; that adds a C/CMake build and must be measured.
+  than OpenSSL. If verification throughput matters, evaluate `aws-lc-rs` (AWS-LC, assembly; AWS-LC offers a FIPS-mode build whose
+  CMVP certificate and operational environment must be confirmed before relying on it) behind the same `TrustedKey` interface; that adds a C/CMake build and must be measured.
 - Porting found one latent reference defect: the member-set check compared `sort().join('|')`, so one
   member named `keyId|payload` satisfied two expected names. Every path still rejected later, so no
   forgery was possible; fixed with a regression test (`tests/crypto.test.mjs`).

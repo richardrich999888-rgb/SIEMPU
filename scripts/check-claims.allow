@@ -1,0 +1,10 @@
+# Allow list for scripts/check-claims.sh: path<TAB>exact line fragment<TAB>justification.
+# Every entry must still match a line, or the gate fails. Add an entry only when the line is
+# not a claim about this project's status. Reviewed in docs/assurance/claims-audit.md.
+.claude/skills/siepmu-project-context/SKILL.md	integration with existing systems, SAG-graded encryption)	Quotes the published PS-69 requirement list (an IAF requirement, not a status claim)
+CLAIMS_REGISTER.yaml	"CLAIM_TEXT": "SAG graded, IAF approved or defence certified operation."	Claim C12 with STATUS NOT_SUPPORTED on the next line; recorded so it is never made
+CLAUDE.md	SAG-graded, independently assessed or operationally deployed.	Continuation of 'Nothing here is IAF-approved,' on the preceding line
+docs/hpsc/EXECUTIVE_SUMMARY.md	and SAG-graded encryption, depend on sponsor decisions.	States SAG-graded encryption as an external dependency (requirement), not as held
+docs/hpsc/HPSC_DECK.md	8. SAG-graded encryption	Slide 2 list of published PS-69 requirements
+docs/trl5/READINESS_DECISION.md	"SAG-graded", "certified".	Continuation of the 'Not allowed:' wording list on the preceding line
+tests/kat-harness.test.mjs	assert.doesNotMatch(md, /\b(?:FIPS validated|SAG graded|SAG approved|certified)\b/i);	Negative assertion that the generated KAT report never contains these phrases

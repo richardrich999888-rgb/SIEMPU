@@ -25,6 +25,8 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate research traceability and corruption checks
         run: python3 research/trl56/validate.py --self-test
+      - name: Claims gate (no unqualified FIPS-validated / SAG-graded / SAG-approved statements)
+        run: bash scripts/check-claims.sh
       - name: Validate source-bound claims and implementation
         run: npm run validate
       - name: Required vertical slice acceptance tests

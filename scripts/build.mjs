@@ -13,6 +13,7 @@ const excludedScripts = new Set([
   'scripts/hpsc-budget.mjs',
   'scripts/trl5-validation.mjs',
   'scripts/custody-scaling.mjs',
+  'scripts/claims-audit.mjs',
   'scripts/benchmark.mjs',
   'scripts/container-acceptance.mjs',
   'scripts/release.mjs',
