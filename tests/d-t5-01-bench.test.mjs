@@ -36,3 +36,45 @@ test('baseline report renders rows, the commit and the per-request ceiling', () 
   assert.match(md, /clean working tree/);
   assert.match(md, /Production code is unchanged/);
 });
+
+test('comparison report renders both modes, the speed-up and the v1 limit', async () => {
+  const { renderComparison, INCREMENTAL_LENGTHS, APPEND_PER_AUTHORISATION } = await import(
+    '../assurance/bench/d-t5-01-compare.mjs'
+  );
+  assert.deepEqual([...INCREMENTAL_LENGTHS], [1000, 10000, 100000, 250000]);
+  assert.equal(APPEND_PER_AUTHORISATION, 4);
+  const r = (records, mode, verified, ms) => ({
+    records,
+    mode,
+    appendPerAuthorisation: mode === 'incremental' ? 4 : 0,
+    recordsVerifiedPerAuthorisationMax: verified,
+    repeats: 2,
+    authorizeMsMedian: ms,
+    authorizeMsP95: ms,
+    authorizeMsMax: ms,
+    authorisationsPerSecond: 1000 / ms,
+  });
+  const md = renderComparison({
+    full: {
+      warmup: 1,
+      fit: { msPerRecord: 0.15, fixedMs: 0 },
+      rows: [r(1000, 'full-chain', 1000, 150)],
+    },
+    incremental: {
+      warmup: 1,
+      fit: { msPerRecord: 0, fixedMs: 3 },
+      rows: [r(1000, 'incremental', 4, 3)],
+    },
+    revision: { commit: 'b'.repeat(40), dirty: true },
+    command: 'node assurance/bench/d-t5-01-compare.mjs',
+    startedAt: 's',
+    finishedAt: 'f',
+    runtime: { 'Node.js': 'test' },
+    cpu: 'test',
+  });
+  assert.match(md, /\| 1,000 \| 1,000 \| 2 \| 150 \|/);
+  assert.match(md, /\| 1,000 \| 4 \| 2 \| 3 \|/);
+  assert.match(md, /\| 1,000 \| 50× \|/);
+  assert.match(md, /uncommitted changes/);
+  assert.match(md, /Evidence export exceeds verifier record limit/);
+});

@@ -1,5 +1,9 @@
 import { createTelemetryExporter } from '../monitoring/exporter.mjs';
-import { createRecoveryGuard, remoteCustodyExchange } from '../evidence/custody.mjs';
+import {
+  createRecoveryGuard,
+  remoteAnchorQuery,
+  remoteCustodyExchange,
+} from '../evidence/custody.mjs';
 import {
   createTransportServer,
   serverTLS,
@@ -143,6 +147,8 @@ export function startControl() {
       ? createRecoveryGuard({
           custodianKey: JSON.parse(readFileSync(process.env.SIEPMU_CUSTODIAN_PUBLIC_KEY, 'utf8')),
           exchange: remoteCustodyExchange(process.env.SIEPMU_CUSTODY_URL, clientTLS('control')),
+          // Incremental custody (ADR-014): ship only records after the custodian's anchor.
+          anchorQuery: remoteAnchorQuery(process.env.SIEPMU_CUSTODY_URL, clientTLS('control')),
         })
       : undefined,
   });

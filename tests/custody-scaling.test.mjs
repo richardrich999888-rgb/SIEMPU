@@ -48,3 +48,30 @@ test('measurement options: per-length repeats, warmup, and per-row statistics', 
   assert.ok(row.authorisationsPerSecond > 0);
   assert.equal(result.warmup, 1);
 });
+
+test('incremental mode: custodian verifies only appended records after catch-up', async () => {
+  const result = await measureCustodyScaling([20, 60], {
+    mode: 'incremental',
+    repeats: 3,
+    warmup: 1,
+    appendPerAuthorisation: 2,
+  });
+  assert.equal(result.mode, 'incremental');
+  // Exact, timing-independent: each timed authorisation verifies the 2 appended records only.
+  assert.deepEqual(
+    result.rows.map((r) => r.recordsVerifiedPerAuthorisationMax),
+    [2, 2],
+  );
+  assert.deepEqual(
+    result.rows.map((r) => r.records),
+    [20, 60],
+  );
+});
+
+test('full-chain mode verifies the whole chain per authorisation; options are validated', async () => {
+  const result = await measureCustodyScaling([30], { repeats: 2 });
+  assert.equal(result.mode, 'full-chain');
+  assert.equal(result.rows[0].recordsVerifiedPerAuthorisationMax, 30);
+  await assert.rejects(measureCustodyScaling([10], { mode: 'other' }), RangeError);
+  await assert.rejects(measureCustodyScaling([10], { appendPerAuthorisation: -1 }), RangeError);
+});

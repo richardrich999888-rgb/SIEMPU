@@ -287,6 +287,40 @@ function strictReleaseSchema(payload) {
 /** Throws on failure. A saved external checkpoint limits undetected suffix truncation
  * to records after that checkpoint; neither signatures nor hashes establish truth.
  */
+/**
+ * Verifies one hash-chain link and returns its record digest (the next chain head).
+ * Shared by full-chain and range verification so both apply identical record rules; the
+ * messages are normative (spec/SIEPMU-EVIDENCE-v1.md §7) and use the absolute sequence.
+ * @param {unknown} record signed evidence packet
+ * @param {number} sequence the sequence this record must carry (1-based, absolute)
+ * @param {string} previousHash digest of the preceding record, or GENESIS for sequence 1
+ * @param {(packet: unknown) => any} verify trusted-key packet verifier
+ */
+function verifyLink(record, sequence, previousHash, verify) {
+  const payload = verify(record);
+  assert(
+    payload && typeof payload === 'object' && !Array.isArray(payload),
+    'Invalid record payload',
+  );
+  assert(payload.sequence === sequence, `Sequence discontinuity at record ${sequence}`);
+  assert(payload.previousHash === previousHash, `Previous hash mismatch at record ${sequence}`);
+  assert(
+    typeof payload.eventId === 'string' &&
+      payload.eventId.length > 0 &&
+      typeof payload.eventType === 'string' &&
+      payload.eventType.length > 0,
+    'Invalid evidence event',
+  );
+  assert(
+    Number.isSafeInteger(payload.timestamp) &&
+      payload.timestamp >= 0 &&
+      Number.isSafeInteger(payload.epoch) &&
+      payload.epoch >= 0,
+    'Invalid evidence time or epoch',
+  );
+  return digest(record);
+}
+
 export async function verifyEvidence(
   input,
   trustedPublicKey,
@@ -321,29 +355,7 @@ export async function verifyEvidence(
   let headHash = GENESIS;
   const hashes = [GENESIS];
   for (let index = 0; index < input.records.length; index++) {
-    const record = input.records[index];
-    const payload = verify(record);
-    assert(
-      payload && typeof payload === 'object' && !Array.isArray(payload),
-      'Invalid record payload',
-    );
-    assert(payload.sequence === index + 1, `Sequence discontinuity at record ${index + 1}`);
-    assert(payload.previousHash === headHash, `Previous hash mismatch at record ${index + 1}`);
-    assert(
-      typeof payload.eventId === 'string' &&
-        payload.eventId.length > 0 &&
-        typeof payload.eventType === 'string' &&
-        payload.eventType.length > 0,
-      'Invalid evidence event',
-    );
-    assert(
-      Number.isSafeInteger(payload.timestamp) &&
-        payload.timestamp >= 0 &&
-        Number.isSafeInteger(payload.epoch) &&
-        payload.epoch >= 0,
-      'Invalid evidence time or epoch',
-    );
-    headHash = digest(record);
+    headHash = verifyLink(input.records[index], index + 1, headHash, verify);
     hashes.push(headHash);
   }
   const suppliedCheckpoint = checkpointPayload(input.checkpoint, verify);
@@ -375,6 +387,74 @@ export async function verifyEvidence(
       externalCheckpoint
         ? 'Suffix-truncation detection is bounded by the externally saved checkpoint.'
         : 'No external checkpoint supplied: an earlier valid chain and its checkpoint can be replayed without detection.',
+      'This does not prove hardware-backed signing, reliable wall-clock time, or freedom from authority compromise.',
+    ],
+  };
+}
+
+/** Upper bound on records in one range; a range is an increment, never a whole history. */
+export const MAX_RANGE_RECORDS = 4096;
+
+/**
+ * Verifies a contiguous evidence range that extends an already-trusted chain head.
+ *
+ * Input: `{ base: { sequence, headHash }, records, checkpoint }`. `base` is a head the caller
+ * has verified earlier (for example an independently retained custody anchor); it is trusted
+ * input, not something this function can authenticate. The range is accepted only if record i
+ * carries sequence `base.sequence + i + 1`, links to the previous head by hash, verifies under
+ * the trusted key, and the signed checkpoint names exactly the resulting head.
+ *
+ * Soundness (induction on accepted ranges): if `base` is the digest of record `base.sequence`
+ * of a chain whose prefix was fully verified, then after acceptance the returned head is the
+ * digest of record `checkpoint.sequence` of the same chain, extended by verified links only.
+ * Cost is O(records.length), independent of `base.sequence`.
+ * @param {{ base: { sequence: number, headHash: string }, records: unknown[], checkpoint: unknown }} input
+ * @param {object} trustedPublicKey public P-256 JWK
+ * @param {{ maxRecords?: number }} [options]
+ */
+export function verifyEvidenceRange(
+  input,
+  trustedPublicKey,
+  { maxRecords = MAX_RANGE_RECORDS } = {},
+) {
+  const verify = trustedVerifier(trustedPublicKey);
+  keys(input, ['base', 'records', 'checkpoint']);
+  keys(input.base, ['sequence', 'headHash']);
+  const base = input.base;
+  assert(Number.isSafeInteger(base.sequence) && base.sequence >= 0, 'Invalid range base sequence');
+  assert(
+    typeof base.headHash === 'string' && /^[0-9a-f]{64}$/.test(base.headHash),
+    'Invalid range base hash',
+  );
+  assert(
+    (base.sequence === 0) === (base.headHash === GENESIS),
+    'Inconsistent range base genesis reference',
+  );
+  assert(Array.isArray(input.records), 'Range records must be an array');
+  assert(
+    Number.isSafeInteger(maxRecords) && maxRecords > 0 && input.records.length <= maxRecords,
+    'Evidence range exceeds record limit',
+  );
+  let headHash = base.headHash;
+  for (let index = 0; index < input.records.length; index++)
+    headHash = verifyLink(input.records[index], base.sequence + index + 1, headHash, verify);
+  const toSequence = base.sequence + input.records.length;
+  const supplied = checkpointPayload(input.checkpoint, verify);
+  assert(
+    supplied.sequence === toSequence && supplied.headHash === headHash,
+    'Range checkpoint does not match range head',
+  );
+  return {
+    valid: true,
+    type: 'evidence-range',
+    fromSequence: base.sequence,
+    toSequence,
+    records: input.records.length,
+    headHash,
+    checkpointVerified: true,
+    limitations: [
+      'Authenticity is relative to the independently supplied trusted public key, not factual truth.',
+      'The range proves extension of the supplied base only; the base must come from an independently retained, previously verified head.',
       'This does not prove hardware-backed signing, reliable wall-clock time, or freedom from authority compromise.',
     ],
   };
