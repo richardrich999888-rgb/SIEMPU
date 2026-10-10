@@ -52,7 +52,24 @@ export function linearFit(xs, ys) {
   return { slope, intercept: my - slope * mx };
 }
 
-export async function measureCustodyScaling(lengths = DEFAULT_LENGTHS) {
+/** Nearest-rank percentile of a non-empty sample (p in (0, 100]). */
+export function nearestRank(values, p) {
+  if (!values.length) throw new RangeError('empty sample');
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted[Math.max(1, Math.ceil((p / 100) * sorted.length)) - 1];
+}
+
+/**
+ * Measures one recovery-guard authorisation per chain length.
+ * @param {number[]} lengths evidence-chain lengths (records)
+ * @param {{repeats?: number|((records: number) => number), warmup?: number}} [options]
+ *   repeats: timed authorisations per length (default REPEATS); warmup: untimed authorisations
+ *   before timing (default 0, the historical behaviour).
+ */
+export async function measureCustodyScaling(lengths = DEFAULT_LENGTHS, options = {}) {
+  const repeatsFor = (n) =>
+    typeof options.repeats === 'function' ? options.repeats(n) : (options.repeats ?? REPEATS);
+  const warmup = options.warmup ?? 0;
   const temp = mkdtempSync(join(tmpdir(), 'siepmu-custody-scaling-'));
   try {
     await initDemo(temp);
@@ -80,13 +97,25 @@ export async function measureCustodyScaling(lengths = DEFAULT_LENGTHS) {
       authority.tx(() => {
         for (let i = current(); i < target; i++) authority.event('SCALING_BENCHMARK', null);
       });
+      for (let w = 0; w < warmup; w++) await guard.authorize(authority);
       const samples = [];
-      for (let r = 0; r < REPEATS; r++) {
+      for (let r = 0; r < repeatsFor(target); r++) {
         const t0 = performance.now();
         await guard.authorize(authority);
         samples.push(performance.now() - t0);
       }
-      rows.push({ records: current(), authorizeMsMedian: Math.round(median(samples) * 10) / 10 });
+      const mean = samples.reduce((a, b) => a + b, 0) / samples.length;
+      const round = (x) => Math.round(x * 10) / 10;
+      rows.push({
+        records: current(),
+        authorizeMsMedian: round(median(samples)),
+        repeats: samples.length,
+        authorizeMsMean: round(mean),
+        authorizeMsP95: round(nearestRank(samples, 95)),
+        authorizeMsMax: round(Math.max(...samples)),
+        authorisationsPerSecond: Math.round((1000 / mean) * 100) / 100,
+        samplesMs: samples.map(round),
+      });
     }
     custodian.close();
     authority.close();
@@ -98,7 +127,8 @@ export async function measureCustodyScaling(lengths = DEFAULT_LENGTHS) {
       schemaVersion: 1,
       note: 'In-process lower bound; deployed path adds two mTLS round trips per authorisation',
       authorisationsPerRequest: 2,
-      repeats: REPEATS,
+      repeats: options.repeats === undefined ? REPEATS : 'per row',
+      warmup,
       rows,
       fit: { msPerRecord: Math.round(fit.slope * 1e4) / 1e4, fixedMs: Math.round(fit.intercept) },
     };

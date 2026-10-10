@@ -53,6 +53,7 @@
     "trl5:validate": "node scripts/trl5-validation.mjs",
     "kat": "node assurance/kat/run.mjs",
     "check:claims": "bash scripts/check-claims.sh",
+    "bench:d-t5-01": "node assurance/bench/d-t5-01.mjs",
     "claims:audit": "node scripts/claims-audit.mjs --write docs/assurance/claims-audit.md"
   },
   "devDependencies": {

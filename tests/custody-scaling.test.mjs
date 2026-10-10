@@ -24,3 +24,27 @@ test('custody scaling measurement: authorisation succeeds at each length and rep
   assert.ok(result.rows.every((r) => r.authorizeMsMedian > 0));
   assert.equal(typeof result.fit.msPerRecord, 'number');
 });
+
+test('nearestRank: p95 of small and large samples; empty sample rejected', async () => {
+  const { nearestRank } = await import('../scripts/custody-scaling.mjs');
+  assert.equal(nearestRank([5, 1, 3], 95), 5);
+  assert.equal(
+    nearestRank(
+      Array.from({ length: 100 }, (_, i) => i + 1),
+      95,
+    ),
+    95,
+  );
+  assert.equal(nearestRank([7], 50), 7);
+  assert.throws(() => nearestRank([], 95), RangeError);
+});
+
+test('measurement options: per-length repeats, warmup, and per-row statistics', async () => {
+  const result = await measureCustodyScaling([20], { repeats: () => 3, warmup: 1 });
+  const [row] = result.rows;
+  assert.equal(row.repeats, 3);
+  assert.equal(row.samplesMs.length, 3);
+  assert.ok(row.authorizeMsP95 >= row.authorizeMsMedian);
+  assert.ok(row.authorisationsPerSecond > 0);
+  assert.equal(result.warmup, 1);
+});
