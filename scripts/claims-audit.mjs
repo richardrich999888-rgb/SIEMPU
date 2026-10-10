@@ -98,6 +98,27 @@ export const MANUAL_VERDICTS = new Map([
     'docs/decisions/ADR-012-rust-reference-components.md::AWS-LC offers a FIPS-mode build',
     ['accurate', null],
   ],
+  [
+    'docs/assurance/fips-sag-gap-analysis.md::# Cryptographic module boundary and FIPS 140-3 / SAG gap analysis',
+    ['accurate', null],
+  ],
+  [
+    'docs/assurance/fips-sag-gap-analysis.md::M1 TRL 5 preparation, M2 TRL 5 validation',
+    ['accurate', null],
+  ],
+  ['docs/assurance/fips-sag-gap-analysis.md::**Revision examined:**', ['accurate', null]],
+  [
+    'docs/assurance/fips-sag-gap-analysis.md::wrapping a module that is itself validated or under',
+    ['accurate', null],
+  ],
+  [
+    "docs/assurance/fips-sag-gap-analysis.md::The sponsor's SAG evaluation route, criteria and approved algorithm list",
+    ['accurate', null],
+  ],
+  [
+    'docs/assurance/fips-sag-gap-analysis.md::Absence of FIPS mode and self-tests:',
+    ['accurate', null],
+  ],
   ['docs/engineering/CURRENT_STATE.md::## TRL 5 advancement sprint', ['accurate', null]],
   ['docs/engineering/CURRENT_STATE.md::SAG grading, IAF identity/PKI', ['accurate', null]],
   [

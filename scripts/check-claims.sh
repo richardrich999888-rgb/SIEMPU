@@ -18,11 +18,14 @@ allow_file="scripts/check-claims.allow"
 claim='(^|[^[:alnum:]_])(fips[- ]validated|sag[- ]graded|sag[- ]approved)([^[:alnum:]_]|$)'
 negation='(^|[^[:alnum:]_])(not|no|never|none|without|nor|neither|cannot|unless|avoid|pending|outstanding|forbidden|prohibited|disallowed|do not|does not|is not|are not)([^[:alnum:]_]|$)|n'"'"'t([^[:alnum:]_]|$)'
 
-# Tracked text files. Excluded: this script and its allow list (they define the patterns) and
-# docs/assurance/claims-audit.md (generated; it quotes every audited line verbatim).
+# Tracked text files. Excluded, because they define or deliberately quote the patterns: this
+# script and its allow list, its tests (tests/check-claims.test.mjs), the claims-audit tool and
+# its tests (scripts/claims-audit.mjs, tests/claims-audit.test.mjs) and the generated audit
+# (docs/assurance/claims-audit.md, which quotes every audited line verbatim).
 mapfile -t hits < <(git grep -n -I -i -E "$claim" -- \
   '*.md' '*.mjs' '*.js' '*.ts' '*.rs' '*.yaml' '*.yml' '*.json' '*.html' '*.txt' '*.sh' \
-  ':!scripts/check-claims.sh' ':!scripts/check-claims.allow' ':!docs/assurance/claims-audit.md' || true)
+  ':!scripts/check-claims.sh' ':!scripts/check-claims.allow' ':!docs/assurance/claims-audit.md' \
+  ':!tests/check-claims.test.mjs' ':!scripts/claims-audit.mjs' ':!tests/claims-audit.test.mjs' || true)
 
 # Allow-list entries: path<TAB>fragment<TAB>justification; '#' comments and blank lines skipped.
 declare -a allow_path=() allow_frag=() allow_used=()
