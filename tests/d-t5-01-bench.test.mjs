@@ -78,3 +78,23 @@ test('comparison report renders both modes, the speed-up and the v1 limit', asyn
   assert.match(md, /uncommitted changes/);
   assert.match(md, /Evidence export exceeds verifier record limit/);
 });
+
+test('committed D-T5-01 comparison report is exactly the rendering of its recorded measurements', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { renderComparison } = await import('../assurance/bench/d-t5-01-compare.mjs');
+  const recorded = JSON.parse(
+    readFileSync(
+      new URL('../docs/assurance/evidence/d-t5-01-compare-d879b4a.json', import.meta.url),
+    ),
+  );
+  const report = readFileSync(
+    new URL('../docs/assurance/d-t5-01-incremental.md', import.meta.url),
+    'utf8',
+  );
+  assert.equal(report, renderComparison(recorded));
+  assert.equal(recorded.revision.dirty, false, 'measured on a clean tree');
+  // Exact, machine-independent outcome of the fix: four records verified per incremental
+  // authorisation at every chain length, versus the whole chain for full-chain custody.
+  assert.ok(recorded.incremental.rows.every((r) => r.recordsVerifiedPerAuthorisationMax === 4));
+  assert.ok(recorded.full.rows.every((r) => r.recordsVerifiedPerAuthorisationMax === r.records));
+});

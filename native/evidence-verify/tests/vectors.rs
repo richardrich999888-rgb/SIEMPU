@@ -5,6 +5,8 @@
 use siepmu_evidence_verify::canonical::canonical;
 use siepmu_evidence_verify::cli::run;
 use siepmu_evidence_verify::json::{parse, Value};
+use siepmu_evidence_verify::output::pretty;
+use siepmu_evidence_verify::range::{verify_evidence_range, MAX_RANGE_RECORDS};
 use std::path::{Path, PathBuf};
 
 fn spec_file(name: &str) -> Value {
@@ -144,6 +146,47 @@ fn evidence_vectors_conform() {
                 Some(&Value::Bool(false)),
                 "{id}: valid flag"
             );
+        }
+    }
+}
+
+#[test]
+fn evidence_range_vectors_conform() {
+    let file = spec_file("evidence-range-v1.json");
+    let all = cases(&file);
+    assert!(all.len() >= 25, "range vector set unexpectedly small");
+    for case in all {
+        let id = str_of(case, "id").unwrap();
+        let input = parse(str_of(case, "input").unwrap()).expect("input is JSON");
+        let key = parse(str_of(case, "key").unwrap()).expect("key is JSON");
+        let max = match case.get("maxRecords") {
+            Some(Value::Number(n)) => usize::try_from(
+                siepmu_evidence_verify::canonical::as_safe_integer(*n).expect("safe maxRecords"),
+            )
+            .expect("non-negative maxRecords"),
+            None => MAX_RANGE_RECORDS,
+            Some(_) => panic!("{id}: maxRecords"),
+        };
+        let outcome = verify_evidence_range(&input, &key, max);
+        let expect = case.get("expect").unwrap();
+        match expect.get("valid") {
+            Some(Value::Bool(true)) => {
+                let result = outcome.unwrap_or_else(|e| panic!("{id}: rejected: {e}"));
+                assert_eq!(
+                    Some(format!("{}\n", pretty(&result)).as_str()),
+                    str_of(expect, "stdout"),
+                    "{id}: stdout"
+                );
+            }
+            Some(Value::Bool(false)) => {
+                let error = outcome.expect_err(id);
+                assert_eq!(
+                    Some(error.message.as_str()),
+                    str_of(expect, "error"),
+                    "{id}"
+                );
+            }
+            _ => panic!("{id}: malformed vector"),
         }
     }
 }

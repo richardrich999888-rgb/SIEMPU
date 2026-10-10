@@ -127,5 +127,14 @@ be published as a novelty claim without the founder's authorisation (see
 - The custodian still trusts the authority's signing key. A compromised authority key can sign any
   history; custody detects rollback and fork of the authority's **database**, not key compromise
   (unchanged from v1).
+- **Formal model coverage.** `formal/ReleaseAuthority.tla` abstracts the custodian as "save the head only if
+  it extends the saved prefix" (`Anchor`), which the range check implements exactly under SHA-256 collision
+  resistance. `npm run formal:check` was re-run on this branch with TLA+ tools 1.8.0 (pinned SHA-256): faithful
+  3,837,180 distinct states, no error; `nonatomic` and `unguarded` mutants still violate their properties. The
+  chunked catch-up (intermediate anchors) is **not** covered: the model appends at most one record per guarded
+  transaction, so the custodian is never two records behind. An `AnchorPrefix` action was added and checked;
+  TLC showed it unreachable (an invariant `step # "anchor-prefix"` held over all states), so it was removed
+  rather than kept as a vacuous action. Chunked catch-up is covered by the integration tests (long catch-up,
+  crash between batches). Modelling multi-record transactions is future work.
 - The TRL 5 relevant-environment matrix and the TLA+ check must be re-run on this branch before D-T5-01
   is recorded as closed in the TRL dossier; until then it is "fixed in code, laboratory-measured".

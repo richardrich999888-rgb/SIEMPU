@@ -3,6 +3,8 @@
 // Orchestration only: the measurement is scripts/custody-scaling.mjs.
 //
 // Usage: node assurance/bench/d-t5-01-compare.mjs [--report FILE.md] [--json FILE.json]
+//        node assurance/bench/d-t5-01-compare.mjs --from-json FILE.json --report FILE.md
+//        (re-renders a report from recorded measurements without measuring again)
 
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -80,7 +82,7 @@ export function renderComparison(run) {
     '## Reading the numbers',
     '',
     '- The records-verified column is exact and machine-independent; the timings are not. p95 is nearest-rank over the stated number of runs.',
-    '- Full-chain is not measured above 100,000 records: the verifier rejects longer exports (`Evidence export exceeds verifier record limit`), and over HTTP the custodian rejects bodies above 16 MiB (roughly 40,000 records). Under v1 the authority therefore fails closed permanently once its chain is long enough; v2 removes that cliff because each request carries at most 512 records.',
+    '- Full-chain is not measured above 100,000 records: the verifier rejects longer exports (`Evidence export exceeds verifier record limit`), and over HTTP the custodian rejects bodies above 16 MiB, which is about 39,800 records at the 421 bytes measured for a minimal benchmark record (real decision records are larger, so the limit is reached sooner). Under v1 the authority therefore fails closed permanently once its chain is long enough; v2 removes that cliff because each request carries at most 512 records.',
     '- Each request still performs two authorisations, serialised. Per-request cost no longer grows with history, but it is not zero: the authorization-state digest reads all users, devices and policies (O(identities)), and every authorisation makes one custodian round trip.',
     '- The one-time catch-up after an authority or custodian restart verifies the records since the last anchor, in bounded batches; it is excluded from the timed runs by the warm-up.',
     '',
@@ -89,6 +91,15 @@ export function renderComparison(run) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const args = process.argv.slice(2);
+  const fromJson = args.indexOf('--from-json');
+  if (fromJson !== -1) {
+    const { readFileSync } = await import('node:fs');
+    const recorded = JSON.parse(readFileSync(args[fromJson + 1], 'utf8'));
+    const i = args.indexOf('--report');
+    if (i === -1) throw new Error('--from-json requires --report');
+    writeFileSync(args[i + 1], renderComparison(recorded));
+    process.exit(0);
+  }
   const revision = gitRevision(resolve('.'));
   const startedAt = new Date().toISOString();
   const incremental = await measureCustodyScaling([...INCREMENTAL_LENGTHS], {

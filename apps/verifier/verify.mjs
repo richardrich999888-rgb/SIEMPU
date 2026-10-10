@@ -435,6 +435,12 @@ export function verifyEvidenceRange(
     Number.isSafeInteger(maxRecords) && maxRecords > 0 && input.records.length <= maxRecords,
     'Evidence range exceeds record limit',
   );
+  // Every expected sequence must be a safe integer, so implementations that parse sequences
+  // as integers and the reference (which compares numbers) cannot diverge near 2^53.
+  assert(
+    Number.isSafeInteger(base.sequence + input.records.length),
+    'Range end sequence is not a safe integer',
+  );
   let headHash = base.headHash;
   for (let index = 0; index < input.records.length; index++)
     headHash = verifyLink(input.records[index], base.sequence + index + 1, headHash, verify);

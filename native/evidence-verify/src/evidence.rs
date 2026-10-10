@@ -20,17 +20,17 @@ pub const MAX_OBJECT_ID_UNITS: usize = 128;
 
 // 2^53 - 1 as an integer; the f64 constant is exact, so the conversion is lossless.
 #[allow(clippy::cast_possible_truncation)]
-const MAX_SAFE_INTEGER_I64: i64 = MAX_SAFE_INTEGER as i64;
+pub(crate) const MAX_SAFE_INTEGER_I64: i64 = MAX_SAFE_INTEGER as i64;
 
 const LIMIT_SIGNATURE: &str = "Signature authenticates the packet under the supplied key; it does not prove factual truth or current authorization.";
 const LIMIT_BINDINGS: &str = "Expected binding checks compare only the supplied expected values with signed receipt fields; they do not establish correctness of omitted expectations.";
-const LIMIT_AUTHENTICITY: &str =
+pub(crate) const LIMIT_AUTHENTICITY: &str =
     "Authenticity is relative to the independently supplied trusted public key, not factual truth.";
 const LIMIT_WITH_CHECKPOINT: &str =
     "Suffix-truncation detection is bounded by the externally saved checkpoint.";
 const LIMIT_WITHOUT_CHECKPOINT: &str =
     "No external checkpoint supplied: an earlier valid chain and its checkpoint can be replayed without detection.";
-const LIMIT_HARDWARE: &str =
+pub(crate) const LIMIT_HARDWARE: &str =
     "This does not prove hardware-backed signing, reliable wall-clock time, or freedom from authority compromise.";
 
 /// Expected bindings supplied independently of the packet under verification.
@@ -50,7 +50,7 @@ impl Expectations {
     }
 }
 
-fn ensure(condition: bool, message: &str) -> Result<(), VerifyError> {
+pub(crate) fn ensure(condition: bool, message: &str) -> Result<(), VerifyError> {
     if condition {
         Ok(())
     } else {
@@ -58,7 +58,7 @@ fn ensure(condition: bool, message: &str) -> Result<(), VerifyError> {
     }
 }
 
-fn is_lower_hex64(value: Option<&Value>) -> bool {
+pub(crate) fn is_lower_hex64(value: Option<&Value>) -> bool {
     value
         .and_then(Value::as_str)
         .is_some_and(|s| s.len() == 64 && s.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f')))
@@ -67,7 +67,7 @@ fn is_lower_hex64(value: Option<&Value>) -> bool {
 /// The value as an integer when it is a JSON number satisfying `Number.isSafeInteger`.
 /// Comparing these integers is equivalent to the reference's `===` on numbers, because a
 /// non-safe number can never equal the safe integer it is compared with.
-fn safe_integer(value: Option<&Value>) -> Option<i64> {
+pub(crate) fn safe_integer(value: Option<&Value>) -> Option<i64> {
     match value {
         Some(Value::Number(n)) => as_safe_integer(*n),
         _ => None,
@@ -91,24 +91,27 @@ pub fn exact_members(value: &Value, names: &[&str]) -> Result<(), VerifyError> {
     ensure(same, "Unexpected or missing packet members")
 }
 
-fn num(n: i64) -> Value {
+pub(crate) fn num(n: i64) -> Value {
     // Only safe integers reach here, and every safe integer is exactly representable.
     #[allow(clippy::cast_precision_loss)]
     Value::Number(n as f64)
 }
-fn text(s: &str) -> Value {
+pub(crate) fn text(s: &str) -> Value {
     Value::String(s.to_owned())
 }
-fn member(name: &str, value: Value) -> (String, Value) {
+pub(crate) fn member(name: &str, value: Value) -> (String, Value) {
     (name.to_owned(), value)
 }
 
-struct Checkpoint {
-    sequence: i64,
-    head_hash: String,
+pub(crate) struct Checkpoint {
+    pub(crate) sequence: i64,
+    pub(crate) head_hash: String,
 }
 
-fn checkpoint_payload(packet: &Value, key: &TrustedKey) -> Result<Checkpoint, VerifyError> {
+pub(crate) fn checkpoint_payload(
+    packet: &Value,
+    key: &TrustedKey,
+) -> Result<Checkpoint, VerifyError> {
     let payload = key.verify_packet(packet)?;
     exact_members(payload, &["sequence", "headHash", "issuedAt"])?;
     let sequence = safe_integer(payload.get("sequence")).filter(|n| *n >= 0);
@@ -224,9 +227,11 @@ fn verify_single(
     Ok(Value::Object(result))
 }
 
-fn verify_record(
+/// Verifies one hash-chain link: signature, absolute `sequence`, `previousHash` linkage and the
+/// event fields. Shared by full-chain and range verification (reference: `verifyLink`).
+pub(crate) fn verify_record(
     record: &Value,
-    index: usize,
+    sequence: i64,
     head_hash: &str,
     key: &TrustedKey,
 ) -> Result<(), VerifyError> {
@@ -235,15 +240,13 @@ fn verify_record(
         matches!(payload, Value::Object(_)),
         "Invalid record payload",
     )?;
-    // Record n (1-based) must carry sequence n. Indices are bounded by MAX_RECORDS.
-    let expected_sequence = i64::try_from(index + 1).ok();
     ensure(
-        expected_sequence.is_some() && safe_integer(payload.get("sequence")) == expected_sequence,
-        &format!("Sequence discontinuity at record {}", index + 1),
+        safe_integer(payload.get("sequence")) == Some(sequence),
+        &format!("Sequence discontinuity at record {sequence}"),
     )?;
     ensure(
         payload.get("previousHash").and_then(Value::as_str) == Some(head_hash),
-        &format!("Previous hash mismatch at record {}", index + 1),
+        &format!("Previous hash mismatch at record {sequence}"),
     )?;
     ensure(
         non_empty_string(payload.get("eventId")) && non_empty_string(payload.get("eventType")),
@@ -271,7 +274,11 @@ fn verify_chain(
     let mut hashes: Vec<String> = Vec::with_capacity(records.len() + 1);
     hashes.push(GENESIS.to_owned());
     for (index, record) in records.iter().enumerate() {
-        verify_record(record, index, &hashes[index], key)?;
+        // Record n (1-based) must carry sequence n. Indices are bounded by MAX_RECORDS, so the
+        // conversion cannot fail; a failure would still reject rather than wrap.
+        let sequence = i64::try_from(index + 1)
+            .map_err(|_| VerifyError::protocol("Evidence export exceeds verifier record limit"))?;
+        verify_record(record, sequence, &hashes[index], key)?;
         hashes.push(digest(record)?);
     }
     let head_hash = hashes[records.len()].clone();
