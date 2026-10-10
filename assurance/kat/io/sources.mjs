@@ -3,7 +3,15 @@
 // nothing here decides PASS/FAIL.
 
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import {
+  closeSync,
+  existsSync,
+  fstatSync,
+  openSync,
+  readFileSync,
+  readSync,
+  readdirSync,
+} from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -12,19 +20,39 @@ import { pathToFileURL } from 'node:url';
 const MAX_VECTOR_BYTES = 64 * 1024 * 1024;
 
 /**
- * Reads one file with its SHA-256.
+ * Reads one regular file with its SHA-256, bounded by MAX_VECTOR_BYTES.
+ *
+ * The size check and the read use the same open descriptor, so the file cannot be replaced or
+ * swapped between them (CWE-367). The read is bounded by the checked size: a file that grows or
+ * shrinks while being read is rejected instead of being hashed in an inconsistent state.
  * @param {string} root repository root
  * @param {string} path repository-relative path
  */
 export function readVectorFile(root, path) {
-  const full = join(root, path);
-  if (statSync(full).size > MAX_VECTOR_BYTES) throw new Error(`Vector file too large: ${path}`);
-  const bytes = readFileSync(full);
-  return {
-    path,
-    text: bytes.toString('utf8'),
-    sha256: createHash('sha256').update(bytes).digest('hex'),
-  };
+  const fd = openSync(join(root, path), 'r');
+  try {
+    const info = fstatSync(fd);
+    if (!info.isFile()) throw new Error(`Vector path is not a regular file: ${path}`);
+    if (info.size > MAX_VECTOR_BYTES) throw new Error(`Vector file too large: ${path}`);
+    // One spare byte detects growth after fstat; the read never exceeds the checked size + 1.
+    const buffer = Buffer.alloc(info.size + 1);
+    let length = 0;
+    for (;;) {
+      const n = readSync(fd, buffer, length, buffer.length - length, null);
+      if (n === 0) break;
+      length += n;
+      if (length > info.size) throw new Error(`Vector file changed while reading: ${path}`);
+    }
+    if (length !== info.size) throw new Error(`Vector file changed while reading: ${path}`);
+    const bytes = buffer.subarray(0, length);
+    return {
+      path,
+      text: bytes.toString('utf8'),
+      sha256: createHash('sha256').update(bytes).digest('hex'),
+    };
+  } finally {
+    closeSync(fd);
+  }
 }
 
 /**
