@@ -104,15 +104,15 @@ CI: GitHub-hosted runners (foreign SaaS; build-time only, not runtime).
 
 ## 9. Security defects (found or open)
 
-| ID       | Defect                                                                      | Status on this branch                 |
-| -------- | --------------------------------------------------------------------------- | ------------------------------------- |
-| CQ-1     | `js/file-system-race`: KAT vector reader stat-then-read (TOCTOU)            | **Fixed** `50303b5`, regression tests |
-| D-T5-01a | Custody cost O(chain) per authorisation, twice per serialised request       | **Fixed** `d879b4a` (ADR-014)         |
-| D-T5-01b | Availability cliff: >100k records (verifier) / >16 MiB body ⇒ permanent 503 | **Fixed** by bounded ranges (ADR-014) |
-| E-1/E-2  | Conductor-provisioned profiles; shared-kernel test hosts                    | Open (environment, not code)          |
-| L-1      | Authorization digest reads all identities per authorisation (O(identities)) | Open; next scaling item               |
-| L-2      | Static recipient keys: no forward secrecy                                   | Open by design (documented)           |
-| L-3      | Database snapshot rollback only detected with custody enabled               | Unchanged                             |
+| ID       | Defect                                                                      | Status on this branch                                          |
+| -------- | --------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| CQ-1     | `js/file-system-race`: KAT vector reader stat-then-read (TOCTOU)            | **Fixed** on base `f62fd04` (supersedes `50303b5`); tests kept |
+| D-T5-01a | Custody cost O(chain) per authorisation, twice per serialised request       | **Fixed** `d879b4a` (ADR-014)                                  |
+| D-T5-01b | Availability cliff: >100k records (verifier) / >16 MiB body ⇒ permanent 503 | **Fixed** by bounded ranges (ADR-014)                          |
+| E-1/E-2  | Conductor-provisioned profiles; shared-kernel test hosts                    | Open (environment, not code)                                   |
+| L-1      | Authorization digest reads all identities per authorisation (O(identities)) | Open; next scaling item                                        |
+| L-2      | Static recipient keys: no forward secrecy                                   | Open by design (documented)                                    |
+| L-3      | Database snapshot rollback only detected with custody enabled               | Unchanged                                                      |
 
 ## 10. Hardware integration gaps
 

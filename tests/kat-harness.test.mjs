@@ -229,3 +229,36 @@ test('report: generated text carries the scope disclaimer and never claims valid
   assert.match(md, /NOT-RUN/);
   assert.doesNotMatch(md, /\b(?:FIPS validated|SAG graded|SAG approved|certified)\b/i);
 });
+
+test('readBounded: reads exactly, fails closed above the limit and on non-files', async () => {
+  const { readBounded, readVectorFile } = await import('../assurance/kat/io/sources.mjs');
+  const { mkdtempSync, writeFileSync, openSync, closeSync, rmSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const dir = mkdtempSync(join(tmpdir(), 'siepmu-kat-read-'));
+  try {
+    const data = Buffer.from(pattern(200000, 7));
+    writeFileSync(join(dir, 'v.bin'), data);
+    const fd = openSync(join(dir, 'v.bin'), 'r');
+    try {
+      assert.deepEqual(readBounded(fd, 200000), data);
+    } finally {
+      closeSync(fd);
+    }
+    const fd2 = openSync(join(dir, 'v.bin'), 'r');
+    try {
+      assert.throws(() => readBounded(fd2, 199999), /exceeds/);
+    } finally {
+      closeSync(fd2);
+    }
+    const dirFd = openSync(dir, 'r');
+    try {
+      assert.throws(() => readBounded(dirFd, 10), /Not a regular file/);
+    } finally {
+      closeSync(dirFd);
+    }
+    assert.equal(readVectorFile(dir, 'v.bin').text.length > 0, true);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

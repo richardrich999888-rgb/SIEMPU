@@ -36,7 +36,7 @@ test('readVectorFile reads an empty file', (t) => {
 test('readVectorFile rejects a directory and a missing path', (t) => {
   const root = scratch(t);
   mkdirSync(join(root, 'dir.rsp'));
-  assert.throws(() => readVectorFile(root, 'dir.rsp'), /not a regular file|EISDIR/);
+  assert.throws(() => readVectorFile(root, 'dir.rsp'), /not a regular file|EISDIR/i);
   assert.throws(() => readVectorFile(root, 'absent.rsp'), /ENOENT/);
 });
 
@@ -45,7 +45,7 @@ test('readVectorFile rejects a file one byte over the limit', (t) => {
   const path = join(root, 'big.rsp');
   writeFileSync(path, '');
   truncateSync(path, MAX_VECTOR_BYTES + 1); // sparse: no 64 MiB write
-  assert.throws(() => readVectorFile(root, 'big.rsp'), /too large/);
+  assert.throws(() => readVectorFile(root, 'big.rsp'), /too large|exceeds/);
 });
 
 test('listVectorFiles: missing directory is empty; filter and order are deterministic', (t) => {

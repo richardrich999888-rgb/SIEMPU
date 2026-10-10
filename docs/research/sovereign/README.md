@@ -23,7 +23,7 @@ level is raised.
 | 14  | Source-linked engineering evidence      | [10-EVIDENCE.md](10-EVIDENCE.md)                                                                                                                     | Recorded                       |
 | —   | IP, provenance and licences             | [IP_AND_ORIGINALITY.md](IP_AND_ORIGINALITY.md)                                                                                                       | Public-safe fields only        |
 
-Also fixed: CodeQL `js/file-system-race` that failed Security run 38046629878 on `86744a8` (`50303b5`).
+Also fixed: CodeQL `js/file-system-race` that failed Security run 38046629878 on `86744a8`: fixed here in `50303b5`, then superseded by the base branch's broader fix `f62fd04` on merge; the regression tests from `50303b5` are kept.
 
 Not attempted (would not be credible in the time available, or needs external inputs): a new database engine,
 a new transport protocol implementation, PKCS#11/TPM providers (no hardware or vendor interface), Secure BOSS

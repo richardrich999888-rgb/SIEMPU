@@ -14,7 +14,7 @@ Based on `assurance/kat-and-gap-2026-10` `86744a8` (pushed; it contains PR #19 `
 - **D-T5-01 fixed in code** (`d879b4a`, ADR-014): incremental custody protocol v2. Per-authorisation cost
   3.4–4.1 ms flat to 250,000 records (full chain: 18.2 s at 100,000). Three-namespace matrix re-run at
   `1a0218d`: 33/33; T8.1 1.56 → 5.93 exchanges/s; custodian CPU 72.3 % → 17.1 %. TRL decision unchanged (TRL 4).
-- **CodeQL `js/file-system-race`** that failed hosted Security run 38046629878 on `86744a8`: fixed (`50303b5`).
+- **CodeQL `js/file-system-race`** that failed hosted Security run 38046629878 on `86744a8`: fixed on the base by `f62fd04` (merged here; this branch's equivalent `50303b5` superseded, its regression tests kept). Hosted CI on PR #20 head `81b64e0`: all 12 checks green incl. CodeQL.
 - Rust range verifier + SIEPMU-EVIDENCE-RANGE-v1 (25 vectors). Sovereignty matrix with guard test.
 - Local results on `4975a61`: `npm run validate` PASS (353/353, 97.68 % lines), `test:security` 140/140,
   `test:engineering` 39/39, `test:e2e` 3/3, `test:native` 3/3, Rust 26 + 3, pqc-lab 7/7, `test:mission` PASS,
