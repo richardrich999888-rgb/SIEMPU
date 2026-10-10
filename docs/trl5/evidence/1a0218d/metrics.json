@@ -1,0 +1,551 @@
+{
+  "impairment": [
+    {
+      "profile": {
+        "id": "P0",
+        "label": "baseline",
+        "delayMs": 0,
+        "jitterMs": 0,
+        "rateKbit": null
+      },
+      "appliedQdiscOnHostA": "qdisc noqueue 0: root refcnt 2",
+      "relayProfile": {
+        "delayMs": 0,
+        "jitterMs": 0,
+        "seed": 69
+      },
+      "controlRequestMs": {
+        "n": 3,
+        "p50": 160,
+        "p95": 167,
+        "p99": null,
+        "max": 167
+      },
+      "exchangeMs": {
+        "n": 5,
+        "p50": 692,
+        "p95": 744,
+        "p99": null,
+        "max": 744
+      },
+      "intact": 5
+    },
+    {
+      "profile": {
+        "id": "P1",
+        "label": "100 ms ± 20 ms",
+        "delayMs": 100,
+        "jitterMs": 20,
+        "rateKbit": null
+      },
+      "appliedQdiscOnHostA": "qdisc noqueue 0: root refcnt 2",
+      "relayProfile": {
+        "delayMs": 100,
+        "jitterMs": 20,
+        "seed": 69
+      },
+      "controlRequestMs": {
+        "n": 3,
+        "p50": 548,
+        "p95": 578,
+        "p99": null,
+        "max": 578
+      },
+      "exchangeMs": {
+        "n": 5,
+        "p50": 2279,
+        "p95": 2442,
+        "p99": null,
+        "max": 2442
+      },
+      "intact": 5
+    },
+    {
+      "profile": {
+        "id": "P2",
+        "label": "300 ms ± 100 ms",
+        "delayMs": 300,
+        "jitterMs": 100,
+        "rateKbit": null
+      },
+      "appliedQdiscOnHostA": "qdisc noqueue 0: root refcnt 2",
+      "relayProfile": {
+        "delayMs": 300,
+        "jitterMs": 100,
+        "seed": 69
+      },
+      "controlRequestMs": {
+        "n": 3,
+        "p50": 1341,
+        "p95": 1415,
+        "p99": null,
+        "max": 1415
+      },
+      "exchangeMs": {
+        "n": 5,
+        "p50": 5840,
+        "p95": 6021,
+        "p99": null,
+        "max": 6021
+      },
+      "intact": 5
+    },
+    {
+      "profile": {
+        "id": "P3",
+        "label": "1 Mbit/s",
+        "delayMs": 0,
+        "jitterMs": 0,
+        "rateKbit": 1000
+      },
+      "appliedQdiscOnHostA": "qdisc tbf 8002: root refcnt 5 rate 1Mbit burst 4Kb lat 400ms",
+      "relayProfile": {
+        "delayMs": 0,
+        "jitterMs": 0,
+        "seed": 69
+      },
+      "controlRequestMs": {
+        "n": 3,
+        "p50": 148,
+        "p95": 155,
+        "p99": null,
+        "max": 155
+      },
+      "exchangeMs": {
+        "n": 5,
+        "p50": 1752,
+        "p95": 1766,
+        "p99": null,
+        "max": 1766
+      },
+      "intact": 5
+    },
+    {
+      "profile": {
+        "id": "P4",
+        "label": "200 ms ± 50 ms + 2 Mbit/s",
+        "delayMs": 200,
+        "jitterMs": 50,
+        "rateKbit": 2000
+      },
+      "appliedQdiscOnHostA": "qdisc tbf 8004: root refcnt 5 rate 2Mbit burst 4Kb lat 400ms",
+      "relayProfile": {
+        "delayMs": 200,
+        "jitterMs": 50,
+        "seed": 69
+      },
+      "controlRequestMs": {
+        "n": 3,
+        "p50": 989,
+        "p95": 1003,
+        "p99": null,
+        "max": 1003
+      },
+      "exchangeMs": {
+        "n": 5,
+        "p50": 4419,
+        "p95": 4498,
+        "p99": null,
+        "max": 4498
+      },
+      "intact": 5
+    }
+  ],
+  "outage": {
+    "outageMs": 20020,
+    "recoveryMs": 167,
+    "requestDuringOutage": {
+      "ok": false,
+      "status": null,
+      "code": "ECONNRESET"
+    },
+    "queuedDelivered": true
+  },
+  "load": {
+    "senders": 4,
+    "workersPerSender": 2,
+    "payloadBytes": 4096,
+    "sendPhase": {
+      "seconds": 31.038,
+      "sent": 184,
+      "refused": 0,
+      "exchangesPerSecond": 5.93,
+      "latencyMs": {
+        "n": 184,
+        "p50": 1311.85,
+        "p95": 1526.72,
+        "p99": 1689.47,
+        "max": 1709.37
+      }
+    },
+    "receivePhase": {
+      "seconds": 48.912,
+      "delivered": 184,
+      "mismatched": 0,
+      "failed": 0,
+      "claimsPerSecond": 3.76,
+      "latencyMs": {
+        "n": 184,
+        "p50": 1016.09,
+        "p95": 1315.33,
+        "p99": 1679.16,
+        "max": 1680.47
+      }
+    },
+    "hostB": {
+      "processes": {
+        "collector": {
+          "avgCpuPercent": 46.4,
+          "peakRssMiB": 242
+        },
+        "checkpoint": {
+          "avgCpuPercent": 17.1,
+          "peakRssMiB": 140
+        },
+        "relay": {
+          "avgCpuPercent": 2.1,
+          "peakRssMiB": 82
+        },
+        "control": {
+          "avgCpuPercent": 85.3,
+          "peakRssMiB": 296
+        },
+        "web": {
+          "avgCpuPercent": 11,
+          "peakRssMiB": 146
+        }
+      },
+      "linkAB": {
+        "rxBytes": 3582716,
+        "txBytes": 3312562
+      },
+      "databaseGrowthBytes": 12856512,
+      "databaseBytesPerExchange": 69872
+    }
+  },
+  "race": {
+    "trials": 20,
+    "released": 16,
+    "refused": 4,
+    "authorityChanges": 40,
+    "violations": 0,
+    "outcomes": [
+      {
+        "withdrawDelayMs": 0,
+        "released": false,
+        "status": 409
+      },
+      {
+        "withdrawDelayMs": 50,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 100,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 150,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 200,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 0,
+        "released": false,
+        "status": 409
+      },
+      {
+        "withdrawDelayMs": 50,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 100,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 150,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 200,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 0,
+        "released": false,
+        "status": 409
+      },
+      {
+        "withdrawDelayMs": 50,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 100,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 150,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 200,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 0,
+        "released": false,
+        "status": 409
+      },
+      {
+        "withdrawDelayMs": 50,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 100,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 150,
+        "released": true,
+        "status": null
+      },
+      {
+        "withdrawDelayMs": 200,
+        "released": true,
+        "status": null
+      }
+    ]
+  },
+  "timings": {},
+  "controlLatencyBySegment": [
+    {
+      "fromRequest": 0,
+      "n": 200,
+      "p50": 36.83,
+      "p95": 86.19,
+      "p99": 96.97,
+      "max": 112.92
+    },
+    {
+      "fromRequest": 200,
+      "n": 200,
+      "p50": 42.75,
+      "p95": 68.52,
+      "p99": 80.77,
+      "max": 134.67
+    },
+    {
+      "fromRequest": 400,
+      "n": 200,
+      "p50": 47.34,
+      "p95": 62.47,
+      "p99": 69.58,
+      "max": 95.95
+    },
+    {
+      "fromRequest": 600,
+      "n": 200,
+      "p50": 57.22,
+      "p95": 344.79,
+      "p99": 378.1,
+      "max": 476.54
+    },
+    {
+      "fromRequest": 800,
+      "n": 200,
+      "p50": 352.36,
+      "p95": 470.61,
+      "p99": 529.04,
+      "max": 558.3
+    },
+    {
+      "fromRequest": 1000,
+      "n": 200,
+      "p50": 324.77,
+      "p95": 403.86,
+      "p99": 428.96,
+      "max": 435.1
+    },
+    {
+      "fromRequest": 1200,
+      "n": 200,
+      "p50": 352.18,
+      "p95": 435.37,
+      "p99": 462.07,
+      "max": 494.39
+    },
+    {
+      "fromRequest": 1400,
+      "n": 200,
+      "p50": 227.43,
+      "p95": 494.13,
+      "p99": 643.2,
+      "max": 668.59
+    },
+    {
+      "fromRequest": 1600,
+      "n": 200,
+      "p50": 214.56,
+      "p95": 267.29,
+      "p99": 281.49,
+      "max": 294.42
+    },
+    {
+      "fromRequest": 1800,
+      "n": 200,
+      "p50": 225.51,
+      "p95": 267.93,
+      "p99": 293.47,
+      "max": 305.22
+    },
+    {
+      "fromRequest": 2000,
+      "n": 200,
+      "p50": 272.29,
+      "p95": 337.55,
+      "p99": 486.08,
+      "max": 507.58
+    },
+    {
+      "fromRequest": 2200,
+      "n": 200,
+      "p50": 301.89,
+      "p95": 428.2,
+      "p99": 504.33,
+      "max": 526.5
+    },
+    {
+      "fromRequest": 2400,
+      "n": 9,
+      "p50": 252.65,
+      "p95": 328.57,
+      "p99": null,
+      "max": 328.57
+    }
+  ],
+  "custodyScaling": {
+    "schemaVersion": 2,
+    "mode": "full-chain",
+    "note": "In-process lower bound; deployed path adds two mTLS round trips per authorisation",
+    "authorisationsPerRequest": 2,
+    "repeats": 5,
+    "warmup": 0,
+    "rows": [
+      {
+        "records": 250,
+        "mode": "full-chain",
+        "appendPerAuthorisation": 0,
+        "recordsVerifiedPerAuthorisationMax": 250,
+        "authorizeMsMedian": 54.1,
+        "repeats": 5,
+        "authorizeMsMean": 55.1,
+        "authorizeMsP95": 58.8,
+        "authorizeMsMax": 58.8,
+        "authorisationsPerSecond": 18.14,
+        "samplesMs": [
+          54.1,
+          50.4,
+          58.8,
+          58.4,
+          53.8
+        ]
+      },
+      {
+        "records": 500,
+        "mode": "full-chain",
+        "appendPerAuthorisation": 0,
+        "recordsVerifiedPerAuthorisationMax": 500,
+        "authorizeMsMedian": 99.9,
+        "repeats": 5,
+        "authorizeMsMean": 101.7,
+        "authorizeMsP95": 115,
+        "authorizeMsMax": 115,
+        "authorisationsPerSecond": 9.83,
+        "samplesMs": [
+          105.4,
+          115,
+          98.6,
+          89.8,
+          99.9
+        ]
+      },
+      {
+        "records": 1000,
+        "mode": "full-chain",
+        "appendPerAuthorisation": 0,
+        "recordsVerifiedPerAuthorisationMax": 1000,
+        "authorizeMsMedian": 203,
+        "repeats": 5,
+        "authorizeMsMean": 213.2,
+        "authorizeMsP95": 264.7,
+        "authorizeMsMax": 264.7,
+        "authorisationsPerSecond": 4.69,
+        "samplesMs": [
+          264.7,
+          211.3,
+          190.9,
+          203,
+          195.9
+        ]
+      },
+      {
+        "records": 2000,
+        "mode": "full-chain",
+        "appendPerAuthorisation": 0,
+        "recordsVerifiedPerAuthorisationMax": 2000,
+        "authorizeMsMedian": 395.9,
+        "repeats": 5,
+        "authorizeMsMean": 403.6,
+        "authorizeMsP95": 464.3,
+        "authorizeMsMax": 464.3,
+        "authorisationsPerSecond": 2.48,
+        "samplesMs": [
+          355.6,
+          406.3,
+          464.3,
+          395.7,
+          395.9
+        ]
+      },
+      {
+        "records": 4000,
+        "mode": "full-chain",
+        "appendPerAuthorisation": 0,
+        "recordsVerifiedPerAuthorisationMax": 4000,
+        "authorizeMsMedian": 715,
+        "repeats": 5,
+        "authorizeMsMean": 726.5,
+        "authorizeMsP95": 769.3,
+        "authorizeMsMax": 769.3,
+        "authorisationsPerSecond": 1.38,
+        "samplesMs": [
+          769.3,
+          747.4,
+          707.7,
+          715,
+          692.8
+        ]
+      }
+    ],
+    "fit": {
+      "msPerRecord": 0.1767,
+      "fixedMs": 20
+    }
+  }
+}

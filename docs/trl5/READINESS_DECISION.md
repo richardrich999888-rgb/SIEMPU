@@ -70,3 +70,11 @@ These statements cover lab validation only:
   outstanding."
 - Not allowed: "TRL 5", "provisional TRL 5", "validated in a relevant environment", "IAF-accepted",
   "SAG-graded", "certified".
+
+## Addendum 2026-10-10: D-T5-01 fixed and re-tested (decision unchanged)
+
+Branch `claude/siepmu-sovereign-research-w886dv`: incremental checkpoint custody (ADR-014, `d879b4a`). The
+declared matrix was re-run on the same three-namespace environment at `1a0218d`: **33/33 PASS**; sustained load
+T8.1 1.56 → 5.93 exchanges/s; custodian CPU 72.3 % → 17.1 % (`docs/trl5/evidence/1a0218d/`, guarded by
+`tests/d-t5-01-retest.test.mjs`). Blocking reason 3 is resolved; reasons 1, 2 and 4 stand, so the decision
+remains **TRL 4**. Detail: `docs/research/sovereign/09-TRL_READINESS_UPDATE.md`.

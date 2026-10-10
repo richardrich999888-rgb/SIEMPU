@@ -136,5 +136,6 @@ be published as a novelty claim without the founder's authorisation (see
   TLC showed it unreachable (an invariant `step # "anchor-prefix"` held over all states), so it was removed
   rather than kept as a vacuous action. Chunked catch-up is covered by the integration tests (long catch-up,
   crash between batches). Modelling multi-record transactions is future work.
-- The TRL 5 relevant-environment matrix and the TLA+ check must be re-run on this branch before D-T5-01
-  is recorded as closed in the TRL dossier; until then it is "fixed in code, laboratory-measured".
+- Relevant-environment re-run on `1a0218d` (three namespaces, same declared matrix): 33/33 PASS; T8.1
+  1.56 → 5.93 exchanges/s; custodian CPU 72.3 % → 17.1 % (`docs/trl5/evidence/1a0218d/`). Hosted CI on this
+  branch is still required before D-T5-01 is recorded as closed in the TRL dossier.

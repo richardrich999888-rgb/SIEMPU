@@ -114,3 +114,11 @@ interactive use within days of operation.
 - Sessions longer than about 6 minutes.
 - Memory growth over hours.
 - Browser endpoint performance.
+
+## Addendum 2026-10-10: D-T5-01 fix
+
+Incremental custody (ADR-014) removes the chain-length term: per-authorisation cost is 3.4–4.1 ms flat from
+1,000 to 250,000 records in-process (`docs/assurance/d-t5-01-incremental.md`, measured on `d879b4a`). The
+relevant-environment re-run at `1a0218d` measured 5.93 exchanges/s (send p50 1,312 ms) with the custodian at
+17.1 % CPU; the control authority (85.3 % CPU) is now the bottleneck. Frozen evidence:
+`docs/trl5/evidence/1a0218d/`.

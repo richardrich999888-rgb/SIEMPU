@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "commit": "1a0218db8684e363f7dc3000b5f1bce396571f22",
+    "dirty": true,
+    "sourceDigest": "7a8b68f38064bf06367d8b84b472da897241d3c24d06fe66b490ac652d857cf1"
+  },
+  "files": {
+    "environment-inventory.json": "a151a88841bbd42e8a3c48c7bb41c876fa51e366f784c9e5a33df1d4a8e0d29a",
+    "logs/adapter.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "logs/checkpoint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "logs/collector.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "logs/control.log": "84d465a75650b4cc31d65e9fbec5a452a5650eeb1682c0629d5ae8bab1e80a46",
+    "logs/relay.log": "e319ad52b64f30a148424c0e87649ded7143e2dbb7e0b6e15fcc98e5f5bfa3b1",
+    "logs/wan-relay.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "logs/web.log": "28ce4b179e4f15cc09b49967e51242b288d879cda2354327513cac29b54e70c3",
+    "metrics.json": "f5c7890311c98a68cb1b9d1c10566d9bbf65ba22fd5660d669df369d88e37594",
+    "test-results.json": "d5310c6a9e8fc3bf3798436e55ff9b20aabb5987f54011d648e786e0a1c35d4e"
+  }
+}
