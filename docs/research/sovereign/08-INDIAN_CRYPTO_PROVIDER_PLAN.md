@@ -1,8 +1,9 @@
 # 08 — Indian cryptographic-provider integration plan (Track D)
 
 Status: **plan.** No Indian, graded or hardware provider is integrated. Nothing here claims SAG grading,
-indigenous ownership of any algorithm, or the existence of any specific Indian interface. Interfaces of
-C-DAC, C-DOT, SAG-approved modules or Indian HSM vendors must be **obtained from them**; until then the
+indigenous ownership of any algorithm, or the existence of any specific Indian interface.
+Interfaces of C-DAC, C-DOT, SAG-approved modules or Indian HSM vendors are not assumed: they must be
+**obtained from them**; until then the
 sponsor questions in `research/trl56/16-iaf-clarification-register.md` stand.
 
 ## 1. What already exists (verified in code)
@@ -46,7 +47,7 @@ selected only by the signed `providerId`/`suiteId`; failure is an explicit error
 
 ## 4. Qualification path (external; this repository cannot complete it)
 
-1. Sponsor names the approved algorithm set and module (SAG decision).
+1. Sponsor names the approved algorithm set and module (SAG decision, not an applicant decision).
 2. Vendor supplies the module, its interface specification and test vectors.
 3. SYNTRIASS implements the provider adapter against that specification, adds the vendor's vectors to the KAT
    harness (`assurance/kat/`), and runs the existing crypto-agility negative suite against it.

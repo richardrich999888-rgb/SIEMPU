@@ -11,7 +11,7 @@ against the tree at that revision unless marked otherwise.
 | `main`                                     | `ad80210` | Delivered prototype baseline                                                   |
 | PR #17 `claude/siepmu-engineering-…`       | `12989fb` | Integrated platform; base of #18                                               |
 | PR #18 `claude/siepmu-trl56-recovery-…`    | `4190797` | Rust verifier, TLA+ model, mission workflow; base of #19                       |
-| PR #19 `claude/siepmu-trl5-24h-validation` | `2b3f9ab` | TRL 5 advancement tests; discovered D-T5-01                                    |
+| PR #19 `claude/siepmu-trl5-24h-validation` | `2b3f9ab` | Advancement tests (TRL 4 kept, not TRL 5); found D-T5-01                       |
 | `assurance/kat-and-gap-2026-10` (no PR)    | `86744a8` | KAT harness, gap analysis, claims gate, D-T5-01 baseline; **this work's base** |
 | PR #15, #16 (`codex/…`)                    | —         | Superseded; selectively ported into #17 (ADR-006)                              |
 | PR #13, #2                                 | —         | Superseded                                                                     |
@@ -76,8 +76,8 @@ Runtime npm dependency count: **0** (`package.json` has only `devDependencies`).
 | Lab PQC                           | ML-KEM-768/1024, ML-DSA-65; X-Wing               | OpenSSL 3.5 (Node); Noble                     |
 
 No custom primitive exists. Every algorithm is a public international standard (NIST FIPS 197/180-4/186-5/
-203/204, SP 800-38D/108, RFC 5869/6238/7914/8446) of foreign origin. No algorithm, implementation or module
-is SAG-graded or FIPS 140-validated by this project.
+203/204, SP 800-38D/108, RFC 5869/6238/7914/8446) of foreign origin.
+No algorithm, implementation or module here is SAG-graded or FIPS 140-validated by this project.
 
 ## 5. Database and storage
 

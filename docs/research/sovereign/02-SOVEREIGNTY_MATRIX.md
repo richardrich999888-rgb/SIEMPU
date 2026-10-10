@@ -50,7 +50,7 @@ third-party row marked as SYNTRIASS source fails the build.
 ## Highest-leverage gaps to change the picture
 
 1. **Graded Indian crypto provider** behind the existing provider seam (plan: `08-INDIAN_CRYPTO_PROVIDER_PLAN.md`).
-   This is the only route to "indigenous cryptographic implementation"; it is external (SAG/C-DAC/vendor),
+   This is the only route to "indigenous cryptographic implementation"; it is external (sponsor, C-DAC or vendor),
    not something this repository can create by writing code.
 2. **Self-hosted CI** (Gitea/Forgejo + self-hosted runners + offline CodeQL alternative) to remove foreign
    services from the build path; reproducible-build evidence to make the build verifiable by a third party.

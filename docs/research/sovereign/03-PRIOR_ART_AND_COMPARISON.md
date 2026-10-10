@@ -60,7 +60,7 @@ interfaces (`research/trl56/16-iaf-clarification-register.md`, `04-sag-crypto-in
 
 | Item                 | What is publicly established                                | Implication                                                 |
 | -------------------- | ----------------------------------------------------------- | ----------------------------------------------------------- |
-| SAG (DRDO) grading   | Grading of crypto for government use is SAG's remit         | Only SAG/sponsor can supply graded algorithms/modules       |
+| SAG (DRDO) grading   | Grading is SAG's remit, not the applicant's                 | Only SAG/sponsor can supply graded algorithms/modules       |
 | PKCS#11 v3.1 (OASIS) | Standard token/HSM API                                      | Natural provider boundary for Indian HSMs                   |
 | TPM 2.0 (TCG)        | Standard platform key storage and attestation               | Endpoint key custody, measured boot                         |
 | C-DAC, C-DOT         | Public work on secure systems and Indian-developed products | Candidate providers; interfaces to be obtained, not assumed |

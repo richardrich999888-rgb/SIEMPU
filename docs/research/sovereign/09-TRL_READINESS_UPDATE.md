@@ -1,7 +1,7 @@
 # 09 — TRL readiness update (2026-10-10)
 
-**Decision unchanged: provisional TRL 4** — validated laboratory prototype with the TRL 5 advancement tests
-completed and gates outstanding. `tests/trl-matrix.test.mjs` is unchanged and still holds every element at
+**Decision unchanged: provisional TRL 4** — validated laboratory prototype with advancement tests completed (not TRL 5)
+and gates outstanding. `tests/trl-matrix.test.mjs` is unchanged and still holds every element at
 TRL ≤ 4 while the relevant environment is not defined by the sponsor.
 
 ## Effect of this branch on the four blocking reasons (`docs/trl5/READINESS_DECISION.md`)

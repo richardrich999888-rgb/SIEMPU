@@ -1,8 +1,9 @@
 # Sovereign SIEPMU core — research and engineering record
 
 Branch `claude/siepmu-sovereign-research-w886dv`, based on `assurance/kat-and-gap-2026-10` (`86744a8`, which
-contains PR #19 → #18 → #17 → `main`). Synthetic data only. Nothing here is IAF-approved, SAG-graded,
-independently assessed or certified, and no TRL level is raised.
+contains PR #19 → #18 → #17 → `main`). Synthetic data only.
+The work is not IAF-approved, not SAG-graded, not independently assessed and not certified; no TRL
+level is raised.
 
 | #   | Deliverable                             | Document                                                                                                                                             | Status                         |
 | --- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
