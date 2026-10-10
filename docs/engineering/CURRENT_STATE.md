@@ -1,12 +1,33 @@
 # Current engineering state (single authoritative handover file)
 
-**Review date:** 2026-10-08. **Active branch:** `claude/siepmu-trl5-24h-validation`, created from PR #18's head
+**Review date:** 2026-10-10. **Active branch:** `claude/siepmu-sovereign-research-w886dv` (see first section). Previous active branch: `claude/siepmu-trl5-24h-validation`, created from PR #18's head
 `4190797`, which contains PR #17's head `12989fb`. Not merged into `main`. The sections below this sprint's section
 describe earlier branches and are kept for provenance.
 Update this file from executed results whenever major work completes, and before ending a session.
 Never copy a result forward to a new SHA.
 
-## Crypto-assurance branch `assurance/kat-and-gap-2026-10` (local only, not pushed)
+## Sovereign research branch `claude/siepmu-sovereign-research-w886dv` (2026-10-10)
+
+Based on `assurance/kat-and-gap-2026-10` `86744a8` (pushed; it contains PR #19 `2b3f9ab`). Index:
+`docs/research/sovereign/README.md`. Evidence: `docs/research/sovereign/10-EVIDENCE.md`.
+
+- **D-T5-01 fixed in code** (`d879b4a`, ADR-014): incremental custody protocol v2. Per-authorisation cost
+  3.4–4.1 ms flat to 250,000 records (full chain: 18.2 s at 100,000). Three-namespace matrix re-run at
+  `1a0218d`: 33/33; T8.1 1.56 → 5.93 exchanges/s; custodian CPU 72.3 % → 17.1 %. TRL decision unchanged (TRL 4).
+- **CodeQL `js/file-system-race`** that failed hosted Security run 38046629878 on `86744a8`: fixed (`50303b5`).
+- Rust range verifier + SIEPMU-EVIDENCE-RANGE-v1 (25 vectors). Sovereignty matrix with guard test.
+- Local results on `4975a61`: `npm run validate` PASS (353/353, 97.68 % lines), `test:security` 140/140,
+  `test:engineering` 39/39, `test:e2e` 3/3, `test:native` 3/3, Rust 26 + 3, pqc-lab 7/7, `test:mission` PASS,
+  `demo:hpsc` PASS. `formal:check` PASS (model unchanged). Not run: browser, container, hosted CI.
+- The repository is **public**: candidate patent claims are not committed (see `IP_AND_ORIGINALITY.md`).
+
+**Open:** hosted CI/Security on this branch; control authority is now the bottleneck (85 % CPU in T8.1):
+incremental authorization-state digest (L-1), one authorisation per request (needs TLA+ change), TLS reuse.
+
+**Next executable task:** confirm hosted CI and Security green on this branch's PR, then implement the
+incremental authorization-state digest with negative tests and re-run `trl5:validate`.
+
+## Crypto-assurance branch `assurance/kat-and-gap-2026-10` (pushed; head `86744a8`)
 
 Branched from `2b3f9ab` (PR #19 head). Commits `f6bd66d`..`e7a0a1f`. Not pushed: pushing awaits
 the owner's explicit approval.
