@@ -3,23 +3,52 @@
 // nothing here decides PASS/FAIL.
 
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { closeSync, fstatSync, openSync, readSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 /** Maximum vector file size accepted (fail closed on anything larger). */
 const MAX_VECTOR_BYTES = 64 * 1024 * 1024;
+/** Maximum size of a dependency package.json read for its version. */
+const MANIFEST_MAX_BYTES = 1024 * 1024;
 
 /**
- * Reads one file with its SHA-256.
+ * Reads at most `limit` bytes from an open descriptor; throws if the file holds more.
+ * The descriptor is opened once and never re-resolved by path, so the size check and the read
+ * apply to the same file (no check-then-use race on the path).
+ * @param {number} fd
+ * @param {number} limit
+ */
+export function readBounded(fd, limit) {
+  if (!fstatSync(fd).isFile()) throw new Error('Not a regular file');
+  const chunks = [];
+  let total = 0;
+  const chunk = Buffer.alloc(64 * 1024);
+  for (;;) {
+    const n = readSync(fd, chunk, 0, chunk.length, null);
+    if (n === 0) break;
+    total += n;
+    // Bound on bytes actually read, so a file that grows after open still fails closed.
+    if (total > limit) throw new Error(`Vector file exceeds ${limit} bytes`);
+    chunks.push(Buffer.from(chunk.subarray(0, n)));
+  }
+  return Buffer.concat(chunks, total);
+}
+
+/**
+ * Reads one file with its SHA-256 (bounded; fails closed above MAX_VECTOR_BYTES).
  * @param {string} root repository root
  * @param {string} path repository-relative path
  */
 export function readVectorFile(root, path) {
-  const full = join(root, path);
-  if (statSync(full).size > MAX_VECTOR_BYTES) throw new Error(`Vector file too large: ${path}`);
-  const bytes = readFileSync(full);
+  const fd = openSync(join(root, path), 'r');
+  let bytes;
+  try {
+    bytes = readBounded(fd, MAX_VECTOR_BYTES);
+  } finally {
+    closeSync(fd);
+  }
   return {
     path,
     text: bytes.toString('utf8'),
@@ -34,9 +63,14 @@ export function readVectorFile(root, path) {
  * @param {RegExp} pattern file-name filter
  */
 export function listVectorFiles(root, dir, pattern) {
-  const full = join(root, dir);
-  if (!existsSync(full)) return [];
-  return readdirSync(full)
+  let names;
+  try {
+    names = readdirSync(join(root, dir));
+  } catch (error) {
+    if (error.code === 'ENOENT') return [];
+    throw error;
+  }
+  return names
     .filter((name) => pattern.test(name))
     .sort()
     .map((name) => readVectorFile(root, join(dir, name)));
@@ -58,15 +92,28 @@ export function gitRevision(root) {
  * @param {string} root
  */
 export async function loadLabHybrid(root) {
-  const entry = join(root, 'packages/pqc-lab/node_modules/@noble/post-quantum/hybrid.js');
-  const pkg = join(root, 'packages/pqc-lab/node_modules/@noble/post-quantum/package.json');
-  if (!existsSync(entry))
+  const dir = join(root, 'packages/pqc-lab/node_modules/@noble/post-quantum');
+  let manifestFd;
+  try {
+    manifestFd = openSync(join(dir, 'package.json'), 'r');
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
     return {
       module: null,
       version: null,
       reason:
         'packages/pqc-lab dependencies not installed (run: npm ci --prefix packages/pqc-lab --ignore-scripts)',
     };
-  const version = JSON.parse(readFileSync(pkg, 'utf8')).version;
-  return { module: await import(pathToFileURL(entry).href), version, reason: null };
+  }
+  let version;
+  try {
+    version = JSON.parse(readBounded(manifestFd, MANIFEST_MAX_BYTES).toString('utf8')).version;
+  } finally {
+    closeSync(manifestFd);
+  }
+  return {
+    module: await import(pathToFileURL(join(dir, 'hybrid.js')).href),
+    version,
+    reason: null,
+  };
 }
