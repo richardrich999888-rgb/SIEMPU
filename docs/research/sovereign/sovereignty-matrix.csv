@@ -1,0 +1,75 @@
+id,component,version,layer,origin,developed_by,operated_by,licence,runtime_role,ships_in_release,qualification,evidence
+syn-control,"Control authority (identity, policy, release, evidence)",n/a,application,SYNTRIASS_SOURCE,SYNTRIASS,OPERATOR,Apache-2.0,RUNTIME,YES,PROJECT_TESTED,tests/authority.test.mjs
+syn-relay,Ciphertext relay,n/a,application,SYNTRIASS_SOURCE,SYNTRIASS,OPERATOR,Apache-2.0,RUNTIME,YES,PROJECT_TESTED,services/relay/relay.test.mjs
+syn-web,TLS gateway and same-origin proxy,n/a,application,SYNTRIASS_SOURCE,SYNTRIASS,OPERATOR,Apache-2.0,RUNTIME,YES,PROJECT_TESTED,services/web/web.test.mjs
+syn-custody,"Checkpoint custodian and recovery guard (incremental, ADR-014)",n/a,application,SYNTRIASS_SOURCE,SYNTRIASS,OPERATOR,Apache-2.0,RUNTIME,YES,PROJECT_TESTED,tests/incremental-custody.test.mjs
+syn-monitoring,Signed redacted telemetry collector,n/a,application,SYNTRIASS_SOURCE,SYNTRIASS,OPERATOR,Apache-2.0,RUNTIME,YES,PROJECT_TESTED,tests/monitoring.test.mjs
+syn-adapter,Synthetic integration adapter (not an IAF interface),n/a,application,SYNTRIASS_SOURCE,SYNTRIASS,OPERATOR,Apache-2.0,RUNTIME,YES,PROJECT_TESTED,tests/integration-adapter.test.mjs
+syn-endpoint-crypto,Endpoint encryption composition and vault (WebCrypto),n/a,endpoint,SYNTRIASS_SOURCE,SYNTRIASS,OPERATOR,Apache-2.0,RUNTIME,YES,PROJECT_TESTED,tests/crypto.test.mjs
+syn-provider-engine,"Crypto provider engine, suite policy, downgrade guard",n/a,crypto-seam,SYNTRIASS_SOURCE,SYNTRIASS,OPERATOR,Apache-2.0,RUNTIME,YES,PROJECT_TESTED,tests/crypto-provider.test.mjs
+syn-canonical,SIEPMU-CJSON-v1 canonical encoding,n/a,protocol,SYNTRIASS_SOURCE,SYNTRIASS,OPERATOR,Apache-2.0,RUNTIME,YES,PROJECT_TESTED,spec/SIEPMU-CJSON-v1.md
+syn-transport,TLS 1.3 / mTLS profile on node:tls,n/a,transport,SYNTRIASS_SOURCE,SYNTRIASS,OPERATOR,Apache-2.0,RUNTIME,YES,PROJECT_TESTED,tests/transport/secure-stack.test.mjs
+syn-release,Signed offline release bundles,n/a,deployment,SYNTRIASS_SOURCE,SYNTRIASS,OPERATOR,Apache-2.0,RUNTIME,YES,PROJECT_TESTED,tests/offline-release.test.mjs
+syn-verifier,Independent evidence verifier (Node),n/a,verification,SYNTRIASS_SOURCE,SYNTRIASS,OPERATOR,Apache-2.0,RUNTIME,YES,PROJECT_TESTED,apps/verifier/verify.mjs
+syn-rust-verifier,Rust reference evidence verifier incl. range mode,n/a,verification,SYNTRIASS_SOURCE,SYNTRIASS,OPERATOR,Apache-2.0,VERIFICATION_ONLY,NO,PROJECT_TESTED,native/evidence-verify/tests/vectors.rs
+syn-formal,"TLA+ model of release, revocation and recovery",n/a,verification,SYNTRIASS_SOURCE,SYNTRIASS,OPERATOR,Apache-2.0,VERIFICATION_ONLY,NO,PROJECT_TESTED,formal/ReleaseAuthority.tla
+syn-pqc-lab,Laboratory PQC endpoint providers (composition only),n/a,crypto-seam,SYNTRIASS_SOURCE,SYNTRIASS,OPERATOR,Apache-2.0,LAB_ONLY,NO,PROJECT_TESTED,packages/pqc-lab/laboratory.check.mjs
+rt-node,"Node.js runtime (V8, libuv)",24.21.0,runtime,FOREIGN_OPEN_SOURCE,OpenJS Foundation,OPERATOR,MIT,RUNTIME,YES,NOT_QUALIFIED,Dockerfile
+rt-openssl,OpenSSL (bundled in Node.js),3.5.x,crypto-implementation,FOREIGN_OPEN_SOURCE,OpenSSL Foundation,OPERATOR,Apache-2.0,RUNTIME,YES,NOT_QUALIFIED,docs/assurance/d-t5-01-baseline.md
+rt-sqlite,SQLite (node:sqlite),bundled with Node.js 24.21.0,storage,FOREIGN_OPEN_SOURCE,SQLite developers,OPERATOR,Public domain,RUNTIME,YES,NOT_QUALIFIED,database/migrations/001-initial.sql
+rt-alpine,Alpine Linux base image (digest-pinned),3.24,os,FOREIGN_OPEN_SOURCE,Alpine Linux,OPERATOR,Various (GPL-2.0 kernel userland mix),RUNTIME,YES,NOT_QUALIFIED,Dockerfile
+rt-browser,Browser and its WebCrypto implementation,operator-selected,endpoint,FOREIGN_OPEN_SOURCE,Browser vendor,OPERATOR,Vendor licence,ENDPOINT,NO,NOT_QUALIFIED,docs/crypto.md
+alg-aes-gcm,"AES-256-GCM (FIPS 197, SP 800-38D)",n/a,algorithm,FOREIGN_STANDARD,NIST / IETF,NONE,Public standard,ALGORITHM,YES,NOT_QUALIFIED,docs/crypto.md
+alg-p256,"ECDSA/ECDH P-256 (FIPS 186-5, SP 800-56A)",n/a,algorithm,FOREIGN_STANDARD,NIST / IETF,NONE,Public standard,ALGORITHM,YES,NOT_QUALIFIED,docs/crypto.md
+alg-sha256,SHA-256 (FIPS 180-4),n/a,algorithm,FOREIGN_STANDARD,NIST / IETF,NONE,Public standard,ALGORITHM,YES,NOT_QUALIFIED,docs/crypto.md
+alg-hkdf,HKDF-SHA256 (RFC 5869),n/a,algorithm,FOREIGN_STANDARD,NIST / IETF,NONE,Public standard,ALGORITHM,YES,NOT_QUALIFIED,docs/crypto.md
+alg-scrypt,scrypt (RFC 7914),n/a,algorithm,FOREIGN_STANDARD,NIST / IETF,NONE,Public standard,ALGORITHM,YES,NOT_QUALIFIED,docs/crypto.md
+alg-pbkdf2,PBKDF2-SHA256 (RFC 8018),n/a,algorithm,FOREIGN_STANDARD,NIST / IETF,NONE,Public standard,ALGORITHM,YES,NOT_QUALIFIED,docs/crypto.md
+alg-totp,TOTP HMAC-SHA1 (RFC 6238),n/a,algorithm,FOREIGN_STANDARD,NIST / IETF,NONE,Public standard,ALGORITHM,YES,NOT_QUALIFIED,docs/crypto.md
+alg-tls13,TLS 1.3 (RFC 8446),n/a,algorithm,FOREIGN_STANDARD,NIST / IETF,NONE,Public standard,ALGORITHM,YES,NOT_QUALIFIED,docs/crypto.md
+alg-mlkem,"ML-KEM-768/1024 (FIPS 203), laboratory",n/a,algorithm,FOREIGN_STANDARD,NIST / IETF,NONE,Public standard,LAB_ONLY,NO,NOT_QUALIFIED,docs/crypto.md
+alg-mldsa,"ML-DSA-65 (FIPS 204), laboratory",n/a,algorithm,FOREIGN_STANDARD,NIST / IETF,NONE,Public standard,LAB_ONLY,NO,NOT_QUALIFIED,docs/crypto.md
+alg-xwing,"X-Wing hybrid KEM (IETF draft), laboratory",n/a,algorithm,FOREIGN_STANDARD,NIST / IETF,NONE,Public standard,LAB_ONLY,NO,NOT_QUALIFIED,docs/crypto.md
+npm-dev:@types/node,@types/node,24.10.0,development,FOREIGN_OPEN_SOURCE,upstream project,NONE,MIT,DEV_ONLY,NO,NOT_QUALIFIED,package-lock.json
+npm-dev:eslint,eslint,10.12.0,development,FOREIGN_OPEN_SOURCE,upstream project,NONE,MIT,DEV_ONLY,NO,NOT_QUALIFIED,package-lock.json
+npm-dev:globals,globals,16.5.0,development,FOREIGN_OPEN_SOURCE,upstream project,NONE,MIT,DEV_ONLY,NO,NOT_QUALIFIED,package-lock.json
+npm-dev:playwright,playwright,1.63.0,development,FOREIGN_OPEN_SOURCE,upstream project,NONE,Apache-2.0,DEV_ONLY,NO,NOT_QUALIFIED,package-lock.json
+npm-dev:prettier,prettier,3.6.2,development,FOREIGN_OPEN_SOURCE,upstream project,NONE,MIT,DEV_ONLY,NO,NOT_QUALIFIED,package-lock.json
+npm-dev:typescript,typescript,5.9.3,development,FOREIGN_OPEN_SOURCE,upstream project,NONE,Apache-2.0,DEV_ONLY,NO,NOT_QUALIFIED,package-lock.json
+npm-dev-transitive,Transitive development packages (see package-lock.json),78,development,FOREIGN_OPEN_SOURCE,various upstream projects,NONE,see package-lock.json,DEV_ONLY,NO,NOT_QUALIFIED,package-lock.json
+npm-lab:@noble/ciphers,@noble/ciphers,2.4.0,crypto-implementation,FOREIGN_OPEN_SOURCE,Paul Miller (noble),NONE,MIT,LAB_ONLY,NO,NOT_QUALIFIED,packages/pqc-lab/package-lock.json
+npm-lab:@noble/curves,@noble/curves,2.4.0,crypto-implementation,FOREIGN_OPEN_SOURCE,Paul Miller (noble),NONE,MIT,LAB_ONLY,NO,NOT_QUALIFIED,packages/pqc-lab/package-lock.json
+npm-lab:@noble/hashes,@noble/hashes,2.4.0,crypto-implementation,FOREIGN_OPEN_SOURCE,Paul Miller (noble),NONE,MIT,LAB_ONLY,NO,NOT_QUALIFIED,packages/pqc-lab/package-lock.json
+npm-lab:@noble/post-quantum,@noble/post-quantum,0.7.1,crypto-implementation,FOREIGN_OPEN_SOURCE,Paul Miller (noble),NONE,MIT,LAB_ONLY,NO,NOT_QUALIFIED,packages/pqc-lab/package-lock.json
+rust-crate:base16ct,base16ct,0.2.0,library,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/RustCrypto/formats/tree/master/base16ct),NONE,Apache-2.0 OR MIT,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:block-buffer,block-buffer,0.10.4,library,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/RustCrypto/utils),NONE,MIT OR Apache-2.0,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:cfg-if,cfg-if,1.0.5,library,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/rust-lang/cfg-if),NONE,MIT OR Apache-2.0,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:const-oid,const-oid,0.9.6,library,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/RustCrypto/formats/tree/master/const-oid),NONE,Apache-2.0 OR MIT,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:cpufeatures,cpufeatures,0.2.17,library,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/RustCrypto/utils),NONE,MIT OR Apache-2.0,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:crypto-bigint,crypto-bigint,0.5.5,crypto-implementation,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/RustCrypto/crypto-bigint),NONE,Apache-2.0 OR MIT,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:crypto-common,crypto-common,0.1.6,library,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/RustCrypto/traits),NONE,MIT OR Apache-2.0,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:der,der,0.7.10,library,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/RustCrypto/formats/tree/master/der),NONE,Apache-2.0 OR MIT,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:digest,digest,0.10.7,library,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/RustCrypto/traits),NONE,MIT OR Apache-2.0,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:ecdsa,ecdsa,0.16.9,crypto-implementation,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/RustCrypto/signatures/tree/master/ecdsa),NONE,Apache-2.0 OR MIT,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:elliptic-curve,elliptic-curve,0.13.8,crypto-implementation,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/RustCrypto/traits/tree/master/elliptic-curve),NONE,Apache-2.0 OR MIT,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:ff,ff,0.13.1,library,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/zkcrypto/ff),NONE,MIT/Apache-2.0,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:generic-array,generic-array,0.14.9,library,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/fizyk20/generic-array.git),NONE,MIT,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:group,group,0.13.0,library,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/zkcrypto/group),NONE,MIT/Apache-2.0,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:hmac,hmac,0.12.1,crypto-implementation,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/RustCrypto/MACs),NONE,MIT OR Apache-2.0,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:libc,libc,0.2.190,library,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/rust-lang/libc),NONE,MIT OR Apache-2.0,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:p256,p256,0.13.2,crypto-implementation,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/RustCrypto/elliptic-curves/tree/master/p256),NONE,Apache-2.0 OR MIT,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:primeorder,primeorder,0.13.6,crypto-implementation,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/RustCrypto/elliptic-curves/tree/master/primeorder),NONE,Apache-2.0 OR MIT,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:rand_core,rand_core,0.6.4,library,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/rust-random/rand),NONE,MIT OR Apache-2.0,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:rfc6979,rfc6979,0.4.0,crypto-implementation,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/RustCrypto/signatures/tree/master/rfc6979),NONE,Apache-2.0 OR MIT,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:sec1,sec1,0.7.3,library,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/RustCrypto/formats/tree/master/sec1),NONE,Apache-2.0 OR MIT,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:sha2,sha2,0.10.8,crypto-implementation,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/RustCrypto/hashes),NONE,MIT OR Apache-2.0,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:signature,signature,2.2.0,library,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/RustCrypto/traits/tree/master/signature),NONE,Apache-2.0 OR MIT,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:subtle,subtle,2.6.1,library,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/dalek-cryptography/subtle),NONE,BSD-3-Clause,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:typenum,typenum,1.20.1,library,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/paholg/typenum),NONE,MIT OR Apache-2.0,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:version_check,version_check,0.9.5,library,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/SergioBenitez/version_check),NONE,MIT/Apache-2.0,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+rust-crate:zeroize,zeroize,1.9.1,library,FOREIGN_OPEN_SOURCE,upstream project (https://github.com/RustCrypto/utils),NONE,Apache-2.0 OR MIT,VERIFICATION_ONLY,NO,NOT_QUALIFIED,native/Cargo.lock
+ci-github,GitHub repository hosting and Actions runners,hosted,ci,FOREIGN_SERVICE,GitHub (Microsoft),THIRD_PARTY,Service terms,CI_ONLY,NO,NOT_QUALIFIED,.github/workflows/security.yml
+ci-codeql,CodeQL analysis,hosted,ci,FOREIGN_SERVICE,GitHub (Microsoft),THIRD_PARTY,Service terms,CI_ONLY,NO,NOT_QUALIFIED,.github/workflows/security.yml
+ci-gitleaks,gitleaks secret scanning,pinned action,ci,FOREIGN_OPEN_SOURCE,gitleaks,THIRD_PARTY,MIT,CI_ONLY,NO,NOT_QUALIFIED,.github/workflows/security.yml
+ci-trivy,Trivy image scanning,pinned action,ci,FOREIGN_OPEN_SOURCE,Aqua Security,THIRD_PARTY,Apache-2.0,CI_ONLY,NO,NOT_QUALIFIED,.github/workflows/ci.yml
+hw-compute,x86-64 server CPUs used for all measurements,Intel Xeon (test hosts),hardware,IMPORTED_HARDWARE,Intel,OPERATOR,n/a,RUNTIME,NO,NOT_QUALIFIED,docs/assurance/d-t5-01-baseline.md
