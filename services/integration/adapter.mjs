@@ -5,14 +5,25 @@ import { createTransportServer } from '../../packages/transport/tls.mjs';
 /** Default ceiling on durable idempotency records. Records are never evicted (eviction would
  * reopen replay); once full, new request IDs are refused until an operator archives the store. */
 export const DEFAULT_MAX_ENTRIES = 100000;
+// Local laboratory resource limit, not a sponsor capacity/availability target.
+export const DEFAULT_MAX_PENDING = 32;
 /** Accepted clock skew between the synthetic source and the adapter, in either direction. */
 export const FRESHNESS_WINDOW_MS = 300000;
 
 export class SyntheticAdapter {
-  constructor({ database, endpoint, destinations, maxEntries = DEFAULT_MAX_ENTRIES }) {
+  constructor({
+    database,
+    endpoint,
+    destinations,
+    maxEntries = DEFAULT_MAX_ENTRIES,
+    maxPending = DEFAULT_MAX_PENDING,
+  }) {
     if (!Number.isSafeInteger(maxEntries) || maxEntries < 1)
       throw new TypeError('maxEntries must be a positive integer');
-    Object.assign(this, { endpoint, destinations, maxEntries });
+    if (!Number.isSafeInteger(maxPending) || maxPending < 1 || maxPending > 1024)
+      throw new TypeError('maxPending must be an integer from 1 to 1024');
+    Object.assign(this, { endpoint, destinations, maxEntries, maxPending });
+    this.pending = 0;
     this.tail = Promise.resolve();
     this.db = new DatabaseSync(database);
     this.db.exec(
@@ -20,7 +31,11 @@ export class SyntheticAdapter {
     );
   }
   async submit(request) {
+    if (this.pending >= this.maxPending) throw new Error('ADAPTER_BUSY');
     if (
+      !request ||
+      typeof request !== 'object' ||
+      Array.isArray(request) ||
       Object.keys(request).sort().join() !==
         'destinationUserId,issuedAt,payload,requestId,senderUserId,version' ||
       request.version !== 1 ||
@@ -34,13 +49,18 @@ export class SyntheticAdapter {
     const destination = this.destinations.find((d) => d.userId === request.destinationUserId);
     if (!destination) throw new Error('ADAPTER_DESTINATION_DENIED');
     this.endpoint.crypto.validatePayload(request.payload);
+    // A caller must not change a validated request while it waits behind another request.
+    request = JSON.parse(canonical(request));
     const prior = this.tail;
     let unlock;
     this.tail = new Promise((r) => {
       unlock = r;
     });
+    this.pending++;
     await prior;
     try {
+      if (Math.abs(Date.now() - request.issuedAt) > FRESHNESS_WINDOW_MS)
+        throw new Error('ADAPTER_SCHEMA_OR_REPLAY');
       const digest = hash(canonical(request));
       let row = this.db.prepare('SELECT * FROM requests WHERE id=?').get(request.requestId);
       if (row && row.digest !== digest) throw new Error('IDEMPOTENCY_CONFLICT');
@@ -67,8 +87,27 @@ export class SyntheticAdapter {
         .run(canonical(response), request.requestId);
       return response;
     } finally {
+      this.pending--;
       unlock();
     }
+  }
+  async readiness() {
+    const checks = { database: false, capacity: this.pending < this.maxPending, authority: false };
+    try {
+      checks.database = this.db.prepare('SELECT 1 AS ok').get().ok === 1;
+    } catch {}
+    if (checks.database && checks.capacity) {
+      try {
+        const { payload } = await this.endpoint.signed('/api/control');
+        const now = Date.now();
+        checks.authority =
+          Number.isSafeInteger(payload?.issuedAt) &&
+          Number.isSafeInteger(payload?.expiresAt) &&
+          payload.issuedAt <= now &&
+          payload.expiresAt > now;
+      } catch {}
+    }
+    return { service: 'synthetic-adapter', ready: Object.values(checks).every(Boolean), checks };
   }
   /**
    * Delivery state of a previously accepted request, as currently reported by the authority.
@@ -95,6 +134,12 @@ export function createAdapterServer({ adapter, tls }) {
     res.setHeader('content-type', 'application/json');
     res.setHeader('cache-control', 'no-store');
     try {
+      if (req.method === 'GET' && req.url === '/ready') {
+        const observation = await adapter.readiness();
+        res.writeHead(observation.ready ? 200 : 503);
+        res.end(canonical(observation));
+        return;
+      }
       const status = req.method === 'GET' ? STATUS_PATH.exec(req.url ?? '') : null;
       if (status) {
         try {
@@ -131,9 +176,13 @@ export function createAdapterServer({ adapter, tls }) {
       }
       const response = await adapter.submit(JSON.parse(Buffer.concat(chunks)));
       res.end(canonical(response));
-    } catch {
-      res.writeHead(409);
-      res.end('{"version":1,"code":"ADAPTER_REJECTED"}');
+    } catch (error) {
+      const busy = error?.message === 'ADAPTER_BUSY';
+      if (busy) res.setHeader('retry-after', '1');
+      res.writeHead(busy ? 503 : 409);
+      res.end(
+        busy ? '{"version":1,"code":"ADAPTER_BUSY"}' : '{"version":1,"code":"ADAPTER_REJECTED"}',
+      );
     }
   }, tls);
   server.requestTimeout = 15000;

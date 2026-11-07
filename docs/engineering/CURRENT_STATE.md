@@ -1,5 +1,62 @@
 # Current engineering state (single authoritative handover file)
 
+## IAF adversarial qualification preparation (7 November 2026, India)
+
+Active branch: `codex/siepmu-iaf-adversarial-qualification`, based on draft PR #30 at
+`3244158f3d1f8fabe1b745b1588392f82884dfcf` (tree `d47db17a2da9e166bda93752c8e126e90e8cf861`).
+That base passed all nine CI and three Security jobs on both push and PR runs:
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42376174481 and
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42376174472 (push),
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42376178306 and
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42376178329 (PR).
+The sections below are historical snapshots, not current candidate results.
+
+User requested a TRL 8 target, adverse testing and remaining IAF implementation work.
+Implemented bounded adapter queueing (default 32), immutable queued requests and
+freshness rechecks, authenticated readiness, failed-login local session clearing,
+bounded process supervision and safe startup stage/reason diagnostics. Eleven new
+adapter regressions cover overload, queue faults/mutation/expiry, readiness, failed
+login/binding, actual process failure and expired-session behavior. Three runner tests
+verify source/test/gap mapping and real pass/fail/skip handling.
+
+`assurance/iaf/run.mjs` executes nine laboratory families, records exact commit/tree/
+source fingerprint and hashed logs, and rejects incomplete or changed-source evidence.
+`plan.json` maps all twelve requirements and nineteen open gaps. The qualification
+report never self-assigns a TRL. `docs/trl/TRL8_QUALIFICATION.md` records proposed
+qualification gates, independent adverse trials, owners and exit evidence. The current
+provisional TRL 4 self-assessment and external qualification status remain unchanged.
+
+Confirmed boundary: the synthetic DMS adapter receives plaintext and owns endpoint
+keys; the source outbox stores plaintext requests. It cannot be treated as an untrusted
+ciphertext-only connector. IAF-G05/Q17/IAF-06 retain the production placement/redesign
+decision. The old ADAPTER_EXITED root cause remains open (IAF-G18); improved diagnostics
+and later green runs alone do not establish its cause or resolution.
+
+The cryptographic inventory has 14 components and now binds 55 reviewed source/test
+files, including the adapter endpoint and its tests. No cryptographic algorithm was
+replaced and no approved issuer, provider, hardware or military interface was invented.
+
+Locally tested code candidate: `d8ec42c9c01e677e37288364e50e031aad6fa07f`,
+tree `1fe3d704f8581bb7ff96037d6b7117b9f4c7ba7c`, Node 24.22.1 / Linux x64.
+Full validation passed all ten gates and 384 tests, with no skips or failures;
+coverage: 97.84% lines, 90.24% branches, 98.87% functions. All three E2E tests passed.
+The separately executed adversarial campaign passed 194 tests across all nine families
+(14, 28, 73, 15, 21, 8, 10, 18, 7), preserving all nineteen open gaps and no assigned TRL.
+Actual evaluation packaging and separate verifier execution passed for 602 files,
+manifest SHA-256 `9131a068d360c74177c45646b8d85193828c9536f3432991dca09627f2515e6d`.
+These identities and digest refer only to the stated code candidate, not later commits.
+
+This documentation follow-up must pass fresh full validation/e2e before publication.
+The draft PR description is the final exact-head handover: local tested commit/tree,
+published head, hosted run URLs, outcomes and artifacts. No PR is merged and no
+operational deployment occurs. The campaign artifact has 30-day CI retention; retain
+permitted assessment evidence through the sponsor-agreed process before it expires.
+
+Next executable task: publish the validated candidate as a draft PR based on
+`codex/siepmu-sag-evaluation`; observe all hosted jobs and record exact results in that
+PR. Then resolve the nineteen gap owners/inputs and execute the sponsor-agreed
+independent and operational qualification programme.
+
 ## SAG evaluation preparation candidate (2026-11-07)
 
 **Active branch:** `codex/siepmu-sag-evaluation`, based on NEXORA head

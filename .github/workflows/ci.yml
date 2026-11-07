@@ -50,6 +50,15 @@ jobs:
         run: npm run demo:monitoring
       - name: Record candidate engineering evidence
         run: node scripts/record-engineering-evidence.mjs --verified
+      - name: Execute the source-bound adversarial laboratory campaign
+        run: npm run test:adversarial -- artifacts/iaf-adversarial
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        if: always()
+        with:
+          name: iaf-adversarial-evidence
+          path: artifacts/iaf-adversarial/
+          if-no-files-found: error
+          retention-days: 30
       - name: Build and verify the ungraded evaluation candidate
         run: |
           node assurance/sag/package.mjs artifacts/sag-evaluation > artifacts/sag-package-receipt.json

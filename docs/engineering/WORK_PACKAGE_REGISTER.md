@@ -50,3 +50,12 @@ Applicant dossier and executable package builder/verifier: `assurance/sag/`,
 The preparation implementation is separate from the WP11 external grading decision,
 which remains EXTERNAL_BLOCKED. Commands, candidate revision and final evidence are
 recorded in CURRENT_STATE and the preparation PR; no external axis is upgraded here.
+
+## Adversarial qualification preparation (7 November 2026)
+
+WP16/18: bounded adapter submissions, request snapshots/freshness, authenticated
+readiness, local session cleanup and redacted startup diagnostics are implemented.
+Nine executable laboratory families and nineteen open qualification gaps are recorded
+in `assurance/iaf/plan.json` and `docs/trl/TRL8_QUALIFICATION.md`. Exact execution evidence
+is in the candidate PR and campaign report. No external readiness axis is upgraded.
+The plaintext integration boundary and prior unexplained startup failure remain open.

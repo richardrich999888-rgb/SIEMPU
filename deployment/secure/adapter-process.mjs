@@ -4,12 +4,14 @@
 
 import { spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { startupDiagnostic, isAdapterReady } from '../../services/integration/lifecycle.mjs';
 import { requestBytes } from '../../packages/transport/tls.mjs';
 import { reservePort } from './ports.mjs';
 
-/** Bounded wait for the adapter to accept TLS connections (100 x 50 ms). */
-const READY_ATTEMPTS = 100;
+/** Bounded readiness deadline including each network probe. */
+const READY_TIMEOUT_MS = 15000;
 const READY_INTERVAL_MS = 50;
 
 /**
@@ -44,37 +46,62 @@ export async function startLabAdapter({
     SIEPMU_ADAPTER_CLIENT_TLS_KEY: join(stack.pki.dir, 'unit-a.key'),
   };
   const child = spawn(process.execPath, ['services/integration/server.mjs'], {
+    cwd: resolve(fileURLToPath(new URL('../..', import.meta.url))),
     env,
     stdio: ['ignore', 'pipe', 'pipe'],
   });
-  let logs = '';
-  child.stdout.on('data', (b) => (logs += b));
-  child.stderr.on('data', (b) => (logs += b));
+  let logs = '',
+    spawnError = false;
+  child.on('error', () => {
+    spawnError = true;
+  });
+  const capture = (b) => {
+    logs = (logs + b.toString()).slice(-32768);
+  };
+  child.stdout.on('data', capture);
+  child.stderr.on('data', capture);
+  const ended = () => child.exitCode !== null || child.signalCode !== null || spawnError;
+  const stop = async () => {
+    if (ended()) return;
+    const exited = new Promise((r) => child.once('exit', r));
+    const timer = setTimeout(() => child.kill('SIGKILL'), 2000);
+    child.kill('SIGTERM');
+    try {
+      await exited;
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+  const failure = (code) => {
+    let diagnostic = startupDiagnostic(null);
+    for (const line of logs.split('\n')) {
+      try {
+        const record = JSON.parse(line);
+        if (record.event === 'ADAPTER_STARTUP_FAILED')
+          diagnostic = startupDiagnostic({ ...record, adapterStage: record.stage });
+      } catch {}
+    }
+    return Object.assign(new Error(code), { diagnostic });
+  };
   const url = `https://127.0.0.1:${port}`;
   const sourceTls = stack.pki.material(sourceIdentity);
-  let ready = false;
-  for (let i = 0; i < READY_ATTEMPTS && !ready; i++) {
-    if (child.exitCode !== null) throw new Error('ADAPTER_EXITED');
-    try {
-      await requestBytes(url + '/v1/messages', { tls: sourceTls });
-      ready = true;
-    } catch {
+  const deadline = Date.now() + READY_TIMEOUT_MS;
+  try {
+    while (Date.now() < deadline) {
+      if (ended()) throw failure('ADAPTER_EXITED');
+      try {
+        const response = await requestBytes(url + '/ready', {
+          tls: sourceTls,
+          timeoutMs: Math.min(1000, Math.max(1, deadline - Date.now())),
+          maxBytes: 4096,
+        });
+        if (isAdapterReady(response)) return { url, sourceTls, logs: () => logs, stop };
+      } catch {}
       await new Promise((r) => setTimeout(r, READY_INTERVAL_MS));
     }
+    throw failure('ADAPTER_NOT_READY');
+  } catch (error) {
+    await stop();
+    throw error;
   }
-  if (!ready) {
-    child.kill('SIGKILL');
-    throw new Error('ADAPTER_NOT_READY');
-  }
-  return {
-    url,
-    sourceTls,
-    logs: () => logs,
-    async stop() {
-      if (child.exitCode !== null) return;
-      const exited = new Promise((r) => child.once('exit', r));
-      child.kill('SIGTERM');
-      await exited;
-    },
-  };
 }

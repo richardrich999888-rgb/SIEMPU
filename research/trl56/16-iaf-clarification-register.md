@@ -28,3 +28,12 @@ Each response must contain decision_date, authority, signed/reference document, 
 ## Filed-scope decisions now requiring reconciliation
 
 P001/P002 are now reviewed. The six-role/four-priority model, proposed cryptographic suite, named implementation stack, integration/federation and 12-month delivery phases are applicant proposals. Ask the appropriate programme owner to record acceptance or revision of material differences from the current demonstrator. No engineering document in this repository silently amends the application. WP05 and WP22 own the administrative, financial, licensing and support follow-up; private originals remain outside the public repository.
+
+## IAF-06 follow-up: endpoint placement (7 November 2026)
+
+Which side of the real integration owns plaintext, endpoint credentials and content
+sealing? The synthetic adapter currently acts as a trusted managed endpoint and the
+source outbox retains plaintext requests. Confirm whether this boundary is permitted,
+or whether the connector must forward ciphertext only. Owner: IAF integration/security
+authorities. The decision blocks production interface implementation (IAF-G05); it
+does not alter the frozen baseline statuses above.

@@ -59,7 +59,8 @@
     "test:nexora": "node --test --test-concurrency=1 tests/nexora/*.check.mjs",
     "sag:package": "node assurance/sag/package.mjs",
     "sag:verify": "node assurance/sag/verify.mjs",
-    "test:sag": "node --test --test-concurrency=1 tests/sag-evaluation.test.mjs"
+    "test:sag": "node --test --test-concurrency=1 tests/sag-evaluation.test.mjs",
+    "test:adversarial": "node assurance/iaf/run.mjs"
   },
   "devDependencies": {
     "@types/node": "24.10.0",
