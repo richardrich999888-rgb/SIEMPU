@@ -97,10 +97,14 @@
     },
     {
       "id": "ADV-09",
-      "title": "Monitoring delivery and redaction",
+      "title": "Monitoring delivery, signed threat detections and redaction",
       "requirements": ["R3", "R6", "R11"],
-      "tests": ["tests/monitoring.test.mjs", "tests/access-alerts.test.mjs"],
-      "oracle": "Events retain authentication and deduplication; tested telemetry contains no payload/key canaries."
+      "tests": [
+        "tests/monitoring.test.mjs",
+        "tests/access-alerts.test.mjs",
+        "tests/threat-detections.test.mjs"
+      ],
+      "oracle": "Only authenticated unique signals contribute to bounded persistent detections; duplicates, forged events and partial failed transactions do not create detections. No payload/key canaries enter tested telemetry."
     }
   ],
   "gaps": [
@@ -254,7 +258,7 @@
       "requirements": ["R6", "R12"],
       "owner": "SYNTRIASS + SOC owner",
       "title": "Operational monitoring and incident response",
-      "current": "Authenticated redacted telemetry exists; no real SOC/SIEM integration or incident-response acceptance.",
+      "current": "Signed redacted collection and bounded persistent laboratory threat-signal rules, signed operator disposition and restart/replay handling are implemented. No production SOC connector, calibrated incident thresholds or guaranteed telemetry completeness.",
       "implementationNeeded": "Integrate agreed event schema/transport, alert escalation, monitoring availability and retention.",
       "sponsorInputs": "IAF-09",
       "exitEvidence": "Redaction and event completeness verified with SOC ingestion, outage replay and a witnessed response exercise.",

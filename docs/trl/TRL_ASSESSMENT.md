@@ -1,5 +1,10 @@
 # SIEPMU provisional Technology Readiness self-assessment
 
+> Current review (7 November 2026): [PS69_TECHNICAL_REVIEW.md](../trl5/PS69_TECHNICAL_REVIEW.md).
+> The dated analysis below is historical. D-T5-01 has been fixed; its old open status
+> is superseded by the recorded retest. General TRL guidance permits justified controlled
+> simulations; this project retains its declared relevance and external-review gates.
+
 **Date:** 8 October 2026. **Revision assessed:** `0e8d1b9` on `claude/siepmu-engineering-recovery-3nwgc8`.
 **Assessor:** internal engineering self-assessment. This is **not** an independent Technology
 Readiness Assessment, sponsor decision or SAG grading. Machine-readable source of truth:

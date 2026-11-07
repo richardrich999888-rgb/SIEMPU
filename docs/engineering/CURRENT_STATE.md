@@ -1,5 +1,47 @@
 # Current engineering state (single authoritative handover file)
 
+## PS-69 technical review and monitoring build (7 November 2026)
+
+Active branch: `codex/siepmu-ps69-trl5-review`, based on draft PR #31 at
+`62291027db51d641b8215925190349501f342301` (tree `feaee50d08dda1e0b7a444ddd810c0b0bd6cc51f`).
+Base push CI/Security: runs 42380383700 / 42380383730; PR CI/Security:
+42380396989 / 42380397021. All nine CI and three Security jobs passed on both events.
+The historical sections below are not this increment's results.
+
+The user requested verified IAF requirements, implementation and assessment of TRL 5 gates.
+Official PS-69 body pages 161-162 were retrieved and visually verified on 7 November.
+R1-R12 remain valid paraphrases. Government TRL guidance permits realistic controlled
+simulations; it does not supply the missing IAF evaluation profile. The status declaration
+in docs/trl5/PS69_TECHNICAL_REVIEW.md keeps provisional TRL 4 and explicitly records why
+complete-platform TRL 5 is not established. No requirement for new permission is inferred.
+
+Implemented persistent signed threat-signal rules for R6, duplicate/restart suppression,
+transactional counters/detections, bounded bucket/incident storage, retention of open or
+investigating detections, and operator-pinned mTLS read/disposition endpoints. Eleven new
+adverse tests exercise real authority events and transport. Fourteen initial targeted monitoring
+tests passed. Database/source/rule binding was then added with an additional regression;
+configuration changes or lost metadata refuse startup rather than reuse old counters.
+A fixture-clock mismatch was corrected without relaxing production freshness checks.
+
+The adversarial campaign includes the new tests in ADV-09; all nineteen gaps remain open.
+The crypto inventory covers fourteen components and sixty reviewed source/test bindings.
+The assessment now points to the current review and records D-T5-01 as historically fixed,
+with its frozen retest retained. G05 plaintext integration, G18 startup root-cause and
+external relevant-environment/identity/crypto/assessment inputs remain outstanding.
+
+Locally tested first code candidate: `75a125f1123c6700ee64aa94b7ddf2aad8de6351`,
+tree `3bd1c27a8da1111d3348cd68885fdd52b682ecd8`, Node 24.22.1 / Linux x64.
+All ten native gates and 394 tests passed with no failures/skips; coverage was 97.87%
+lines, 90.36% branches and 98.89% functions. E2E passed 3/3. The independent campaign
+execution passed 204 tests across nine families, retaining 19 open gaps and no assigned
+TRL. These observations predate the configuration-binding guard added after review.
+The final publication revision must receive fresh validation and hosted evidence.
+
+Next executable task: full validation and E2E on the final clean candidate, then publish
+a stacked draft PR targeting codex/siepmu-iaf-adversarial-qualification and observe all
+hosted jobs. The final PR description must retain local/published identities, exact run
+URLs and artifact identities. No old pass is attributed to a later commit; no PR is merged.
+
 ## IAF adversarial qualification preparation (7 November 2026, India)
 
 Active branch: `codex/siepmu-iaf-adversarial-qualification`, based on draft PR #30 at
