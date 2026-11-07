@@ -405,7 +405,7 @@
       "sha256": "af65e7a58db6bccc3a0eb793c7af0bbd1074f95ce5af15db2a0a55da1d005cb5"
     },
     "tests/additional-boundaries.test.mjs": {
-      "sha256": "5c3d592a1aaf457cdb7cd29a780a87c3728170601aaad81a33f08cbcd210e9c6"
+      "sha256": "c23fc43cda693cc2d94cde6e024996113f0afc9d11df17742cf21002d9c19826"
     },
     "tests/auth-routing.test.mjs": {
       "sha256": "058c5b000e9c927ba271d79a55422b52f272af9cbdf9d81998a44978a6bf7e47"

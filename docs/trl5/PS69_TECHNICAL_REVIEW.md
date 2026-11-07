@@ -30,8 +30,8 @@ criteria. The public challenge does not supply that complete evaluation profile.
   pages 7 and 9: a controlled simulation can represent the key and most stressful
   operational conditions. A field deployment is not universally required for TRL 5.
 
-Consequently, neither a single-kernel test environment nor lack of an independent
-witness is not alone a universal reason to disprove TRL 5. This project's agreed
+Consequently, using a single-kernel test environment or lacking an independent
+witness does not alone disprove TRL 5. This project's declared
 claim gates are stricter: relevant-environment definition, representative multi-host
 validation and external review remain outstanding. We retain those gates. Laboratory
 success and general TRL guidance do not supply an IAF acceptance record.

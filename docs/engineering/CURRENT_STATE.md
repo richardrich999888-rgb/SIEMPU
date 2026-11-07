@@ -2,6 +2,27 @@
 
 ## PS-69 technical review and monitoring build (7 November 2026)
 
+Publication follow-up: draft PR #32 is open at
+https://github.com/richardrich999888-rgb/SIEMPU/pull/32, targeting PR #31's branch.
+Initial published head `97b7c687f3bf7b43b7eabde429d31fee63c22ddb` has the same complete
+tree `e70d8f68f5dc1573e72afc87d1d93f1f6660031a` as locally validated candidate
+`1434c9507d5168c0258da4869498c5e6fa4e7cf5`: all ten gates / 395 tests and 3 E2E
+passed, with no failures or skips (97.88% lines, 90.38% branches, 98.89% functions).
+Hosted push CI run 42383303729 failed ADV-01 while PR run 42383320981 passed that
+campaign. Push/PR Security runs 42383303743 / 42383321059 passed all three jobs.
+
+The failed artifact 13578531556 identifies `concurrent recovery writers reserve one
+output and rotate identity exactly once`: one losing child's stderr was empty at
+assertion time. The single successful writer assertion passed. The harness exited
+children immediately after an asynchronous stderr write and collected output at
+`exit`, before the stream-close guarantee. This follow-up flushes the child write
+and waits for `close`; all outcome, diagnostic and state-change assertions remain.
+The crypto source binding is refreshed for the reviewed test change. Fresh full
+validation, E2E and hosted execution are required for this follow-up; earlier passes
+do not qualify it. Exact final candidate/run identities are retained in PR #32.
+The corrected concurrent-writer test passed twenty local executions (six children
+each), followed by 21/21 recovery-boundary and evaluation-package tests, no skips.
+
 Active branch: `codex/siepmu-ps69-trl5-review`, based on draft PR #31 at
 `62291027db51d641b8215925190349501f342301` (tree `feaee50d08dda1e0b7a444ddd810c0b0bd6cc51f`).
 Base push CI/Security: runs 42380383700 / 42380383730; PR CI/Security:
