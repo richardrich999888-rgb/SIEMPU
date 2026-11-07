@@ -148,6 +148,7 @@ for (const role of roles) {
     Object.assign(env, {
       SIEPMU_ADAPTER_HOST: '0.0.0.0',
       SIEPMU_ADAPTER_DB: '/state/adapter.sqlite',
+      SIEPMU_ENABLE_LEGACY_PLAINTEXT_ADAPTER: '1',
       SIEPMU_ADAPTER_PROFILE: '/state/profile.json',
       SIEPMU_ADAPTER_DESTINATIONS: '/state/destinations.json',
       SIEPMU_PLATFORM_URL: 'https://web:8080',

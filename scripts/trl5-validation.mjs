@@ -673,6 +673,7 @@ export async function runTrl5Validation() {
       SIEPMU_TLS_CA: join(states.c, 'ca.crt'),
       SIEPMU_PLATFORM_URL: GATEWAY_URL,
       SIEPMU_ADAPTER_PORT: String(PORTS.adapter),
+      SIEPMU_ENABLE_LEGACY_PLAINTEXT_ADAPTER: '1',
       SIEPMU_ADAPTER_PROFILE: join(states.c, 'adapter-profile.json'),
       SIEPMU_ADAPTER_DESTINATIONS: join(states.c, 'adapter-destinations.json'),
       SIEPMU_ADAPTER_DB: join(states.c, 'adapter.sqlite'),

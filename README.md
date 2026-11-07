@@ -132,3 +132,13 @@ The [current PS-69 technical review and pending TRL 5 declaration](docs/trl5/PS6
 reconciles the official requirements, implemented capabilities and remaining evaluation
 gates. The system remains provisionally assessed at TRL 4; the new
 [signed threat-signal detector](docs/monitoring-detections.md) adds laboratory R6 evidence.
+
+## Source-sealed integration candidate
+
+The [v2 ciphertext staging path](docs/decisions/ADR-015-sealed-document-staging.md) keeps
+plaintext, endpoint keys, bearer sessions and wrapped content keys outside the connector.
+Run the dedicated service with `npm run start:adapter:sealed` after supplying its documented
+TLS, relay and public-pin configuration. Legacy v1 startup requires explicit laboratory
+enablement. Migration and IAF environment validation remain pending; the provisional TRL 4
+assessment is unchanged. See the [dependency shortlist](docs/engineering/INTEGRATION_DEPENDENCY_REVIEW.md)
+for identity, hardware-key and telemetry integration candidates; none was installed by this change.

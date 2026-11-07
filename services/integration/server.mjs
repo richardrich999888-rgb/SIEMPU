@@ -11,6 +11,8 @@ export async function startAdapter(env = process.env) {
     adapter,
     server;
   try {
+    if (env.SIEPMU_ENABLE_LEGACY_PLAINTEXT_ADAPTER !== '1')
+      throw new Error('LEGACY_PLAINTEXT_ADAPTER_DISABLED');
     const read = (p) => JSON.parse(readFileSync(p));
     if (statSync(env.SIEPMU_ADAPTER_PROFILE).mode & 0o077)
       throw new Error('Adapter profile permissions');

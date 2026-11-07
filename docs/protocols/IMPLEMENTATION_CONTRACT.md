@@ -76,3 +76,18 @@ rejects source-identity access, retains open investigations, and rolls back inge
 when resource bounds are exceeded. These are not gateway or authority routes.
 The exact JSON contract is [monitoring.openapi.json](../monitoring.openapi.json);
 rule semantics and limitations are in [monitoring-detections.md](../monitoring-detections.md).
+
+## Source-sealed staging contract (transport version 2)
+
+The independent v2 connector exposes `POST /v2/ciphertext` and authenticated `GET /ready`.
+See [OpenAPI](../integration/sealed-staging.openapi.json) and [ADR-015](../decisions/ADR-015-sealed-document-staging.md).
+Its exact request contains a signed transport manifest and ciphertext only. The object
+envelope, wrapped content key, personnel session and fresh submission proof stay on the
+source-to-authority path. STAGED_CIPHERTEXT is a data-plane acknowledgement, never admission
+or release. The source verifies the bound authority SUBMITTED receipt before persisting
+ADMITTED; actual delivery remains the existing recipient acknowledgement.
+
+The legacy plaintext `/v1/messages` service is a separate entry point and now requires
+`SIEPMU_ENABLE_LEGACY_PLAINTEXT_ADAPTER=1`. Existing laboratory regressions explicitly
+enable it. The v2 service has no downgrade or fallback to it. Real military interface and
+relevant-environment acceptance remain pending.

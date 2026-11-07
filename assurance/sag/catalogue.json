@@ -16,7 +16,7 @@
       "boundary": "Sender and recipient endpoints",
       "deploymentScope": "APPLICATION",
       "custody": "Software endpoint keys; plaintext and recipient private key at endpoints",
-      "limitations": "No forward secrecy for static recipient keys, hardware custody or agency qualification. The synthetic DMS adapter is itself a managed plaintext encryption endpoint with software credentials; it is not a ciphertext-only connector. Production placement is unresolved (IAF-G05).",
+      "limitations": "No forward secrecy for static recipient keys, hardware custody or agency qualification. Legacy v1 DMS integration remains a managed plaintext endpoint requiring explicit enablement. The v2 connector excludes plaintext, endpoint credentials and the wrapped content key; source encryption uses the existing provider. IAF-G05 deployment/migration qualification remains pending.",
       "sources": [
         "packages/crypto/crypto.mjs",
         "packages/protocol/canonical.mjs",
@@ -269,9 +269,33 @@
         "services/relay/client.mjs"
       ],
       "tests": ["services/relay/relay.test.mjs"]
+    },
+    {
+      "id": "CR-15",
+      "purpose": "Source-sealed document staging and outbox integrity",
+      "mechanisms": [
+        "ECDSA P-256 SHA-256; domain-separated transport manifest",
+        "SHA-256 ciphertext and configuration digests",
+        "HMAC-SHA256; independent 32-byte source outbox key; separate document/row domains"
+      ],
+      "boundary": "Source endpoint, ciphertext connector and normal authority admission",
+      "deploymentScope": "APPLICATION",
+      "custody": "Source retains encryption/signing keys, session, wrapped content key and outbox HMAC key. Connector has public source pin plus TLS and relay workload credentials only.",
+      "limitations": "Synthetic interface and software key custody only; relay staging is not admission or release. Metadata remains visible, legacy stores need migration, and host isolation/real-interface acceptance remain pending.",
+      "sources": [
+        "packages/integration/sealed-transfer.mjs",
+        "apps/document-system/sealed-outbox.mjs",
+        "services/integration/sealed-adapter.mjs",
+        "services/integration/sealed-server.mjs",
+        "deployment/secure/sealed-adapter-process.mjs"
+      ],
+      "tests": ["tests/sealed-integration.test.mjs"]
     }
   ],
   "sourceBindings": {
+    "apps/document-system/sealed-outbox.mjs": {
+      "sha256": "3a6b6796436de7b9b87bb027270d2fd566807146cff7b248d1f437ffa014d401"
+    },
     "apps/unit-client/challenge.mjs": {
       "sha256": "aabcd7bfb47db105678c8640602d3669f544ec9f3c78395167a470e7689648fe"
     },
@@ -282,10 +306,13 @@
       "sha256": "55bd7186b6b0dd5fb566ccbe305bda56b5adf4950719d1ee35a3edfe8007572b"
     },
     "deployment/secure/adapter-process.mjs": {
-      "sha256": "408dfa81e93e33cbd30022d5360440879fdfa4b74b51dce36dc4ded077b3db79"
+      "sha256": "b0ef9cdabe4185af1eceded73dcc829ff1497a3ca53875d183afb875d3d1f111"
     },
     "deployment/secure/lab-pki.mjs": {
       "sha256": "860dfb1f669582d303a276ed7a3cbdb016cc095585aa6743c2ab5b8c5e90a693"
+    },
+    "deployment/secure/sealed-adapter-process.mjs": {
+      "sha256": "12032af7b6ceb4dd3a29b1413b1f708eb4942b107cfe31066385cc8d7cd7b3ab"
     },
     "integrations/nexora/Cargo.lock": {
       "sha256": "090879aa233f15090354b462cacf14079a9bfc86999dd97bc00e9b954e9c7fa9"
@@ -328,6 +355,9 @@
     },
     "packages/integration/client.mjs": {
       "sha256": "4f30af1f1e672fe5ffaf82550f3f576356ce8258c406235552b2e556d954cf6e"
+    },
+    "packages/integration/sealed-transfer.mjs": {
+      "sha256": "31092c4b9059d41e704ff1e885019293c590b5dcfc20420dab6c30afa7fd1f16"
     },
     "packages/pqc-lab/envelope.mjs": {
       "sha256": "a123397d0301cf3807581e990869b530263bf956f96b88e2285781236fe07777"
@@ -374,8 +404,14 @@
     "services/integration/lifecycle.mjs": {
       "sha256": "bb1cb1760bf64dcb1cc174edcd19ac47d06d9108e51263288ecfcb25acd74bd1"
     },
+    "services/integration/sealed-adapter.mjs": {
+      "sha256": "3c6fa070419eafd595193fbbea7c7f2818bdd51790ea87942b109c98d6fbad64"
+    },
+    "services/integration/sealed-server.mjs": {
+      "sha256": "4956b289dde865faf9c1b46b678d1ddfe39cbae5d7d67d07c8840539907b67d2"
+    },
     "services/integration/server.mjs": {
-      "sha256": "acde8f08cbd877fc199ee1e827db0026052926571177af663f4eb37242a9f72c"
+      "sha256": "4a5b638d5a0342b4922ce2a4a0da36ae0d8aeedfea2a5980265ccd737f845ea4"
     },
     "services/monitoring/collector.mjs": {
       "sha256": "c0ddc1fdb8946b6b9d51849af38d87877bca8d7a6a54efd15835ba68f47357e0"
@@ -440,11 +476,14 @@
     "tests/pqc/end-to-end.test.mjs": {
       "sha256": "a073d80a3fd539bf61eeb26aa81d4afbb3d11fcc3279fd8b610e40072f482f92"
     },
+    "tests/sealed-integration.test.mjs": {
+      "sha256": "cdbe6e19aba039e7a0e8bdbf72275a39a92569535e1ded825bbb90c4270a8663"
+    },
     "tests/threat-detections.test.mjs": {
       "sha256": "3ecc73a8288972f3d17c246f52ecc221f515b3899802f48f001632fd5fe2321a"
     },
     "tests/transport/secure-stack.test.mjs": {
-      "sha256": "ff1d2905fc3d4b6ae5e6111ac19f3ffeb47bcafa8bb3999d8e3bbe4e12244675"
+      "sha256": "a211a64abfe3ec9911a7c8765391ed503fc6dfdca6c44eae1e161f6a706b94a6"
     },
     "tests/transport/tls.test.mjs": {
       "sha256": "4820f99ea08fc55d369942e935bfd4ceca4fa82b0ceaeffff25d6084a13ba607"

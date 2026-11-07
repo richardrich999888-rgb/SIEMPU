@@ -60,7 +60,8 @@
       "tests": [
         "tests/adapter-adversarial.test.mjs",
         "tests/integration-adapter.test.mjs",
-        "tests/document-system.test.mjs"
+        "tests/document-system.test.mjs",
+        "tests/sealed-integration.test.mjs"
       ],
       "oracle": "Bound queued requests, preserve exact retry content, reject stale work and false readiness. Record plaintext endpoint exposure as an open deployment blocker."
     },
@@ -163,15 +164,15 @@
     {
       "id": "IAF-G05",
       "priority": "P0",
-      "status": "OPEN_DESIGN_BLOCKER",
+      "status": "PARTIAL_LAB",
       "requirements": ["R1", "R5", "R8", "R10"],
       "owner": "SYNTRIASS + IAF integration owner",
       "title": "Plaintext boundary of synthetic document integration",
-      "current": "The adapter receives plaintext payloads and owns software endpoint credentials; the source outbox persists plaintext request data. It is a trusted endpoint, not an untrusted relay.",
-      "implementationNeeded": "Agree endpoint placement. Move sealing/key ownership into the originating system if the connector must be untrusted; replace the synthetic schema with the supplied contract.",
+      "current": "The new v2 staging path seals at the source and excludes plaintext, wrapped keys and personnel credentials from the connector. Legacy v1 remains a trusted plaintext endpoint, now requiring explicit enablement; legacy source stores are not migrated.",
+      "implementationNeeded": "Validate the v2 trust boundary on representative hosts, migrate or retire legacy outboxes and deployment paths, and implement the supplied real-system contract with accepted endpoint placement.",
       "sponsorInputs": "IAF-06, Q17",
       "exitEvidence": "Canary and key scans of every declared untrusted process/store are negative; interface and trust-boundary review is accepted.",
-      "source": "services/integration/adapter.mjs"
+      "source": "docs/decisions/ADR-015-sealed-document-staging.md"
     },
     {
       "id": "IAF-G06",

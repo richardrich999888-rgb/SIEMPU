@@ -1,5 +1,11 @@
 # PS-69 technical review, TRL 5 gates and status declaration
 
+Follow-up candidate: [ADR-015](../decisions/ADR-015-sealed-document-staging.md) implements a
+source-sealed v2 staging path. G05 is now PARTIAL_LAB for that path; the legacy plaintext
+path, migration and accepted placement remain unresolved. The tables below describe the
+PR #32 review baseline. Current evidence is tracked in CURRENT_STATE and the follow-up PR.
+System provisional TRL 4 and outstanding TRL 5 gates remain unchanged.
+
 7 November 2026. Source baseline: draft PR #31,
 `62291027db51d641b8215925190349501f342301`. This increment is on
 `codex/siepmu-ps69-trl5-review`; the final draft PR records its exact tested revision.

@@ -1,5 +1,12 @@
 # Verified work-package register (engineering axes only)
 
+7 November 2026 follow-up, WP16 integration / CTE-08: source-sealed transport and protected
+outbox IMPLEMENTED_LAB candidate (ADR-015), 14 initial new tests passed. The revised
+preflight passes 46/46 integration/boundary/package tests. Fresh full validation and hosted
+results are required on the published candidate. G05 remains open as PARTIAL_LAB, with
+legacy migration and real-interface/host acceptance pending. WP06/WP20 external inputs
+and the provisional TRL 4 assessment are unchanged.
+
 Work-package IDs and definitions: `research/trl56/18-work-packages.md` (statuses there are frozen
 at the `main` baseline and validated by `research/trl56/validate.py`). This register records only
 **axis 1 (engineering implementation)** and **axis 2 (reproducible laboratory validation)** for the
