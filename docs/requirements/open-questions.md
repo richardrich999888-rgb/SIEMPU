@@ -22,3 +22,12 @@ These do not prevent a synthetic lab demonstration. They gate operational deploy
 | Q16 | Which Indian cryptographic provider and interface (PKCS#11, SDK, appliance) is acceptable? | Sponsor/cryptographic authority    | Provider port is interface-neutral; no Indian vendor publishes an integration interface (research record) |
 
 For each resolution append: date, answer, approving authority, source reference, affected requirement/ADR, change and regression-test evidence. An engineer's assumption is not sponsor acceptance.
+
+## Q17 — originating endpoint boundary (7 November 2026)
+
+For the real integration, is the connector inside the trusted originating endpoint,
+or must it operate without plaintext and sender private keys? Owner: IAF integration
+and security authorities. The current synthetic DMS adapter receives plaintext and
+owns software endpoint credentials; its source outbox stores the request. If the
+connector is untrusted, sealing/key custody must move into the originating system.
+This is an open requirement/design decision, not an accepted operational boundary.

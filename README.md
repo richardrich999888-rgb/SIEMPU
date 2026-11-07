@@ -120,3 +120,10 @@ The optional [NEXORA operator bridge](integrations/nexora/README.md) verifies an
 ## SAG evaluation preparation candidate
 
 The [evaluation preparation tools](assurance/sag/README.md) package a clean committed source, exact application build, native-validation evidence, cryptographic inventory and unresolved sponsor requirements. `npm run sag:package -- artifacts/sag-evaluation` requires a successful `npm run validate` on that clean commit. A separately supplied manifest digest lets reviewers verify the package offline. Grading and operational authorisation remain external; this command does not establish either.
+
+## Adversarial qualification preparation
+
+[IAF adversarial campaign](assurance/iaf/README.md): run nine laboratory test families
+with source-bound reports. The [TRL 8 target plan](docs/trl/TRL8_QUALIFICATION.md)
+identifies nineteen remaining implementation/design/evaluation gaps and their owners.
+This tooling does not assign a TRL or establish external qualification.

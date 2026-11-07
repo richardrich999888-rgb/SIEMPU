@@ -16,9 +16,19 @@
       "boundary": "Sender and recipient endpoints",
       "deploymentScope": "APPLICATION",
       "custody": "Software endpoint keys; plaintext and recipient private key at endpoints",
-      "limitations": "No forward secrecy for static recipient keys, hardware custody or agency qualification.",
-      "sources": ["packages/crypto/crypto.mjs", "packages/protocol/canonical.mjs"],
-      "tests": ["tests/crypto.test.mjs", "tests/crypto-provider.test.mjs"]
+      "limitations": "No forward secrecy for static recipient keys, hardware custody or agency qualification. The synthetic DMS adapter is itself a managed plaintext encryption endpoint with software credentials; it is not a ciphertext-only connector. Production placement is unresolved (IAF-G05).",
+      "sources": [
+        "packages/crypto/crypto.mjs",
+        "packages/protocol/canonical.mjs",
+        "packages/integration/client.mjs",
+        "services/integration/adapter.mjs",
+        "services/integration/server.mjs"
+      ],
+      "tests": [
+        "tests/crypto.test.mjs",
+        "tests/crypto-provider.test.mjs",
+        "tests/adapter-adversarial.test.mjs"
+      ]
     },
     {
       "id": "CR-02",
@@ -74,9 +84,15 @@
       "sources": [
         "services/control/core.mjs",
         "services/control/primitives.mjs",
-        "apps/unit-client/challenge.mjs"
+        "apps/unit-client/challenge.mjs",
+        "packages/integration/client.mjs",
+        "services/integration/lifecycle.mjs"
       ],
-      "tests": ["tests/authority.test.mjs", "tests/auth-routing.test.mjs"]
+      "tests": [
+        "tests/authority.test.mjs",
+        "tests/auth-routing.test.mjs",
+        "tests/adapter-adversarial.test.mjs"
+      ]
     },
     {
       "id": "CR-06",
@@ -105,8 +121,16 @@
       "deploymentScope": "APPLICATION",
       "custody": "Laboratory software PKI; operator-supplied key/certificate files",
       "limitations": "Capture negotiated suites/groups, certificate algorithms and actual PKI on the agreed hardware.",
-      "sources": ["packages/transport/tls.mjs", "deployment/secure/lab-pki.mjs"],
-      "tests": ["tests/transport/tls.test.mjs", "tests/transport/secure-stack.test.mjs"]
+      "sources": [
+        "packages/transport/tls.mjs",
+        "deployment/secure/lab-pki.mjs",
+        "deployment/secure/adapter-process.mjs"
+      ],
+      "tests": [
+        "tests/transport/tls.test.mjs",
+        "tests/transport/secure-stack.test.mjs",
+        "tests/adapter-adversarial.test.mjs"
+      ]
     },
     {
       "id": "CR-08",
@@ -249,6 +273,9 @@
     "assurance/kat/core/catalog.mjs": {
       "sha256": "55bd7186b6b0dd5fb566ccbe305bda56b5adf4950719d1ee35a3edfe8007572b"
     },
+    "deployment/secure/adapter-process.mjs": {
+      "sha256": "408dfa81e93e33cbd30022d5360440879fdfa4b74b51dce36dc4ded077b3db79"
+    },
     "deployment/secure/lab-pki.mjs": {
       "sha256": "860dfb1f669582d303a276ed7a3cbdb016cc095585aa6743c2ab5b8c5e90a693"
     },
@@ -291,6 +318,9 @@
     "packages/crypto/crypto.mjs": {
       "sha256": "07d80d9bc68a63571133ab93d482a99dab64571defffdee998c1ba1e0283a31a"
     },
+    "packages/integration/client.mjs": {
+      "sha256": "4f30af1f1e672fe5ffaf82550f3f576356ce8258c406235552b2e556d954cf6e"
+    },
     "packages/pqc-lab/envelope.mjs": {
       "sha256": "a123397d0301cf3807581e990869b530263bf956f96b88e2285781236fe07777"
     },
@@ -330,6 +360,15 @@
     "services/evidence/custody.mjs": {
       "sha256": "6c52adf5466468d02359e77ca8e5b5ea0831b072602841f36b3f29654eab2ee6"
     },
+    "services/integration/adapter.mjs": {
+      "sha256": "d6429aa119fab93ff40e72a94cc73ee38378293c18276cfa1972c5d82b8a19fd"
+    },
+    "services/integration/lifecycle.mjs": {
+      "sha256": "bb1cb1760bf64dcb1cc174edcd19ac47d06d9108e51263288ecfcb25acd74bd1"
+    },
+    "services/integration/server.mjs": {
+      "sha256": "acde8f08cbd877fc199ee1e827db0026052926571177af663f4eb37242a9f72c"
+    },
     "services/relay/auth.mjs": {
       "sha256": "1dd10731534b2ff8ee1db7177f6768623169842e15bb16a95f92c90e61a89f74"
     },
@@ -341,6 +380,9 @@
     },
     "services/relay/server.mjs": {
       "sha256": "b0f13392ea0c676c146ef37c2bf5b90d6ab38c5235c66cf07703bdeb2f9a2430"
+    },
+    "tests/adapter-adversarial.test.mjs": {
+      "sha256": "af65e7a58db6bccc3a0eb793c7af0bbd1074f95ce5af15db2a0a55da1d005cb5"
     },
     "tests/additional-boundaries.test.mjs": {
       "sha256": "5c3d592a1aaf457cdb7cd29a780a87c3728170601aaad81a33f08cbcd210e9c6"

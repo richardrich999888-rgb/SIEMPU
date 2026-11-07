@@ -1,0 +1,355 @@
+{
+  "schemaVersion": 1,
+  "kind": "IAF_QUALIFICATION_PREPARATION",
+  "targetTrl": 8,
+  "currentAssessment": "PROVISIONAL_TRL4_UNCHANGED",
+  "qualification": "NOT_ESTABLISHED",
+  "sourceBaseline": "3244158f3d1f8fabe1b745b1588392f82884dfcf",
+  "scope": "Synthetic laboratory tests only; no real IAF system, confidential data, formal grading or independent assessment.",
+  "families": [
+    {
+      "id": "ADV-01",
+      "title": "Identity, routing and credential denial",
+      "requirements": ["R1", "R5", "R7"],
+      "tests": [
+        "tests/auth-routing.test.mjs",
+        "tests/initial-password.test.mjs",
+        "tests/additional-boundaries.test.mjs"
+      ],
+      "oracle": "No unauthorized session, route bypass or device-bound operation."
+    },
+    {
+      "id": "ADV-02",
+      "title": "Revocation, races and separation of duties",
+      "requirements": ["R1", "R2", "R7"],
+      "tests": [
+        "tests/authority.test.mjs",
+        "tests/flash-approval.test.mjs",
+        "tests/filed-mission-authority.test.mjs"
+      ],
+      "oracle": "A revocation committed first produces zero new issuances; no self-approval or concealed metadata leak."
+    },
+    {
+      "id": "ADV-03",
+      "title": "Object tampering and cryptographic downgrade",
+      "requirements": ["R2", "R5", "R9"],
+      "tests": [
+        "tests/admission-integrity.test.mjs",
+        "tests/protocol-reconciliation.test.mjs",
+        "tests/versioned-envelope.test.mjs",
+        "tests/crypto-agility/providers.test.mjs",
+        "tests/crypto-agility/wrap-derivation.test.mjs"
+      ],
+      "oracle": "Altered stored objects, unknown suites and unavailable providers cannot reach content-key release."
+    },
+    {
+      "id": "ADV-04",
+      "title": "Custody loss and rollback recovery",
+      "requirements": ["R2", "R6", "R10"],
+      "tests": [
+        "tests/checkpoint-custody.test.mjs",
+        "tests/recovery.test.mjs",
+        "tests/incremental-custody.test.mjs"
+      ],
+      "oracle": "Rollback/fork/outage blocks key-bearing operations; recovery retains the independent checkpoint boundary."
+    },
+    {
+      "id": "ADV-05",
+      "title": "Adapter overload, startup and actual trust boundary",
+      "requirements": ["R2", "R4", "R8", "R11"],
+      "tests": [
+        "tests/adapter-adversarial.test.mjs",
+        "tests/integration-adapter.test.mjs",
+        "tests/document-system.test.mjs"
+      ],
+      "oracle": "Bound queued requests, preserve exact retry content, reject stale work and false readiness. Record plaintext endpoint exposure as an open deployment blocker."
+    },
+    {
+      "id": "ADV-06",
+      "title": "Service identity and transport disruption",
+      "requirements": ["R1", "R2", "R4", "R6"],
+      "tests": [
+        "tests/transport/tls.test.mjs",
+        "tests/transport/secure-stack.test.mjs",
+        "tests/routing-boundary.test.mjs",
+        "tests/network-failure/recovery.test.mjs"
+      ],
+      "oracle": "Wrong service certificates, redirects, oversized/interrupted responses and network revocation must fail closed."
+    },
+    {
+      "id": "ADV-07",
+      "title": "Endpoint persistence and offline updates",
+      "requirements": ["R2", "R5", "R10"],
+      "tests": [
+        "apps/unit-client/vault-store.test.mjs",
+        "apps/unit-client/trust.test.mjs",
+        "apps/unit-client/authority-pin.test.mjs",
+        "tests/offline-release.test.mjs"
+      ],
+      "oracle": "Tampered vault/update, stale state and untrusted authority keys are refused; no silent downgrade."
+    },
+    {
+      "id": "ADV-08",
+      "title": "Evidence transfer and audit integrity",
+      "requirements": ["R2", "R6", "R12"],
+      "tests": ["tests/verifier-replay.test.mjs", "tests/sag-evaluation.test.mjs"],
+      "oracle": "Invalid signatures, stale evidence, altered packages and self-awarded approval fail verification."
+    },
+    {
+      "id": "ADV-09",
+      "title": "Monitoring delivery and redaction",
+      "requirements": ["R3", "R6", "R11"],
+      "tests": ["tests/monitoring.test.mjs", "tests/access-alerts.test.mjs"],
+      "oracle": "Events retain authentication and deduplication; tested telemetry contains no payload/key canaries."
+    }
+  ],
+  "gaps": [
+    {
+      "id": "IAF-G01",
+      "priority": "P0",
+      "status": "EXTERNAL_INPUT_REQUIRED",
+      "requirements": ["R1", "R3", "R7", "R11", "R12"],
+      "owner": "IAF programme/security owners",
+      "title": "Requirements and permitted operating scope",
+      "current": "Public requirements are mapped; classification, users, modes, workload and acceptance values remain unspecified.",
+      "implementationNeeded": "Freeze a signed requirements/configuration baseline and permitted Internet data boundary.",
+      "sponsorInputs": "IAF-01, IAF-02, IAF-03, IAF-13",
+      "exitEvidence": "Approved scope and traceability covering every requirement; no TBD acceptance limit.",
+      "source": "docs/requirements/README.md"
+    },
+    {
+      "id": "IAF-G02",
+      "priority": "P0",
+      "status": "EXTERNAL_INPUT_REQUIRED",
+      "requirements": ["R1", "R5", "R7"],
+      "owner": "IAF identity owner + SYNTRIASS",
+      "title": "Personnel identity and federation",
+      "current": "Local password/TOTP, enrollment and device proofs exist; NEXORA is only an offline evidence integration.",
+      "implementationNeeded": "Integrate the nominated issuer/PKI, joiner/mover/leaver workflows, recovery and issuer-outage policy.",
+      "sponsorInputs": "IAF-02",
+      "exitEvidence": "Witnessed issuer, revoked-user, stale-token, phishing/recovery and account-lifecycle trials.",
+      "source": "packages/integration/client.mjs"
+    },
+    {
+      "id": "IAF-G03",
+      "priority": "P0",
+      "status": "EXTERNAL_INPUT_REQUIRED",
+      "requirements": ["R2", "R5", "R9"],
+      "owner": "IAF sponsor + cryptographic evaluator",
+      "title": "Permitted cryptographic implementation",
+      "current": "Software classical provider and lab-only PQC exist; required SAG process remains pending.",
+      "implementationNeeded": "Integrate the supplied module/SDK and exact suite/profile; complete the agreed independent review.",
+      "sponsorInputs": "SAG-01 through SAG-06",
+      "exitEvidence": "Decision referencing exact module, firmware, configuration and conditions, with negative provider tests.",
+      "source": "assurance/sag/requests.json"
+    },
+    {
+      "id": "IAF-G04",
+      "priority": "P0",
+      "status": "PARTIAL_LAB",
+      "requirements": ["R5", "R9", "R10"],
+      "owner": "SYNTRIASS + endpoint/crypto owner",
+      "title": "Key custody, rotation and recovery",
+      "current": "Software keys and lifecycle abstractions exist; hardware custody, fleet rotation and recovery are incomplete.",
+      "implementationNeeded": "Implement required HSM/token/attestation operations, device-loss response, rollover and authorized recovery.",
+      "sponsorInputs": "IAF-10",
+      "exitEvidence": "Extractability/removal/rotation/recovery/zeroisation results on selected hardware and agreed policy.",
+      "source": "docs/security-assurance/key-custody-matrix.md"
+    },
+    {
+      "id": "IAF-G05",
+      "priority": "P0",
+      "status": "OPEN_DESIGN_BLOCKER",
+      "requirements": ["R1", "R5", "R8", "R10"],
+      "owner": "SYNTRIASS + IAF integration owner",
+      "title": "Plaintext boundary of synthetic document integration",
+      "current": "The adapter receives plaintext payloads and owns software endpoint credentials; the source outbox persists plaintext request data. It is a trusted endpoint, not an untrusted relay.",
+      "implementationNeeded": "Agree endpoint placement. Move sealing/key ownership into the originating system if the connector must be untrusted; replace the synthetic schema with the supplied contract.",
+      "sponsorInputs": "IAF-06, Q17",
+      "exitEvidence": "Canary and key scans of every declared untrusted process/store are negative; interface and trust-boundary review is accepted.",
+      "source": "services/integration/adapter.mjs"
+    },
+    {
+      "id": "IAF-G06",
+      "priority": "P0",
+      "status": "IMPLEMENTATION_PENDING",
+      "requirements": ["R2", "R4", "R11"],
+      "owner": "SYNTRIASS + hosting owner",
+      "title": "High availability without split-brain release",
+      "current": "The authority is one SQLite writer; container isolation is not multi-host consensus.",
+      "implementationNeeded": "Design and implement single-writer fencing/failover and durable custody on independently administered hosts.",
+      "sponsorInputs": "IAF-08, IAF-03",
+      "exitEvidence": "Witnessed leader loss, partition, restore and competing-writer trials with zero unauthorized/duplicate issuance and agreed RPO/RTO.",
+      "source": "services/control/core.mjs"
+    },
+    {
+      "id": "IAF-G07",
+      "priority": "P0",
+      "status": "PARTIAL_LAB",
+      "requirements": ["R1", "R4", "R6", "R11"],
+      "owner": "SYNTRIASS + infrastructure/SOC owners",
+      "title": "Internet perimeter and resource exhaustion",
+      "current": "TLS/mTLS and application bounds exist; provider-grade DDoS protection, aggregate connection quotas and production capacity are unproven.",
+      "implementationNeeded": "Configure permitted ingress, firewall, service isolation, request/connection budgets and load shedding.",
+      "sponsorInputs": "IAF-03, IAF-08",
+      "exitEvidence": "Independent slow-client, connection flood, memory/disk exhaustion and lateral movement results on agreed topology.",
+      "source": "packages/transport/tls.mjs"
+    },
+    {
+      "id": "IAF-G08",
+      "priority": "P0",
+      "status": "PARTIAL_LAB",
+      "requirements": ["R2", "R6", "R10"],
+      "owner": "SYNTRIASS + operations owner",
+      "title": "Backup, retention and disaster recovery",
+      "current": "Rollback controls and synthetic restore tests exist; retention/compaction and independent-host recovery remain incomplete.",
+      "implementationNeeded": "Implement approved retention and deletion, encrypted backup custody, restore procedures and regular drills.",
+      "sponsorInputs": "IAF-04, IAF-09",
+      "exitEvidence": "Witnessed restore from damaged/missing media with retained checkpoints, measured RPO/RTO and no stale authorization.",
+      "source": "tests/recovery.test.mjs"
+    },
+    {
+      "id": "IAF-G09",
+      "priority": "P0",
+      "status": "IMPLEMENTATION_PENDING",
+      "requirements": ["R2", "R8"],
+      "owner": "SYNTRIASS + identity owner",
+      "title": "Long-running adapter authentication lifecycle",
+      "current": "Session expiration now withdraws readiness. Automatic renewal/recovery is not implemented and must not bypass user/device revocation.",
+      "implementationNeeded": "Implement bounded supervised reauthentication with the agreed service identity and recovery policy.",
+      "sponsorInputs": "IAF-02, IAF-06",
+      "exitEvidence": "Soak spans multiple credential expiries; failed renewal stays unavailable and revoked credentials never regain access.",
+      "source": "packages/integration/client.mjs"
+    },
+    {
+      "id": "IAF-G10",
+      "priority": "P1",
+      "status": "PARTIAL_LAB",
+      "requirements": ["R3", "R11"],
+      "owner": "SYNTRIASS + IAF product owner",
+      "title": "Scale, latency and communication modes",
+      "current": "Text/file workflows and synthetic impairment tests exist; fleet concurrency, large attachments, multi-recipient behavior and required real-time modes remain unqualified.",
+      "implementationNeeded": "Agree modes and load envelope; implement missing modes and queue/backpressure/capacity controls; run sustained representative tests.",
+      "sponsorInputs": "IAF-03",
+      "exitEvidence": "Latency percentiles, throughput, resource ceilings and long-duration recovery satisfy sponsor-agreed limits.",
+      "source": "docs/trl5/ACCEPTANCE_MATRIX.md"
+    },
+    {
+      "id": "IAF-G11",
+      "priority": "P1",
+      "status": "IMPLEMENTATION_PENDING",
+      "requirements": ["R5", "R10"],
+      "owner": "SYNTRIASS + endpoint/security owner",
+      "title": "Content safety and endpoint data handling",
+      "current": "File validation is not malware scanning. Decrypted content and endpoint compromise remain outside server-side revocation.",
+      "implementationNeeded": "Implement required endpoint scanning, safe viewers, storage/session-lock and leakage controls consistent with the approved E2EE boundary.",
+      "sponsorInputs": "Q09, IAF-10",
+      "exitEvidence": "Malicious-file, unsafe-viewer, disk-cache, clipboard/print and lost-device procedures are tested for the approved scope.",
+      "source": "apps/unit-client/README.md"
+    },
+    {
+      "id": "IAF-G12",
+      "priority": "P1",
+      "status": "PARTIAL_LAB",
+      "requirements": ["R6", "R12"],
+      "owner": "SYNTRIASS + SOC owner",
+      "title": "Operational monitoring and incident response",
+      "current": "Authenticated redacted telemetry exists; no real SOC/SIEM integration or incident-response acceptance.",
+      "implementationNeeded": "Integrate agreed event schema/transport, alert escalation, monitoring availability and retention.",
+      "sponsorInputs": "IAF-09",
+      "exitEvidence": "Redaction and event completeness verified with SOC ingestion, outage replay and a witnessed response exercise.",
+      "source": "services/monitoring/collector.mjs"
+    },
+    {
+      "id": "IAF-G13",
+      "priority": "P1",
+      "status": "EXTERNAL_INPUT_REQUIRED",
+      "requirements": ["R1", "R5", "R7", "R10"],
+      "owner": "IAF endpoint owner + SYNTRIASS",
+      "title": "Managed fleet and device posture",
+      "current": "Software key possession does not prove hardware/OS integrity; enrolment is laboratory-managed.",
+      "implementationNeeded": "Integrate nominated MDM/attestation, OS/browser support, update policy and device-loss response.",
+      "sponsorInputs": "IAF-02, IAF-10",
+      "exitEvidence": "Supported fleet matrix, disallowed posture, expired certificates and lost-device recovery tested on actual hardware.",
+      "source": "apps/unit-client/app.mjs"
+    },
+    {
+      "id": "IAF-G14",
+      "priority": "P1",
+      "status": "PARTIAL_LAB",
+      "requirements": ["R3", "R7", "R12"],
+      "owner": "SYNTRIASS + IAF users/training owner",
+      "title": "Usability, accessibility and support material",
+      "current": "Operator UI and Chromium tests exist; representative user trials and cross-browser/accessibility coverage are incomplete.",
+      "implementationNeeded": "Complete role-based user/admin/training/maintenance manuals and task-based accessibility trials.",
+      "sponsorInputs": "IAF-02, IAF-07",
+      "exitEvidence": "Representative personnel complete enrollment, approvals, exchange, denial and recovery tasks against agreed criteria.",
+      "source": "apps/unit-client/app.mjs"
+    },
+    {
+      "id": "IAF-G15",
+      "priority": "P0",
+      "status": "PARTIAL_LAB",
+      "requirements": ["R2", "R4", "R9", "R12"],
+      "owner": "SYNTRIASS release owner + evaluator",
+      "title": "Final release and supplier assurance",
+      "current": "Pinned sources, application SBOM and signed offline updates exist; software signing keys are laboratory keys and SBOM scope excludes full OS/firmware.",
+      "implementationNeeded": "Freeze final hardware/runtime/modules, complete supplier inventory and protected signing/revocation/rollback ceremonies.",
+      "sponsorInputs": "IAF-08, IAF-12",
+      "exitEvidence": "Independent offline installation/update/rollback and full inventory verified against exact accepted configuration.",
+      "source": "packages/release/offline.mjs"
+    },
+    {
+      "id": "IAF-G16",
+      "priority": "P0",
+      "status": "EXTERNAL_INPUT_REQUIRED",
+      "requirements": ["R6", "R9", "R12"],
+      "owner": "IAF nominated lab + independent assessor",
+      "title": "Independent adversarial assessment",
+      "current": "Repository tests are applicant-authored evidence; no independent assessment is established.",
+      "implementationNeeded": "Agree rules of engagement and test profile; execute independent penetration, protocol and cryptographic assessment; remediate and retest.",
+      "sponsorInputs": "IAF-07",
+      "exitEvidence": "Signed findings and retests against exact candidate, with no unresolved disqualifying defect under agreed criteria.",
+      "source": "docs/security-assurance/SAG_EVALUATION_DOSSIER.md"
+    },
+    {
+      "id": "IAF-G17",
+      "priority": "P1",
+      "status": "EXTERNAL_INPUT_REQUIRED",
+      "requirements": ["R7", "R8", "R12"],
+      "owner": "SYNTRIASS proposal owner + IAF programme owner",
+      "title": "Filed-scope and lifecycle support reconciliation",
+      "current": "Filed role/workflow, licensing, budget and support commitments require owner/sponsor confirmation.",
+      "implementationNeeded": "Reconcile implemented features and omissions with filed/contract deliverables; agree lifecycle support and training.",
+      "sponsorInputs": "IAF-11, IAF-12",
+      "exitEvidence": "Accepted deliverable matrix, support/maintenance arrangements and licensing records.",
+      "source": "research/trl56/17-proposal-reconciliation.md"
+    },
+    {
+      "id": "IAF-G18",
+      "priority": "P0",
+      "status": "ROOT_CAUSE_OPEN",
+      "requirements": ["R2", "R8", "R12"],
+      "owner": "SYNTRIASS",
+      "title": "Historical adapter startup failure",
+      "current": "Earlier ADAPTER_EXITED was not diagnosed. Bounded readiness and safe stage/reason diagnostics are now implemented and tested.",
+      "implementationNeeded": "Retain diagnostics on recurrence; identify the original failure mechanism or establish an agreed closure rationale with soak evidence.",
+      "sponsorInputs": "IAF-07",
+      "exitEvidence": "Reproduction and root-cause fix/retest, or assessor-accepted disposition; later green runs alone do not close it.",
+      "source": "deployment/secure/adapter-process.mjs"
+    },
+    {
+      "id": "IAF-G19",
+      "priority": "P0",
+      "status": "EXTERNAL_INPUT_REQUIRED",
+      "requirements": ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10", "R11", "R12"],
+      "owner": "IAF evaluation authority",
+      "title": "Operational prototype trials and final qualification",
+      "current": "No sponsor-defined operational trial, complete-system qualification or operational authorization is established.",
+      "implementationNeeded": "Execute authorized representative and operational-environment trials, close accepted exit criteria, and obtain final qualification decision.",
+      "sponsorInputs": "IAF-07, IAF-13",
+      "exitEvidence": "Documented complete-system qualification for exact configuration; TRL decision and operational authorization recorded separately.",
+      "source": "docs/trl/PS69_QUALIFICATION_PLAN.md"
+    }
+  ]
+}

@@ -48,22 +48,29 @@ export class IntegrationEndpoint {
     return result;
   }
   async authenticate() {
-    const login = await this.call('POST', '/api/auth/login', {
-      username: this.profile.username,
-      password: this.profile.password,
-      otp: totp(this.profile.totpSecret),
-    });
-    this.token = login.token;
-    const expected = { purpose: 'bind', deviceId: this.profile.deviceId };
-    const reply = await this.call('POST', '/api/auth/challenge', expected);
-    await this.call('POST', '/api/auth/bind', {
-      deviceId: this.profile.deviceId,
-      challengeId: reply.challengeId,
-      signature: await this.crypto.sign(
-        this.profile.keys.signing.privateKey,
-        validateDeviceChallenge(reply, expected),
-      ),
-    });
+    this.token = null;
+    try {
+      const login = await this.call('POST', '/api/auth/login', {
+        username: this.profile.username,
+        password: this.profile.password,
+        otp: totp(this.profile.totpSecret),
+      });
+      this.token = login.token;
+      const expected = { purpose: 'bind', deviceId: this.profile.deviceId };
+      const reply = await this.call('POST', '/api/auth/challenge', expected);
+      await this.call('POST', '/api/auth/bind', {
+        deviceId: this.profile.deviceId,
+        challengeId: reply.challengeId,
+        signature: await this.crypto.sign(
+          this.profile.keys.signing.privateKey,
+          validateDeviceChallenge(reply, expected),
+        ),
+      });
+    } catch (error) {
+      // Neither an old session nor a partially bound new session survives failure locally.
+      this.token = null;
+      throw error;
+    }
   }
   async proof(operation, body = {}) {
     const expected = {

@@ -43,6 +43,11 @@ does not inherit their results merely by copying them as source documentation.
 | NEXORA            | Offline evidence snapshot commitment and verification                         | Optional software signer; no live personnel-login authority or continuity-log claim                                |
 | Laboratory PQC    | Opt-in Node-only candidate providers                                          | Excluded from application releases; composition and implementation need independent review                         |
 
+The synthetic document adapter receives plaintext and owns software endpoint credentials.
+Its source DMS outbox also retains plaintext requests. It must be treated as a trusted
+originating endpoint, not an untrusted ciphertext connector; production integration
+placement and redesign remain open in IAF-G05.
+
 Authority compromise can cause premature wrapped-key release. An already disclosed
 key/plaintext cannot be recalled. Static recipient encryption keys do not provide
 forward secrecy. Current software erasure and opaque handles do not prove physical
