@@ -44,6 +44,20 @@ The Alpine libc change requires fresh image testing. An image-build smoke check 
 HTTP behavior and nonroot execution. Trivy still blocks every reported HIGH/CRITICAL finding.
 The replacement is **NOT YET VERIFIED** until those hosted steps succeed on the candidate.
 
+### November dependency refresh
+
+CI [run 42356230201](https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42356230201)
+on `76fb20e348b9f9b66ecad16e17729f2f8bd6691b` passed the image's deployment and
+crypto/policy checks, then blocked `musl` / `musl-utils` 1.2.6-r2
+(CVE-2026-107891, fixed in 1.2.6-r3) and `zlib` 1.3.2-r0
+(CVE-2026-85091, fixed in 1.3.2-r1). The replacement candidate pins
+`node:24.22.2-alpine3.24` (Alpine 3.24.4), OCI index digest
+`sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8`.
+Source: [official Docker image metadata](https://github.com/docker-library/repo-info/blob/master/repos/node/remote/24.22.2-alpine3.24.md),
+retrieved 2026-11-07. The immutable image digest is the build pin.
+Hosted build, scan and testbed results on the new candidate are still required.
+No vulnerability exclusions or scanner-policy changes were added.
+
 The SARIF parser's component support follows the
 [GitHub CodeQL SARIF documentation](https://docs.github.com/en/code-security/reference/code-scanning/codeql/codeql-cli/sarif-output)
 and [SARIF 2.1.0 specification](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.pdf).

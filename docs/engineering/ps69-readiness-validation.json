@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-07",
+  "branch": "codex/siepmu-ps69-readiness",
+  "validationScope": "Local modified working tree based on the recorded Git commit; not a validation of the unchanged historical base. Documentation handover added after this run.",
+  "baseCommit": "09b18103268603b35a9801b2679fa589bf54160c",
+  "testedSourceDigest": "1eeb33743afe87e37088bcd2988f61d777459916cf3849a4b66b731683e63a2c",
+  "runtime": {
+    "node": "v24.22.1",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "nativeValidation": {
+    "outcome": "PASS",
+    "command": "npm run validate",
+    "gates": [
+      {
+        "name": "check",
+        "exitCode": 0
+      },
+      {
+        "name": "lint",
+        "exitCode": 0
+      },
+      {
+        "name": "typecheck",
+        "exitCode": 0
+      },
+      {
+        "name": "format:check",
+        "exitCode": 0
+      },
+      {
+        "name": "test:coverage",
+        "exitCode": 0
+      },
+      {
+        "name": "security",
+        "exitCode": 0
+      },
+      {
+        "name": "dependency-audit",
+        "exitCode": 0
+      },
+      {
+        "name": "build",
+        "exitCode": 0
+      },
+      {
+        "name": "sbom",
+        "exitCode": 0
+      },
+      {
+        "name": "demo",
+        "exitCode": 0
+      }
+    ],
+    "tests": 360,
+    "passed": 360,
+    "failed": 0,
+    "lineCoveragePercent": 97.76,
+    "branchCoveragePercent": 90.13,
+    "functionCoveragePercent": 99.05
+  },
+  "acceptance": {
+    "command": "npm run test:e2e",
+    "passed": 3,
+    "failed": 0
+  },
+  "targetedReadiness": {
+    "command": "node --test --test-concurrency=1 tests/mission-readiness.test.mjs",
+    "passed": 6,
+    "failed": 0
+  },
+  "browser": {
+    "command": "npm run test:browser:isolated",
+    "status": "BLOCKED_ENVIRONMENT",
+    "reason": "Playwright Chromium headless-shell executable is absent; browser assertions were not executed."
+  },
+  "hostedCI": "NOT_OBSERVED",
+  "container": "NOT_RUN",
+  "operationalQualification": "NOT_ESTABLISHED",
+  "runtimeAndTestFileSha256": {
+    "apps/admin-console/admin.mjs": "4c25c97102fedbddf4d1255fb474832d3922b42845a6c5b39d0cb0e8b8062292",
+    "apps/unit-client/browser-check.mjs": "aba871de926a09f46fc31f32ea09099aa6fa41fcf05da19633df4c0ab737e341",
+    "apps/unit-client/sw.js": "57f0762c400bc58c67b6adb3319667784f6064192d418d4a21e0e883e83a8142",
+    "services/control/core.mjs": "8aa89ce666e7239f6550a64e4e59dc82a0067c9209d8a8bba22c4309c4d79c31",
+    "services/control/server.mjs": "49b1623e5de72c7b4c995eeb0fecc3fd10b78bfb982c5e4472ed6270fdda874e",
+    "services/control/readiness.mjs": "e82d1b9b0720be0d6cecc43b69bd4d96fcebb05bb71eef2c82aa2878fac9dee8",
+    "services/relay/client.mjs": "3b3069d601d8073b049474fc253f2a2eac90e3a8cbd8719d2915adc222740d83",
+    "services/web/server.mjs": "00bb97412ceab35484d947b76630ecd791797b41c0442463573a3c4875cd3e06",
+    "services/web/web.test.mjs": "983d36ad091da0588a10fb4d3ab261db33134815e776ef935f8c5d28840fa681",
+    "tests/helpers/fixture.mjs": "fa9c6c8e1f5f3ce2a9dd36522b625d945102560e5d9e9f3923ec3896a8549627",
+    "tests/mission-readiness.test.mjs": "187633d15730071da76cab275225459b69b815130c353091c29bc28b00a07968"
+  },
+  "followUp": {
+    "candidate": "188be1612b1b955910f805771f4a3668bbf664aa",
+    "ciRun": "https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42355976435",
+    "securityRun": "https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42355976393",
+    "hostedBrowser": "PASS",
+    "hostedSecurity": "PASS",
+    "nativeClaimsAudit": "One new document line required explicit pending wording; corrected and all 9 claims tests pass on tracked files. Initial worktree audit omitted then-untracked documentation.",
+    "formalToolPin": {
+      "officialRelease": "https://github.com/tlaplus/tlaplus/releases/tag/v1.8.0",
+      "assetId": 718777374,
+      "sha256": "e1f11b75c4b5bc4478ba0ac5cb6ae28e40a01b0016bc33e0aa97da22dfdbcd7f",
+      "sha1": "0b57675323babad8ab3815b1db9f30e75dac1cdb",
+      "verification": "Independent local download matches official asset SHA-256 digest and release SHA-1; strict checksum enforcement retained."
+    },
+    "localFormal": {
+      "model": "formal/ReleaseAuthority.tla",
+      "instance": "formal/MCReleaseAuthority.tla",
+      "tlc": "TLC2 Version 2026.11.06.222357 (rev: d8fb231)",
+      "results": [
+        {
+          "config": "faithful",
+          "expected": "no error",
+          "observed": "no error",
+          "ok": true,
+          "exitStatus": 0,
+          "distinctStates": 3837180,
+          "depth": 29,
+          "counterexampleStates": 0
+        },
+        {
+          "config": "nonatomic",
+          "expected": "violation of IssueRequiresCurrentAuthority",
+          "observed": "violation of IssueRequiresCurrentAuthority",
+          "ok": true,
+          "exitStatus": 13,
+          "distinctStates": 289,
+          "depth": 8,
+          "counterexampleStates": 6
+        },
+        {
+          "config": "unguarded",
+          "expected": "violation of AckedRevocationHolds",
+          "observed": "violation of AckedRevocationHolds",
+          "ok": true,
+          "exitStatus": 13,
+          "distinctStates": 2831,
+          "depth": 8,
+          "counterexampleStates": 7
+        }
+      ],
+      "limitations": [
+        "Bounded model checking of one finite instance (see formal/README.md), not a proof for all sizes.",
+        "The model abstracts the implementation; conformance of core.mjs to the model is argued, not mechanically checked."
+      ]
+    },
+    "runtimeCodeChanged": false
+  }
+}

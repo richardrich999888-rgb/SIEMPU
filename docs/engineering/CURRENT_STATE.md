@@ -1,5 +1,90 @@
 # Current engineering state (single authoritative handover file)
 
+## PS-69 mission readiness candidate (2026-11-07)
+
+**Active branch:** `codex/siepmu-ps69-readiness`, based on sovereign research head
+`09b18103268603b35a9801b2679fa589bf54160c`. Older sections below are historical.
+User-confirmed scope: IAF DISC-14 PS-69 secure exchange of sensitive/confidential
+information between authorized personnel over the public Internet. Hosting is a
+service delivery model; this is not consumer SaaS or public self-registration.
+
+Implemented: protected admin/auditor mission-readiness API and UI, unsigned snapshot
+export, configuration observations, crypto policy/inventory, custody state and
+pending qualification evidence. Gateway readiness now checks the authority database
+and ciphertext relay; actual outage/restart and malformed-response cases are tested.
+Immutable browser shell bumped to v8. ADR-015 records the availability semantics.
+
+Local modified-tree verification (Node 24.22.1, Linux x64): `npm run validate` PASS,
+360/360 tests, 97.76% lines, 90.13% branches, 99.05% functions; all ten validation
+gates PASS. `npm run test:e2e` 3/3 PASS; new readiness tests 6/6 PASS; research record
+consistency PASS. Exact tested source digest and runtime/test hashes are recorded in
+`docs/engineering/ps69-readiness-validation.json`; do not attribute these runs to the
+unchanged historical base SHA. Only handover documentation was added after the run.
+
+Browser run BLOCKED: local Playwright Chromium executable missing; assertions were
+not reached. Browser checks for the new view, live dependency check and download
+were added to the existing runner. Hosted CI, browser, container and operational
+deployment are not established by the local results. No TRL advancement is claimed.
+
+**Hosted observation on candidate `188be1612b1b955910f805771f4a3668bbf664aa`:**
+[CI run 42355976435](https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42355976435)
+passed the browser and PQC jobs; [Security run 42355976393](https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42355976393)
+passed CodeQL, secret scanning and dependency/security regression. Native CI found
+one ambiguous qualification-plan line in the tracked-file claims audit; it now
+explicitly says the SAG process is pending. The initial local claims scan did not
+include that then-untracked document; tracked-file checks were rerun after correction.
+Formal CI stopped before model execution because the current upstream v1.8.0 JAR
+published on 6 November does not match the recorded checksum. The strict SHA-256 pin
+is updated to the independently downloaded asset's hash, which matches both the
+official GitHub asset digest and the release's SHA-1. The checks are not disabled. Local formal validation with the verified JAR passed:
+3,837,180 states for the faithful model; both deliberately broken models produced
+their expected invariant violations.
+Official asset: `https://api.github.com/repos/tlaplus/tlaplus/releases/assets/718777374`;
+SHA-256: `e1f11b75c4b5bc4478ba0ac5cb6ae28e40a01b0016bc33e0aa97da22dfdbcd7f`.
+PR: https://github.com/richardrich999888-rgb/SIEMPU/pull/28 (draft).
+
+**Dependency follow-up after `76fb20e348b9f9b66ecad16e17729f2f8bd6691b`:**
+CI run 42356230201 passed native, browser, PQC, formal, relevant-env and testbed.
+Security run 42356230189 passed all three jobs. Two release gates failed:
+RustSec RUSTSEC-2026-0387 in crypto-bigint 0.5.5, and image HIGH findings in musl/zlib.
+The next candidate upgrades p256/sha2 and their locked dependencies, adapts only the
+upstream point-parser API names, and pins the refreshed official Node/Alpine image.
+Rust 1.97.0 local results on the modified tree: format/clippy PASS, 26 unit + 3 vector
+suites PASS, Node/Rust differential 3/3 PASS including 400 mutations, both 18-step
+mission profiles PASS, cargo-audit 0.22.0 with `--deny warnings` PASS.
+Full modified-tree validation also PASS (360/360), acceptance 3/3 PASS, engineering PASS,
+network/independent-services 3/3 PASS. Exact digest/hashes and environment are in
+`ps69-dependency-validation.json`. Container execution remains hosted-only. No scanner
+exceptions were introduced.
+
+Hosted `b2e1785154547d05a70bfea4419e4ad5613517f5` caught a Clippy rule newly
+applicable at the raised Rust minimum (1.87): the CLI's odd argument-count check.
+The equivalent standard `is_multiple_of` predicate replaces manual modulo. The
+initial local lint preceded the minimum-version change. Follow-up local format,
+Clippy, 26 Rust unit tests and 3 vector suites PASS with the final manifest;
+full validation 360/360 and acceptance 3/3 PASS on modified source digest
+`604326cff0bbc3452e3da15edd59cc7f7f2870aa57adc1a225b74b86c6355b14`.
+Rust CLI SHA-256: `433d79fb2b938129052c513d2bd61117efa73255e7ff270f4fc5e129bcdcd623`.
+The native-validation source digest covers the JavaScript source; the CLI hash binds
+the separate Rust checks. Only this handover update followed that run. No lint
+suppression is used.
+Hosted container job 128358817829 on `b2e1785` passed build, actual exchange,
+HIGH/CRITICAL scan and SBOM generation; Security run 42357429642 passed all jobs.
+The final CLI-fix candidate still requires its own hosted run; consult PR #28 for
+exact candidate SHA and run results rather than carrying older passes forward.
+
+**NEXORA clarification:** user asked why VANIAN NEXORA cannot provide authentication.
+Source inspected at AIP `4ee39f359430277a48c34b957609104d3cf781f6` establishes a portable
+commitment/proof verifier. The proposed SIEPMU integration and authentication boundary
+are recorded in `docs/decisions/NEXORA_INTEGRATION_BOUNDARY.md`; no NEXORA login or
+cross-format compatibility is implemented or claimed by this candidate.
+
+**Next executable tasks:** finish validation and hosted checks for the dependency
+candidate, then execute sponsor-agreed qualification work in
+`docs/trl/PS69_QUALIFICATION_PLAN.md`. Keep the draft unmerged for review. No approved
+IAF deployment target, PKI/provider interface or external qualification evidence was
+supplied. Provisional TRL 4 remains unchanged.
+
 **Review date:** 2026-10-10. **Active branch:** `claude/siepmu-sovereign-research-w886dv` (see first section). Previous active branch: `claude/siepmu-trl5-24h-validation`, created from PR #18's head
 `4190797`, which contains PR #17's head `12989fb`. Not merged into `main`. The sections below this sprint's section
 describe earlier branches and are kept for provenance.

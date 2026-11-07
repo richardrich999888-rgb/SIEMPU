@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 1,
+  "kind": "native-validation",
+  "startedAt": "2026-11-07T08:49:41.487Z",
+  "gitCommit": "76fb20e348b9f9b66ecad16e17729f2f8bd6691b",
+  "workingTreeStatus": "M  Dockerfile\nM  docs/decisions/ADR-012-rust-reference-components.md\nA  docs/decisions/NEXORA_INTEGRATION_BOUNDARY.md\nM  docs/deployment.md\nM  docs/engineering/CURRENT_STATE.md\nM  docs/research/sovereign/sovereignty-matrix.csv\nM  docs/secure-airgap-profile.md\nM  native/Cargo.lock\nM  native/Cargo.toml\nM  native/DEPENDENCIES.md\nM  native/evidence-verify/Cargo.toml\nM  native/evidence-verify/src/signature.rs\nM  security/README.md\n",
+  "sourceDigest": "604326cff0bbc3452e3da15edd59cc7f7f2870aa57adc1a225b74b86c6355b14",
+  "runtime": {
+    "node": "v24.22.1",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "externalObservations": {
+    "container": "NOT_OBSERVED",
+    "hostedSast": "NOT_OBSERVED",
+    "browser": "NOT_OBSERVED"
+  },
+  "gates": [
+    {
+      "name": "check",
+      "command": ["npm", "run", "check"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-11-07T08:49:41.698Z",
+      "finishedAt": "2026-11-07T08:49:59.392Z",
+      "log": "artifacts/validation/check.log"
+    },
+    {
+      "name": "lint",
+      "command": ["npm", "run", "lint"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-11-07T08:49:59.392Z",
+      "finishedAt": "2026-11-07T08:50:01.562Z",
+      "log": "artifacts/validation/lint.log"
+    },
+    {
+      "name": "typecheck",
+      "command": ["npm", "run", "typecheck"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-11-07T08:50:01.563Z",
+      "finishedAt": "2026-11-07T08:50:03.265Z",
+      "log": "artifacts/validation/typecheck.log"
+    },
+    {
+      "name": "format:check",
+      "command": ["npm", "run", "format:check"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-11-07T08:50:03.265Z",
+      "finishedAt": "2026-11-07T08:50:11.216Z",
+      "log": "artifacts/validation/format-check.log"
+    },
+    {
+      "name": "test:coverage",
+      "command": ["npm", "run", "test:coverage"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-11-07T08:50:11.216Z",
+      "finishedAt": "2026-11-07T08:51:54.338Z",
+      "log": "artifacts/validation/test-coverage.log"
+    },
+    {
+      "name": "security",
+      "command": ["npm", "run", "security"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-11-07T08:51:54.338Z",
+      "finishedAt": "2026-11-07T08:51:54.846Z",
+      "log": "artifacts/validation/security.log"
+    },
+    {
+      "name": "dependency-audit",
+      "command": ["npm", "audit", "--audit-level=high"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-11-07T08:51:54.846Z",
+      "finishedAt": "2026-11-07T08:52:17.696Z",
+      "log": "artifacts/validation/dependency-audit.log"
+    },
+    {
+      "name": "build",
+      "command": ["npm", "run", "build"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-11-07T08:52:17.697Z",
+      "finishedAt": "2026-11-07T08:52:18.071Z",
+      "log": "artifacts/validation/build.log"
+    },
+    {
+      "name": "sbom",
+      "command": ["npm", "run", "sbom"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-11-07T08:52:18.071Z",
+      "finishedAt": "2026-11-07T08:52:18.379Z",
+      "log": "artifacts/validation/sbom.log"
+    },
+    {
+      "name": "demo",
+      "command": ["npm", "run", "demo"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-11-07T08:52:18.379Z",
+      "finishedAt": "2026-11-07T08:52:19.986Z",
+      "log": "artifacts/validation/demo.log"
+    }
+  ],
+  "tests": {
+    "total": 360,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "demo": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "synthetic": true
+  },
+  "sourceDigestAfter": "604326cff0bbc3452e3da15edd59cc7f7f2870aa57adc1a225b74b86c6355b14",
+  "finishedAt": "2026-11-07T08:52:20.042Z",
+  "outcome": "PASS",
+  "claimsAudit": {
+    "valid": true,
+    "mode": "EXECUTION_EVIDENCE_CHECKED",
+    "claims": 24,
+    "errors": [],
+    "trustBoundary": "Local records are not independent attestation; reviewer must trust the runner and inspect logs."
+  },
+  "sourceFilesSha256": {
+    "Dockerfile": "1cd40e069ad06fc509931129d66e60183cd1a23b0137146367128f9800e7d796",
+    "native/Cargo.toml": "8ed4daa4e1ae3ce60a3e8f106c43559dd0b2d241fc1fda66746023ed511428c1",
+    "native/Cargo.lock": "7d074ae83c9bed990330fc644720553bffcd6ca4efbb903abf91f09232100f7b",
+    "native/evidence-verify/Cargo.toml": "cdc1666e19fd1198c81d3c414774c4b63a4d650063e43cf17f8e5740d1f7c382",
+    "native/evidence-verify/src/signature.rs": "e6a2d4ca29efa339d0e1299275e54fb171a8437ffaa57c45b90df119cf42b5fd"
+  },
+  "additionalObservedChecks": {
+    "rustToolchain": "1.97.0",
+    "cargoFmt": "PASS",
+    "cargoClippy": "PASS",
+    "rustUnitTests": "26/26 PASS",
+    "rustVectorSuites": "3/3 PASS",
+    "cargoAudit": "0.22.0 --deny warnings PASS",
+    "vectorsCheck": "PASS",
+    "nodeRustDifferential": "3/3 PASS (400 mutations)",
+    "missionWorkflow": "18/18 classical and 18/18 pqc-lab PASS",
+    "acceptance": "3/3 PASS",
+    "engineering": "PASS",
+    "networkAndIndependentServices": "3/3 PASS"
+  },
+  "scopeNote": "Modified source tree on recorded base HEAD; exact source digest and hashes bind the executed tests. This evidence record and handover updates were added after validation. Container candidate awaits hosted execution."
+}

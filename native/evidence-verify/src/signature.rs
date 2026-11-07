@@ -11,7 +11,7 @@ use crate::error::VerifyError;
 use crate::json::Value;
 use p256::ecdsa::signature::Verifier;
 use p256::ecdsa::{Signature, VerifyingKey};
-use p256::EncodedPoint;
+use p256::Sec1Point;
 use sha2::{Digest, Sha256};
 
 /// Lowercase hexadecimal SHA-256 of `bytes`.
@@ -66,14 +66,14 @@ impl TrustedKey {
                 .ok_or_else(|| VerifyError::protocol("Invalid trusted key coordinate"))?;
             slot.copy_from_slice(&bytes);
         }
-        let point = EncodedPoint::from_affine_coordinates(
+        let point = Sec1Point::from_affine_coordinates(
             &coordinates[0].into(),
             &coordinates[1].into(),
             false,
         );
         // Rejects points not on the curve and the identity, as Node's createPublicKey does
         // (message differs: implementation-specific input error).
-        let key = VerifyingKey::from_encoded_point(&point)
+        let key = VerifyingKey::from_sec1_point(&point)
             .map_err(|_| VerifyError::input("Trusted key is not a valid P-256 public point"))?;
         let key_id = digest(jwk)?;
         Ok(Self { key, key_id })

@@ -67,6 +67,17 @@ export function createRelayClient({
     return ciphertext;
   }
   return {
+    // This probes the configured relay only. It does not accept caller-selected URLs.
+    health: async () => {
+      const response = await requestBytes(new URL('/health/ready', url), {
+        tls,
+        timeoutMs: 1000,
+        maxBytes: 1024,
+      });
+      if (response.status !== 200) return false;
+      const body = JSON.parse(response.body.toString('utf8'));
+      return body.status === 'ok' && body.service === 'blind-ciphertext-relay';
+    },
     /** @param {string} hash @param {Uint8Array} bytes */
     putBlob: async (hash, bytes) => {
       const result = await request('PUT', hash, Buffer.from(bytes));

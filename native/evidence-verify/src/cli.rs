@@ -45,7 +45,7 @@ pub struct Arguments {
 /// # Errors
 /// Usage errors and unsupported release mode.
 pub fn parse_arguments(args: &[String]) -> Result<Arguments, VerifyError> {
-    if args.len() < 2 || args.len() % 2 != 0 {
+    if args.len() < 2 || !args.len().is_multiple_of(2) {
         return Err(VerifyError::protocol(USAGE));
     }
     let mut options: Vec<(&str, &str)> = Vec::new();

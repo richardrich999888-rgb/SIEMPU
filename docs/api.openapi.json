@@ -2096,6 +2096,57 @@
         "x-roles": ["admin"],
         "x-laboratory": "Requires SIEPMU_ALLOW_PQC_LAB=1 for laboratory suites; see ADR-010."
       }
+    },
+    "/api/admin/readiness": {
+      "get": {
+        "summary": "Observe PS-69 mission readiness",
+        "operationId": "getMissionReadiness",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; JSON response shape in docs/api.md and protocol contract",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "x-contract-coverage": "route-inventory-and-auth-guard",
+        "x-device-binding-required": true,
+        "description": "Bound admin/auditor only. Read-only configuration observations and pending qualification gates. Unsigned operator snapshot; no operational approval or TRL assignment."
+      }
     }
   },
   "components": {

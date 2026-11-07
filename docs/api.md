@@ -59,3 +59,15 @@ An admission HOLD returns HTTP 409 and additionally includes metadata `object` a
 | Gateway content type / Origin rejection         | 415 / 403   | `CONTENT_TYPE` / `ORIGIN_MISMATCH`    |
 
 The direct control listener uses `JSON_REQUIRED` and `ORIGIN_DENIED` for its own content-type and Origin checks. Those differ from the public gateway codes above; both use the same error/correlation shape. Other domain errors use stable machine-readable `code` strings. Clients should branch on status/code, not human-facing `error` text.
+
+## Mission readiness
+
+`GET /api/admin/readiness` requires a current session, bound approved device and
+admin/auditor role. It returns configuration observations, current public crypto
+policy/inventory, custody state, a historical provisional TRL baseline and evidence
+gates. Downloaded snapshots are unsigned operator aids, not signed decision evidence.
+
+Gateway `/health/ready` checks control `/ready`, which probes its database and the
+configured ciphertext relay. Failure returns 503. Liveness remains independent.
+These probes do not establish custody freshness, monitoring delivery, operational
+qualification or permission to release a key. See ADR-015.
