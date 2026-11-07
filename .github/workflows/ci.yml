@@ -50,6 +50,20 @@ jobs:
         run: npm run demo:monitoring
       - name: Record candidate engineering evidence
         run: node scripts/record-engineering-evidence.mjs --verified
+      - name: Build and verify the ungraded evaluation candidate
+        run: |
+          node assurance/sag/package.mjs artifacts/sag-evaluation > artifacts/sag-package-receipt.json
+          node --input-type=module -e 'import {readFileSync} from "node:fs"; import {verifyEvaluationPackage} from "./assurance/sag/verify.mjs"; const r=JSON.parse(readFileSync("artifacts/sag-package-receipt.json")); console.log(JSON.stringify(verifyEvaluationPackage(r.package,r.manifestSha256),null,2));'
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: sag-evaluation-candidate
+          # The verified source snapshot includes tracked dotfiles; runtime secrets are excluded.
+          include-hidden-files: true
+          path: |
+            artifacts/sag-evaluation/
+            artifacts/sag-package-receipt.json
+          if-no-files-found: error
+          retention-days: 14
       - name: Require native evidence after successful checks
         run: test -s artifacts/validation/report.json && test -s artifacts/application.cdx.json && test -s dist/manifest.json
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6, resolved 2026-10-07

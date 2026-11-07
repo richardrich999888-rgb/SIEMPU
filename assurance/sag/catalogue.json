@@ -1,0 +1,391 @@
+{
+  "schemaVersion": 1,
+  "kind": "APPLICANT_CRYPTO_INVENTORY",
+  "reviewDate": "2026-11-07",
+  "coverage": "Reviewed application mechanisms and separately scoped laboratory/optional tools; not exhaustive discovery, cryptanalysis, an SBOM substitute or an agency decision.",
+  "components": [
+    {
+      "id": "CR-01",
+      "purpose": "Endpoint object confidentiality and authenticity",
+      "mechanisms": [
+        "P-256 ECDH",
+        "HKDF-SHA256",
+        "AES-256-GCM; 96-bit nonce and 128-bit tag",
+        "ECDSA P-256 SHA-256; P1363"
+      ],
+      "boundary": "Sender and recipient endpoints",
+      "deploymentScope": "APPLICATION",
+      "custody": "Software endpoint keys; plaintext and recipient private key at endpoints",
+      "limitations": "No forward secrecy for static recipient keys, hardware custody or agency qualification.",
+      "sources": ["packages/crypto/crypto.mjs", "packages/protocol/canonical.mjs"],
+      "tests": ["tests/crypto.test.mjs", "tests/crypto-provider.test.mjs"]
+    },
+    {
+      "id": "CR-02",
+      "purpose": "Encrypted endpoint vault",
+      "mechanisms": [
+        "PBKDF2-HMAC-SHA256; 600000 iterations; 32-byte salt",
+        "AES-256-GCM; 12-byte IV; metadata AAD"
+      ],
+      "boundary": "Endpoint browser storage",
+      "deploymentScope": "APPLICATION",
+      "custody": "Passphrase-derived software key",
+      "limitations": "Endpoint compromise, memory erasure and recovery need separate assessment.",
+      "sources": ["packages/crypto/crypto.mjs"],
+      "tests": ["tests/crypto.test.mjs"]
+    },
+    {
+      "id": "CR-03",
+      "purpose": "Personnel password and second factor",
+      "mechanisms": [
+        "scrypt N=16384 r=8 p=1; 16-byte salt; 32-byte output",
+        "TOTP HMAC-SHA1; 6 digits; 30-second counter"
+      ],
+      "boundary": "Control authority",
+      "deploymentScope": "APPLICATION",
+      "custody": "Password hashes and encrypted TOTP seed",
+      "limitations": "Phishing-resistant/hardware-backed login is not implemented. TOTP policy needs sponsor review.",
+      "sources": ["services/control/primitives.mjs", "services/control/core.mjs"],
+      "tests": ["tests/authority.test.mjs", "tests/additional-boundaries.test.mjs"]
+    },
+    {
+      "id": "CR-04",
+      "purpose": "Stored MFA seed protection",
+      "mechanisms": ["AES-256-GCM; 12-byte random IV"],
+      "boundary": "Authority storage",
+      "deploymentScope": "APPLICATION",
+      "custody": "Locally provisioned software master.key",
+      "limitations": "No HSM, hardware attestation or physical tamper evaluation.",
+      "sources": ["services/control/primitives.mjs", "scripts/bootstrap.mjs"],
+      "tests": ["tests/authority.test.mjs"]
+    },
+    {
+      "id": "CR-05",
+      "purpose": "Sessions, device proof and operation binding",
+      "mechanisms": [
+        "32-byte random bearer token; SHA-256 lookup",
+        "32-byte random challenge nonce",
+        "ECDSA P-256 SHA-256"
+      ],
+      "boundary": "Authority and enrolled device",
+      "deploymentScope": "APPLICATION",
+      "custody": "Session database and endpoint software signing key",
+      "limitations": "Historical NEXORA/login evidence is not a fresh authentication proof. IAF issuer/PKI mapping is outstanding.",
+      "sources": [
+        "services/control/core.mjs",
+        "services/control/primitives.mjs",
+        "apps/unit-client/challenge.mjs"
+      ],
+      "tests": ["tests/authority.test.mjs", "tests/auth-routing.test.mjs"]
+    },
+    {
+      "id": "CR-06",
+      "purpose": "Decision evidence and checkpoint custody",
+      "mechanisms": ["ECDSA P-256 SHA-256", "SHA-256 hash chain"],
+      "boundary": "Authority, verifier and custodian",
+      "deploymentScope": "APPLICATION",
+      "custody": "Software signing key; separately trusted public key and retained checkpoint",
+      "limitations": "Signatures do not establish human actions, trustworthy hardware or honest authority decisions.",
+      "sources": [
+        "services/control/primitives.mjs",
+        "services/evidence/custody.mjs",
+        "apps/verifier/verify.mjs"
+      ],
+      "tests": ["tests/verifier-replay.test.mjs", "tests/checkpoint-custody.test.mjs"]
+    },
+    {
+      "id": "CR-07",
+      "purpose": "Transport and service authentication",
+      "mechanisms": [
+        "TLS 1.3",
+        "X.509 CA and hostname validation",
+        "mTLS and SHA-256 certificate pins where configured"
+      ],
+      "boundary": "Service transport boundaries",
+      "deploymentScope": "APPLICATION",
+      "custody": "Laboratory software PKI; operator-supplied key/certificate files",
+      "limitations": "Capture negotiated suites/groups, certificate algorithms and actual PKI on the agreed hardware.",
+      "sources": ["packages/transport/tls.mjs", "deployment/secure/lab-pki.mjs"],
+      "tests": ["tests/transport/tls.test.mjs", "tests/transport/secure-stack.test.mjs"]
+    },
+    {
+      "id": "CR-08",
+      "purpose": "Provider selection, lifecycle and wrapping",
+      "mechanisms": [
+        "P-256 classical provider",
+        "HKDF-SHA256; provider/suite/key/context domain binding",
+        "AES-256-GCM key wrap"
+      ],
+      "boundary": "Endpoint provider engine",
+      "deploymentScope": "APPLICATION",
+      "custody": "Opaque software handles; no hardware token integrated",
+      "limitations": "No supplied SAG-authorised module/SDK; content AEAD is fixed to AES-256-GCM. Configuration hash chain is not signed external attestation.",
+      "sources": [
+        "packages/crypto-provider/registry.mjs",
+        "packages/crypto-provider/engine.mjs",
+        "packages/crypto-provider/classical.mjs",
+        "packages/crypto-provider/primitives.mjs",
+        "services/crypto-policy/registry.mjs"
+      ],
+      "tests": [
+        "tests/crypto-agility/providers.test.mjs",
+        "tests/crypto-agility/wrap-derivation.test.mjs"
+      ]
+    },
+    {
+      "id": "CR-09",
+      "purpose": "Signed offline distribution",
+      "mechanisms": ["ECDSA P-256 SHA-256", "SHA-256 file/manifest digests"],
+      "boundary": "Release signer and offline installer",
+      "deploymentScope": "APPLICATION",
+      "custody": "Independent release trust key and rollback ledger; software signer",
+      "limitations": "Package integrity is distinct from grading and deployment authorisation.",
+      "sources": ["packages/release/offline.mjs"],
+      "tests": ["tests/offline-release.test.mjs"]
+    },
+    {
+      "id": "CR-10",
+      "purpose": "Laboratory post-quantum and hybrid candidates",
+      "mechanisms": [
+        "ML-KEM-768 and ML-KEM-1024",
+        "ML-DSA-65",
+        "X-Wing ML-KEM-768 + X25519",
+        "HKDF-SHA256 and AES-256-GCM"
+      ],
+      "boundary": "Opt-in Node laboratory endpoints",
+      "deploymentScope": "LAB_ONLY",
+      "custody": "Software keys; Node/OpenSSL and pinned Noble laboratory dependency",
+      "limitations": "Excluded from application releases. Algorithm standards and passing vectors do not establish implementation qualification.",
+      "sources": [
+        "packages/pqc-lab/native-provider.mjs",
+        "packages/pqc-lab/xwing-provider.mjs",
+        "packages/pqc-lab/envelope.mjs",
+        "packages/pqc-lab/package-lock.json"
+      ],
+      "tests": [
+        "tests/pqc/end-to-end.test.mjs",
+        "packages/pqc-lab/laboratory.check.mjs",
+        "assurance/kat/core/catalog.mjs"
+      ]
+    },
+    {
+      "id": "CR-11",
+      "purpose": "Independent Rust evidence verifier",
+      "mechanisms": ["ECDSA P-256 SHA-256; RustCrypto p256", "SHA-256"],
+      "boundary": "Offline native verifier",
+      "deploymentScope": "OPTIONAL_OFFLINE_TOOL",
+      "custody": "Public verification keys only",
+      "limitations": "Independent code is not independent institutional assessment. Native lockfile and target runtime need review.",
+      "sources": [
+        "native/evidence-verify/src/signature.rs",
+        "native/evidence-verify/Cargo.toml",
+        "native/Cargo.lock"
+      ],
+      "tests": ["tests/native/evidence-differential.check.mjs"]
+    },
+    {
+      "id": "CR-12",
+      "purpose": "VANIAN NEXORA evidence snapshots",
+      "mechanisms": ["Ed25519 signed head", "SHA-256 domain-separated Merkle leaf"],
+      "boundary": "Offline operator bridge",
+      "deploymentScope": "OPTIONAL_OFFLINE_TOOL",
+      "custody": "Software NEXORA signer; separate NEXORA and authority trust anchors",
+      "limitations": "One-leaf snapshots; no live personnel authentication or continuous log. Upstream proprietary licensing retained.",
+      "sources": [
+        "integrations/nexora/src/lib.rs",
+        "integrations/nexora/src/main.rs",
+        "integrations/nexora/Cargo.toml",
+        "integrations/nexora/Cargo.lock"
+      ],
+      "tests": ["integrations/nexora/tests/snapshot.rs", "tests/nexora/bridge.check.mjs"]
+    },
+    {
+      "id": "CR-13",
+      "purpose": "Application randomness",
+      "mechanisms": [
+        "Node randomBytes",
+        "WebCrypto getRandomValues",
+        "WebCrypto and OpenSSL key generation"
+      ],
+      "boundary": "Endpoint/server runtime and OS",
+      "deploymentScope": "APPLICATION",
+      "custody": "Runtime/OS CSPRNG; no independent physical entropy measurement",
+      "limitations": "API use does not establish entropy-source validation, hardware provenance or module certification.",
+      "sources": [
+        "packages/crypto/crypto.mjs",
+        "services/control/primitives.mjs",
+        "services/control/core.mjs",
+        "scripts/bootstrap.mjs"
+      ],
+      "tests": ["tests/crypto.test.mjs", "tests/authority.test.mjs"]
+    },
+    {
+      "id": "CR-14",
+      "purpose": "Authority-to-relay request authentication",
+      "mechanisms": [
+        "HMAC-SHA256 over method/path/body digest/time/nonce",
+        "32-byte shared secret; 16-byte random request nonce",
+        "Timestamp window and replay tracking"
+      ],
+      "boundary": "Control authority and ciphertext relay",
+      "deploymentScope": "APPLICATION",
+      "custody": "Locally provisioned software relay secret",
+      "limitations": "Shared-key compromise permits forged relay requests; network replay control and deployed secret distribution need review. This does not authorise recipient key release.",
+      "sources": [
+        "services/relay/auth.mjs",
+        "services/relay/server.mjs",
+        "services/relay/client.mjs"
+      ],
+      "tests": ["services/relay/relay.test.mjs"]
+    }
+  ],
+  "sourceBindings": {
+    "apps/unit-client/challenge.mjs": {
+      "sha256": "aabcd7bfb47db105678c8640602d3669f544ec9f3c78395167a470e7689648fe"
+    },
+    "apps/verifier/verify.mjs": {
+      "sha256": "987205eb481fda99215142f5f1f14c9067ac1f1d19620416c5f0048d66cd35d8"
+    },
+    "assurance/kat/core/catalog.mjs": {
+      "sha256": "55bd7186b6b0dd5fb566ccbe305bda56b5adf4950719d1ee35a3edfe8007572b"
+    },
+    "deployment/secure/lab-pki.mjs": {
+      "sha256": "860dfb1f669582d303a276ed7a3cbdb016cc095585aa6743c2ab5b8c5e90a693"
+    },
+    "integrations/nexora/Cargo.lock": {
+      "sha256": "090879aa233f15090354b462cacf14079a9bfc86999dd97bc00e9b954e9c7fa9"
+    },
+    "integrations/nexora/Cargo.toml": {
+      "sha256": "c7920b5d64b89956e0fe2a49d7b6ef98f359ead5232c81fd424cad8d4b285180"
+    },
+    "integrations/nexora/src/lib.rs": {
+      "sha256": "fb1569fff8efcc68a7c537295adbd446a2cafe6fad0582a94bd7ac509057d044"
+    },
+    "integrations/nexora/src/main.rs": {
+      "sha256": "45d77d4f2c0ef62248c57353f85853097ea5c0c9c5fd531145bfc2129db95193"
+    },
+    "integrations/nexora/tests/snapshot.rs": {
+      "sha256": "518a7761af6a81c9b6649437095b00870c215099df9f109a5911b18e9fd56f1e"
+    },
+    "native/Cargo.lock": {
+      "sha256": "7d074ae83c9bed990330fc644720553bffcd6ca4efbb903abf91f09232100f7b"
+    },
+    "native/evidence-verify/Cargo.toml": {
+      "sha256": "cdc1666e19fd1198c81d3c414774c4b63a4d650063e43cf17f8e5740d1f7c382"
+    },
+    "native/evidence-verify/src/signature.rs": {
+      "sha256": "e6a2d4ca29efa339d0e1299275e54fb171a8437ffaa57c45b90df119cf42b5fd"
+    },
+    "packages/crypto-provider/classical.mjs": {
+      "sha256": "84656935ffa49d0f07e90eae7c7081272935d414e23c2734317521bb6017b362"
+    },
+    "packages/crypto-provider/engine.mjs": {
+      "sha256": "7dbf5f49fbbb040241fc9278bb46bce3388197c8255d872514a0a724bf1b55e8"
+    },
+    "packages/crypto-provider/primitives.mjs": {
+      "sha256": "6dacface80ec5a060062d0956197390d5422c8220d2851fa245cc85b7c0cf76c"
+    },
+    "packages/crypto-provider/registry.mjs": {
+      "sha256": "a30638c17bb4d3e1ecbe3bfe89008d3eeac0828a3dcbb3730327f2881d19449c"
+    },
+    "packages/crypto/crypto.mjs": {
+      "sha256": "07d80d9bc68a63571133ab93d482a99dab64571defffdee998c1ba1e0283a31a"
+    },
+    "packages/pqc-lab/envelope.mjs": {
+      "sha256": "a123397d0301cf3807581e990869b530263bf956f96b88e2285781236fe07777"
+    },
+    "packages/pqc-lab/laboratory.check.mjs": {
+      "sha256": "6d1402bdf20b8f99629dcca0dbfe43c26607669f3f664fbce82f0c715d7e8c49"
+    },
+    "packages/pqc-lab/native-provider.mjs": {
+      "sha256": "ff86e712c9c3b00a3e53d47547ef03d169f7b8dbc0670b271ef9659ddfeb1222"
+    },
+    "packages/pqc-lab/package-lock.json": {
+      "sha256": "d8ee196a87ede1b94788b6254dca215c715bcc43b3103523b6a625232996445b"
+    },
+    "packages/pqc-lab/xwing-provider.mjs": {
+      "sha256": "60eb7dae47b44a7973ed4916cc04e44a4642f88a465bdf99f2bcde79f4a02bbc"
+    },
+    "packages/protocol/canonical.mjs": {
+      "sha256": "2ff141c1e05f59a19d2f110838a6e60a2f380a8517493b0ec69e50fb5700d462"
+    },
+    "packages/release/offline.mjs": {
+      "sha256": "9fd53ebc96dfa3f3230dff5e2d1a16c5521a43dfa2efe3c77525cf60daf7ef74"
+    },
+    "packages/transport/tls.mjs": {
+      "sha256": "ad0d932a1646e8c15f5f3a324b65980104ac2682b7d9e03ea945aa9c792ede9f"
+    },
+    "scripts/bootstrap.mjs": {
+      "sha256": "603611fa0424086d9ec784f464ccb1410c041b5d718176e7fb20c301f777ac70"
+    },
+    "services/control/core.mjs": {
+      "sha256": "8aa89ce666e7239f6550a64e4e59dc82a0067c9209d8a8bba22c4309c4d79c31"
+    },
+    "services/control/primitives.mjs": {
+      "sha256": "973f9252bb45b4550d00d32e9a4805b46dfc9f37bfd4bf4e7b7b88106401725a"
+    },
+    "services/crypto-policy/registry.mjs": {
+      "sha256": "caa441926110c631b83b85856e3e8fd365a5cc67e53da34fb64e5c66b71788f8"
+    },
+    "services/evidence/custody.mjs": {
+      "sha256": "6c52adf5466468d02359e77ca8e5b5ea0831b072602841f36b3f29654eab2ee6"
+    },
+    "services/relay/auth.mjs": {
+      "sha256": "1dd10731534b2ff8ee1db7177f6768623169842e15bb16a95f92c90e61a89f74"
+    },
+    "services/relay/client.mjs": {
+      "sha256": "3b3069d601d8073b049474fc253f2a2eac90e3a8cbd8719d2915adc222740d83"
+    },
+    "services/relay/relay.test.mjs": {
+      "sha256": "c62088c26ea2e4b5a40c211a21f207f4a29632a71e5b0b5ed767aaea09100bea"
+    },
+    "services/relay/server.mjs": {
+      "sha256": "b0f13392ea0c676c146ef37c2bf5b90d6ab38c5235c66cf07703bdeb2f9a2430"
+    },
+    "tests/additional-boundaries.test.mjs": {
+      "sha256": "5c3d592a1aaf457cdb7cd29a780a87c3728170601aaad81a33f08cbcd210e9c6"
+    },
+    "tests/auth-routing.test.mjs": {
+      "sha256": "058c5b000e9c927ba271d79a55422b52f272af9cbdf9d81998a44978a6bf7e47"
+    },
+    "tests/authority.test.mjs": {
+      "sha256": "5538c4737d7320decc185d71d36f4b6b1f36036e566773b6565fe4d3bcdc1304"
+    },
+    "tests/checkpoint-custody.test.mjs": {
+      "sha256": "47ec5b6c67219117cacba824167e685eeab9f3eb022867578264cd1fb03a752f"
+    },
+    "tests/crypto-agility/providers.test.mjs": {
+      "sha256": "365a20dcce93368206b949281d7363139738828d729b31edfd8d10cf7c99520f"
+    },
+    "tests/crypto-agility/wrap-derivation.test.mjs": {
+      "sha256": "549a11df6bec1ccad1cef49f5137b42311a61e26a47c2161f95a83d8457c810e"
+    },
+    "tests/crypto-provider.test.mjs": {
+      "sha256": "82d018230782d3322ae52bf0c79ea8ef54963ff8434efb4f4547c382dad8ad06"
+    },
+    "tests/crypto.test.mjs": {
+      "sha256": "75f826b11b487b2b6ac3e33fc409e5f0d66bd2fbbae7d37b2bc6fcc1f022e01d"
+    },
+    "tests/native/evidence-differential.check.mjs": {
+      "sha256": "5d208c2fb8eb15fd2d6535a91f123f1cb0316d4f87523bb794e7f862a1890241"
+    },
+    "tests/nexora/bridge.check.mjs": {
+      "sha256": "dbd0d6eef9de284de7be7d3e30e97aab55fe2429d4c81afc6cb41eba1b29a3d5"
+    },
+    "tests/offline-release.test.mjs": {
+      "sha256": "d917c43d989a0a651778ed0cc43ef79f8e63b9c4b4a08ee6d6319dd9a57e934a"
+    },
+    "tests/pqc/end-to-end.test.mjs": {
+      "sha256": "a073d80a3fd539bf61eeb26aa81d4afbb3d11fcc3279fd8b610e40072f482f92"
+    },
+    "tests/transport/secure-stack.test.mjs": {
+      "sha256": "ff1d2905fc3d4b6ae5e6111ac19f3ffeb47bcafa8bb3999d8e3bbe4e12244675"
+    },
+    "tests/transport/tls.test.mjs": {
+      "sha256": "4820f99ea08fc55d369942e935bfd4ceca4fa82b0ceaeffff25d6084a13ba607"
+    },
+    "tests/verifier-replay.test.mjs": {
+      "sha256": "0b0538ec7b9a62d6a6c9e5a2f084438c3cdee45d320f9004f56011f07e974b01"
+    }
+  }
+}

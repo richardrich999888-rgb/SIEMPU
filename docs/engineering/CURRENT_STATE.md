@@ -1,5 +1,73 @@
 # Current engineering state (single authoritative handover file)
 
+## SAG evaluation preparation candidate (2026-11-07)
+
+**Active branch:** `codex/siepmu-sag-evaluation`, based on NEXORA head
+`8aef8e4a222a98059761eb26edecb99bc6d8f67e`. Draft PR #29 remains the base;
+its exact head passed all 9 CI and 3 Security jobs:
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42359818922 and
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42359818901.
+The sections below are historical snapshots.
+
+User requested SAG grading; it remains pending external evaluation. Implemented applicant preparation:
+`assurance/sag/` packages a clean committed source, the matching application build,
+native-validation report/logs and fresh SBOM. The offline verifier checks an independently
+supplied manifest digest, exact file set, source hashes, reconstructed Git tree/commit,
+build/source agreement and fixed ungraded status. No production secrets are collected;
+ignored runtime files are excluded, known risky paths and links are rejected, and a
+content/secret review remains required before controlled handover.
+
+The crypto catalogue covers 14 application/laboratory/optional components and binds
+49 implementation/test files; source changes require deliberate inventory review.
+Twelve external input requests remain unresolved. References never self-authorise
+an approval. `SAG_EVALUATION_DOSSIER.md` records boundaries, test mappings, gaps and
+the public Service-sponsored evaluation route. No new cipher, agency interface or
+hardware provider is invented. WP11 external grading remains EXTERNAL_BLOCKED.
+
+**Locally tested code candidate:** `b92f0216f33bb0e220e80b98359f938e0c5421a8`,
+tree `9d8ad00a056e8c55d8f786a3467e094568153c21`, Node 24.22.1 / Linux x64.
+Full `npm run validate`: PASS, all ten gates and 370/370 tests, no skips;
+coverage 97.76% lines, 90.11% branches, 99.05% functions. E2E: 3/3 PASS.
+The ten package-specific tests pass. Actual packaging and separate CLI verification
+pass for 594 payload files with manifest SHA-256
+`1cd1deaae2d5e4e4d67f22be21e83d4a3255582c22da3289d31faefef4f014fc`.
+All twelve scope inputs remain missing; both external decisions remain NOT_ESTABLISHED.
+An initial full run rejected assurance-sensitive wording; pending status was made
+explicit without changing the claims audit or suppressing any test. The single earlier
+adapter-startup failure remains a separate, unconfirmed investigation item.
+
+[Draft PR #30](https://github.com/richardrich999888-rgb/SIEMPU/pull/30) is based on
+PR #29. First published code head `42fc1f2157083fae529390f7f6b36e80e7e59c44`
+has the same tree as the local candidate above. Initial hosted observations:
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42375673520 (CI),
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42375673522 (Security).
+The secret scanner rejected two source hashes under authentication filenames as
+credential-shaped values. Both were verified as exact source-file SHA-256 digests.
+The inventory now represents each binding as an explicit `{ sha256: ... }` object;
+no scanner ignore, rule exception or reduced gate was added. The candidate commit
+must be replaced on this owned branch so the PR range contains the corrected schema.
+Fresh complete validation and hosted observations remain required for that revision.
+
+Tracked dotfiles are preserved during CI artifact upload. An intermediate repeat run
+exposed test discovery entering the generated source package and was stopped. Both
+test commands now use source test globs. The tenth package regression preserves all
+tracked `.test.mjs` files and proves copied artifact tests are excluded, with a
+positive control showing the original discovery executes them. The 370-test pass
+above was obtained with the generated package still present.
+
+The draft PR description is the final hosted-check handover: exact current published
+head, run URLs, observed conclusions and `sag-evaluation-candidate` artifact identity.
+Local package digests belong only to their stated commit, not later revisions. Push
+runs package the branch commit; PR runs may package GitHub's integration merge commit,
+which is identified in each manifest. Do not substitute one identity for another.
+
+**Next executable tasks:** verify full validation/e2e on the publication candidate;
+observe hosted jobs and artifact creation; record exact results in the draft PR based
+on `codex/siepmu-nexora-evidence`. SAG engagement remains pending the IAF sponsor,
+agreed scope and proforma, authorised provider/interface, test environment and controlled
+submission channel. This repository does not establish SAG grading, TRL advancement
+or operational authorisation.
+
 ## NEXORA evidence integration candidate (2026-11-07)
 
 **Active branch:** `codex/siepmu-nexora-evidence`, based on readiness head

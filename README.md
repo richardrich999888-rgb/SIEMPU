@@ -116,3 +116,7 @@ See the [HPSC runbook](docs/hpsc/demo-runbook.md), [protocol contract](docs/prot
 ## VANIAN NEXORA evidence integration
 
 The optional [NEXORA operator bridge](integrations/nexora/README.md) verifies and seals SIEPMU authentication/exchange evidence for offline inspection. It uses a pinned VANIAN NEXORA implementation and separate trust anchors. Live personnel authentication and document-release policy remain with the existing authority. The bridge is excluded from release images and does not establish operational qualification.
+
+## SAG evaluation preparation candidate
+
+The [evaluation preparation tools](assurance/sag/README.md) package a clean committed source, exact application build, native-validation evidence, cryptographic inventory and unresolved sponsor requirements. `npm run sag:package -- artifacts/sag-evaluation` requires a successful `npm run validate` on that clean commit. A separately supplied manifest digest lets reviewers verify the package offline. Grading and operational authorisation remain external; this command does not establish either.
