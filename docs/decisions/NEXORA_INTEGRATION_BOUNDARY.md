@@ -1,6 +1,8 @@
 # NEXORA integration boundary for SIEPMU
 
-Status: proposed, not implemented or validated across repositories. Date: 2026-11-07.
+Status: offline evidence-snapshot bridge implemented in `integrations/nexora`; live credential federation remains proposed. Date: 2026-11-07.
+
+See [the operator bridge](../../integrations/nexora/README.md) for the exact pinned NEXORA revision, new snapshot profile, trust inputs, tests and limits. It reuses actual NEXORA signed heads and verifies SIEPMU source evidence independently. It does not create login sessions or release permissions.
 User intent: reuse VANIAN's NEXORA for authentication in the IAF PS-69 platform.
 
 ## Inspected source

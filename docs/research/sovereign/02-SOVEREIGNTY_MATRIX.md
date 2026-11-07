@@ -56,3 +56,7 @@ third-party row marked as SYNTRIASS source fails the build.
    services from the build path; reproducible-build evidence to make the build verifiable by a third party.
 3. **Secure BOSS Linux profile** for the OS row (`07-AIR_GAP_ARCHITECTURE.md` §6).
 4. **Independent qualification** (STQC/CERT-In-empanelled lab) of the SYNTRIASS rows.
+
+## Optional NEXORA operator bridge
+
+The optional `integrations/nexora` tool has a separate locked dependency graph. Its [full dependency inventory](../../../integrations/nexora/dependencies.json) records the pinned VANIAN source revision and all registry packages and licence declarations. These dependencies are not added to the exchange runtime or the native reference verifier and are excluded from release images. Upstream VANIAN crates retain their declared proprietary licence. Their reuse does not imply sovereign qualification or independent assessment.

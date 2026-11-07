@@ -112,3 +112,7 @@ docs/                   requirements, decisions, controls, evidence and limitati
 - Public deployment requires a configured TLS ingress and approved operational controls. The default cleartext listeners are local-only.
 
 See the [HPSC runbook](docs/hpsc/demo-runbook.md), [protocol contract](docs/protocols/IMPLEMENTATION_CONTRACT.md), [deployment](docs/deployment.md), [supply chain](docs/SUPPLY_CHAIN_SECURITY.md) and [traceability](docs/TRACEABILITY_MATRIX.md).
+
+## VANIAN NEXORA evidence integration
+
+The optional [NEXORA operator bridge](integrations/nexora/README.md) verifies and seals SIEPMU authentication/exchange evidence for offline inspection. It uses a pinned VANIAN NEXORA implementation and separate trust anchors. Live personnel authentication and document-release policy remain with the existing authority. The bridge is excluded from release images and does not establish operational qualification.

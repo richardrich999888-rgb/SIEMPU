@@ -54,7 +54,9 @@
     "kat": "node assurance/kat/run.mjs",
     "check:claims": "bash scripts/check-claims.sh",
     "bench:d-t5-01": "node assurance/bench/d-t5-01.mjs",
-    "claims:audit": "node scripts/claims-audit.mjs --write docs/assurance/claims-audit.md"
+    "claims:audit": "node scripts/claims-audit.mjs --write docs/assurance/claims-audit.md",
+    "build:nexora": "cargo build --release --locked --manifest-path integrations/nexora/Cargo.toml",
+    "test:nexora": "node --test --test-concurrency=1 tests/nexora/*.check.mjs"
   },
   "devDependencies": {
     "@types/node": "24.10.0",

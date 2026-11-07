@@ -1,0 +1,235 @@
+{
+  "schemaVersion": 1,
+  "kind": "native-validation",
+  "startedAt": "2026-11-07T09:20:51.623Z",
+  "gitCommit": "20ebb1c81f829520956999be693766652b754c5b",
+  "workingTreeStatus": "M  .dockerignore\nM  .github/workflows/ci.yml\nM  .gitignore\nM  .prettierignore\nM  README.md\nM  docs/decisions/NEXORA_INTEGRATION_BOUNDARY.md\nM  docs/engineering/CURRENT_STATE.md\nM  docs/research/sovereign/02-SOVEREIGNTY_MATRIX.md\nM  eslint.config.mjs\nA  integrations/nexora/Cargo.lock\nA  integrations/nexora/Cargo.toml\nA  integrations/nexora/README.md\nA  integrations/nexora/dependencies.json\nA  integrations/nexora/src/lib.rs\nA  integrations/nexora/src/main.rs\nAM integrations/nexora/tests/snapshot.rs\nM  package.json\nM  packages/release/offline.mjs\nA  tests/nexora/bridge.check.mjs\nM  tests/offline-release.test.mjs\n",
+  "sourceDigest": "aec9201c2174796b4339a48d4fa04be2f3bf806af8da6a341f1273af79daa3c8",
+  "runtime": {
+    "node": "v24.22.1",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "externalObservations": {
+    "container": "NOT_OBSERVED",
+    "hostedSast": "NOT_OBSERVED",
+    "browser": "NOT_OBSERVED"
+  },
+  "gates": [
+    {
+      "name": "check",
+      "command": ["npm", "run", "check"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-11-07T09:20:51.723Z",
+      "finishedAt": "2026-11-07T09:21:11.843Z",
+      "log": "artifacts/validation/check.log"
+    },
+    {
+      "name": "lint",
+      "command": ["npm", "run", "lint"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-11-07T09:21:11.844Z",
+      "finishedAt": "2026-11-07T09:21:14.654Z",
+      "log": "artifacts/validation/lint.log"
+    },
+    {
+      "name": "typecheck",
+      "command": ["npm", "run", "typecheck"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-11-07T09:21:14.654Z",
+      "finishedAt": "2026-11-07T09:21:16.499Z",
+      "log": "artifacts/validation/typecheck.log"
+    },
+    {
+      "name": "format:check",
+      "command": ["npm", "run", "format:check"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-11-07T09:21:16.499Z",
+      "finishedAt": "2026-11-07T09:21:23.082Z",
+      "log": "artifacts/validation/format-check.log"
+    },
+    {
+      "name": "test:coverage",
+      "command": ["npm", "run", "test:coverage"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-11-07T09:21:23.083Z",
+      "finishedAt": "2026-11-07T09:23:58.182Z",
+      "log": "artifacts/validation/test-coverage.log"
+    },
+    {
+      "name": "security",
+      "command": ["npm", "run", "security"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-11-07T09:23:58.183Z",
+      "finishedAt": "2026-11-07T09:23:58.812Z",
+      "log": "artifacts/validation/security.log"
+    },
+    {
+      "name": "dependency-audit",
+      "command": ["npm", "audit", "--audit-level=high"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-11-07T09:23:58.812Z",
+      "finishedAt": "2026-11-07T09:24:12.569Z",
+      "log": "artifacts/validation/dependency-audit.log"
+    },
+    {
+      "name": "build",
+      "command": ["npm", "run", "build"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-11-07T09:24:12.569Z",
+      "finishedAt": "2026-11-07T09:24:13.006Z",
+      "log": "artifacts/validation/build.log"
+    },
+    {
+      "name": "sbom",
+      "command": ["npm", "run", "sbom"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-11-07T09:24:13.006Z",
+      "finishedAt": "2026-11-07T09:24:13.288Z",
+      "log": "artifacts/validation/sbom.log"
+    },
+    {
+      "name": "demo",
+      "command": ["npm", "run", "demo"],
+      "exitCode": 0,
+      "outcome": "PASS",
+      "startedAt": "2026-11-07T09:24:13.288Z",
+      "finishedAt": "2026-11-07T09:24:15.147Z",
+      "log": "artifacts/validation/demo.log"
+    }
+  ],
+  "tests": {
+    "total": 360,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "demo": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "synthetic": true
+  },
+  "sourceDigestAfter": "aec9201c2174796b4339a48d4fa04be2f3bf806af8da6a341f1273af79daa3c8",
+  "finishedAt": "2026-11-07T09:24:15.251Z",
+  "outcome": "PASS",
+  "claimsAudit": {
+    "valid": true,
+    "mode": "EXECUTION_EVIDENCE_CHECKED",
+    "claims": 24,
+    "errors": [],
+    "trustBoundary": "Local records are not independent attestation; reviewer must trust the runner and inspect logs."
+  },
+  "recordingNote": "Executed against modified working tree based on gitCommit. sourceDigest binds JavaScript, tests and deployment inputs; supplementalInputSha256 separately binds Rust integration, native verifier and frozen vectors. Handover documentation added after execution. This record is not independent attestation. One trailing blank line in the integration manifest was removed after execution; dependency and executable source bytes are unchanged.",
+  "coveragePercent": {
+    "lines": 97.76,
+    "branches": 90.11,
+    "functions": 99.05
+  },
+  "supplementalInputSha256": {
+    "integrations/nexora/Cargo.lock": "090879aa233f15090354b462cacf14079a9bfc86999dd97bc00e9b954e9c7fa9",
+    "integrations/nexora/Cargo.toml": "c7920b5d64b89956e0fe2a49d7b6ef98f359ead5232c81fd424cad8d4b285180",
+    "integrations/nexora/dependencies.json": "de2222627fc793d3a236def570c7c060ff8aca073b306d572a8c505fa72edf1f",
+    "integrations/nexora/src/lib.rs": "fb1569fff8efcc68a7c537295adbd446a2cafe6fad0582a94bd7ac509057d044",
+    "integrations/nexora/src/main.rs": "45d77d4f2c0ef62248c57353f85853097ea5c0c9c5fd531145bfc2129db95193",
+    "integrations/nexora/tests/snapshot.rs": "518a7761af6a81c9b6649437095b00870c215099df9f109a5911b18e9fd56f1e",
+    "native/Cargo.toml": "8ed4daa4e1ae3ce60a3e8f106c43559dd0b2d241fc1fda66746023ed511428c1",
+    "native/evidence-verify/Cargo.toml": "cdc1666e19fd1198c81d3c414774c4b63a4d650063e43cf17f8e5740d1f7c382",
+    "native/evidence-verify/examples/profile.rs": "d141b45e8be30c54d5a0d8317ae1f58ab7c2d5f6328e94f917b672d48fab003f",
+    "native/evidence-verify/src/base64url.rs": "7394a515566edeee90baa70119ce3407b00eecb745cbf97abbc8c40434cfb696",
+    "native/evidence-verify/src/canonical.rs": "170461523caeea578ea5b84a6400e7fa569c2d394b31d1dbd234d091fc5784cd",
+    "native/evidence-verify/src/cli.rs": "433d79fb2b938129052c513d2bd61117efa73255e7ff270f4fc5e129bcdcd623",
+    "native/evidence-verify/src/error.rs": "03411c37af5debf8798f612aca0b389c45b4c4ff99dcca704569af973caad787",
+    "native/evidence-verify/src/evidence.rs": "d3ca0a17cc24456c336e1a3f617699312d23eaef7a25bed75b19d08273bf2c72",
+    "native/evidence-verify/src/json.rs": "6b8e438495848d7bcf7e6c1cb16a6e316cfc8d09acc47a57d9bca98b84f75444",
+    "native/evidence-verify/src/lib.rs": "1ffe2e0dbeae72dd76053eb627ac41ff8291792da52547265649a763f2663625",
+    "native/evidence-verify/src/main.rs": "7b4729ea3e3a2c2857c69eb3f1087ce8dde057d92e03cee736e2c1f9270d37be",
+    "native/evidence-verify/src/output.rs": "436bfe21fc7c91dc8695d2d3cd0cfce4ca42cc002fb77fdc4888eabeeb902a88",
+    "native/evidence-verify/src/range.rs": "a9f82760595cff3aac47e61b2b1f25692dd0451d644ba5b8757f712796cbde8b",
+    "native/evidence-verify/src/signature.rs": "e6a2d4ca29efa339d0e1299275e54fb171a8437ffaa57c45b90df119cf42b5fd",
+    "native/evidence-verify/tests/vectors.rs": "73831d0edced6f86f5df5906a880ea2635537d85436a98173f06979bc6f5357c",
+    "spec/vectors/evidence-v1.json": "35852e71c13b6cfdc23f23e4da85d02bb142e3217acdcdbfa2810aca27c2061c"
+  },
+  "nexora": {
+    "upstreamRepository": "richardrich999888-rgb/AIP-agent-identity-protocol-",
+    "upstreamCommit": "4ee39f359430277a48c34b957609104d3cf781f6",
+    "rust": "1.97.0",
+    "profile": "SIEPMU-NEXORA-SNAPSHOT-v1",
+    "checks": [
+      {
+        "command": "cargo fmt --manifest-path integrations/nexora/Cargo.toml --check",
+        "outcome": "PASS"
+      },
+      {
+        "command": "cargo clippy --manifest-path integrations/nexora/Cargo.toml --locked --all-targets -- -D warnings",
+        "outcome": "PASS"
+      },
+      {
+        "command": "cargo test --manifest-path integrations/nexora/Cargo.toml --locked",
+        "outcome": "PASS",
+        "tests": 7
+      },
+      {
+        "command": "cargo audit --file integrations/nexora/Cargo.lock --deny warnings",
+        "toolVersion": "0.22.0",
+        "outcome": "PASS",
+        "packages": 99
+      },
+      {
+        "command": "npm run test:nexora",
+        "outcome": "PASS",
+        "tests": 5
+      },
+      {
+        "command": "cargo test --locked -p aip-nexora --tests",
+        "workingDirectory": "Pinned upstream AIP checkout",
+        "outcome": "PASS",
+        "tests": 185
+      }
+    ],
+    "scope": "Offline historical evidence authenticity; no login session or release authority; independent single-leaf snapshots, not a continuous NEXORA log."
+  },
+  "additionalChecks": [
+    {
+      "command": "npm run test:e2e",
+      "outcome": "PASS",
+      "tests": 3
+    },
+    {
+      "command": "npm run test:engineering",
+      "outcome": "PASS",
+      "tests": 39
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/document-system.test.mjs",
+      "outcome": "PASS",
+      "tests": 5
+    }
+  ],
+  "priorFailedAttempt": {
+    "startedAt": "2026-11-07T09:15:08.089Z",
+    "finishedAt": "2026-11-07T09:18:05.711Z",
+    "sourceDigest": "aec9201c2174796b4339a48d4fa04be2f3bf806af8da6a341f1273af79daa3c8",
+    "failedGate": "test:coverage",
+    "test": "tests/document-system.test.mjs:154 document exchange through the adapter process on the secure stack",
+    "error": "ADAPTER_EXITED",
+    "tests": {
+      "total": 360,
+      "failed": 1,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "status": "UNEXPLAINED_NOT_REPRODUCED",
+    "note": "Child diagnostic not retained by existing helper. Isolated test and subsequent full suite passed without executable-source changes. Capture redacted child error if it recurs; no test was skipped or weakened."
+  },
+  "recordedAt": "2026-11-07T09:25:10.882292+00:00"
+}

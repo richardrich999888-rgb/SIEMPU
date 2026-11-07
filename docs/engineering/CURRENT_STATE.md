@@ -1,5 +1,49 @@
 # Current engineering state (single authoritative handover file)
 
+## NEXORA evidence integration candidate (2026-11-07)
+
+**Active branch:** `codex/siepmu-nexora-evidence`, based on readiness head
+`20ebb1c81f829520956999be693766652b754c5b`. PR #28 is the separate readiness change;
+all 8 CI jobs and all 3 Security jobs passed on that exact head:
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42357753778 and
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42357753696.
+The sections below this one are historical.
+
+User authorized continuing the build after asking to wire VANIAN NEXORA for
+authentication. Current implementation adds an optional offline operator bridge over
+actual pinned `aip-nexora` at AIP revision `4ee39f359430277a48c34b957609104d3cf781f6`.
+It verifies existing SIEPMU evidence under an independent authority key and retained
+checkpoint, seals canonical source bytes using NEXORA's Merkle and signed-head
+code, and verifies both layers offline. It never grants a login session or document
+key. Personnel credential federation remains separate work. Snapshot profile and
+operator instructions: `integrations/nexora/README.md`.
+
+Local verification: Rust format/clippy PASS, seven bridge negative/conformance
+tests PASS, cargo-audit 0.22.0 (`--deny warnings`) PASS for 99 dependencies. Actual
+SIEPMU acceptance 5/5 PASS, including authority shutdown, preserved fresh device
+challenge, denied NEXORA-as-session and revoked-recipient zero issuance. The pinned
+upstream NEXORA suite also passed (185 tests, `cargo test --locked -p aip-nexora --tests`).
+Full modified-tree validation PASS (all ten gates, 360/360 tests; 97.76% lines,
+90.11% branches, 99.05% functions); e2e 3/3 PASS. Exact source digest and separate
+Rust input hashes are recorded in `nexora-integration-validation.json`. No hosted
+result on this new branch is yet established. The initial fixture epoch-type error
+was corrected without changing authority behavior or reducing any negative assertion.
+
+The first full run failed in the existing document-system test with `ADAPTER_EXITED`.
+The isolated five-test file and subsequent full run passed without source changes.
+The child error was not retained by that helper, so the root cause remains unconfirmed;
+this is recorded as an investigation item, not a resolved defect or a skipped gate.
+
+The optional dependency graph is isolated from the application and native reference
+verifier. Upstream AIP crates retain their declared proprietary licence; no upstream
+source is copied or relicensed. Docker and offline release exclusion is explicit.
+
+**Next executable tasks:** push this separate branch and create a draft PR against
+`codex/siepmu-ps69-readiness`. Observe all hosted checks and resolve failures; retain
+the exact head and run URLs in the PR. If adapter startup fails again, capture the
+child's redacted error and diagnose before accepting a rerun. No operational deployment
+or TRL advancement is claimed.
+
 ## PS-69 mission readiness candidate (2026-11-07)
 
 **Active branch:** `codex/siepmu-ps69-readiness`, based on sovereign research head

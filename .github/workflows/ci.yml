@@ -138,6 +138,51 @@ jobs:
             artifacts/mission-workflow/report.md
           if-no-files-found: warn
           retention-days: 14
+  nexora-integration:
+    # Optional offline evidence tool: pinned actual VANIAN crates, never login authority.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CARGO_TARGET_DIR: ${{ github.workspace }}/artifacts/nexora-target
+      SIEPMU_NEXORA_BRIDGE: ${{ github.workspace }}/artifacts/nexora-target/release/siepmu-nexora-bridge
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24.21.0
+      - name: Pin Rust toolchain
+        run: |
+          rustup toolchain install 1.97.0 --profile minimal --component rustfmt,clippy
+          rustup default 1.97.0
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Format, lint and cross-protocol negative tests
+        run: |
+          cargo fmt --manifest-path integrations/nexora/Cargo.toml --all --check
+          cargo clippy --manifest-path integrations/nexora/Cargo.toml --all-targets --locked -- -D warnings
+          cargo test --manifest-path integrations/nexora/Cargo.toml --locked
+      - name: Audit the optional locked dependency graph
+        run: |
+          cargo install cargo-audit --version 0.22.0 --locked
+          cargo audit --file integrations/nexora/Cargo.lock --deny warnings
+      - run: npm run build:nexora
+      - name: Actual authority, offline proof and revocation acceptance
+        run: |
+          mkdir -p artifacts/nexora
+          npm run test:nexora > artifacts/nexora/acceptance.log 2>&1 || { cat artifacts/nexora/acceptance.log; exit 1; }
+          cat artifacts/nexora/acceptance.log
+          cargo metadata --manifest-path integrations/nexora/Cargo.toml --locked --format-version 1 > artifacts/nexora/dependency-metadata.json
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        if: always()
+        with:
+          name: nexora-integration-evidence
+          path: |
+            artifacts/nexora/acceptance.log
+            artifacts/nexora/dependency-metadata.json
+            integrations/nexora/Cargo.lock
+          if-no-files-found: warn
+          retention-days: 14
   relevant-env:
     # TRL 5 advancement matrix (docs/trl5/ACCEPTANCE_MATRIX.md) on three network namespaces with
     # kernel netem: the same harness as the local run, plus the packet-loss profiles L1/L2 that
