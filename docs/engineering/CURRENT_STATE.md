@@ -9,6 +9,12 @@ https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42357753778 and
 https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42357753696.
 The sections below this one are historical.
 
+**Published code candidate:** `0173714f1f8643585586956f25dfd1421e270b74`.
+[Draft PR #29](https://github.com/richardrich999888-rgb/SIEMPU/pull/29) targets PR #28's
+branch. Its description is the hosted-check handover: exact current head, run URLs,
+observed conclusions and remaining investigation items. This documentation follow-up
+does not change the tested executable sources.
+
 User authorized continuing the build after asking to wire VANIAN NEXORA for
 authentication. Current implementation adds an optional offline operator bridge over
 actual pinned `aip-nexora` at AIP revision `4ee39f359430277a48c34b957609104d3cf781f6`.
@@ -38,11 +44,12 @@ The optional dependency graph is isolated from the application and native refere
 verifier. Upstream AIP crates retain their declared proprietary licence; no upstream
 source is copied or relicensed. Docker and offline release exclusion is explicit.
 
-**Next executable tasks:** push this separate branch and create a draft PR against
-`codex/siepmu-ps69-readiness`. Observe all hosted checks and resolve failures; retain
-the exact head and run URLs in the PR. If adapter startup fails again, capture the
-child's redacted error and diagnose before accepting a rerun. No operational deployment
-or TRL advancement is claimed.
+**Next executable tasks:** observe all hosted checks on PR #29 and resolve failures;
+retain the exact head and run URLs in that PR. If adapter startup fails again, capture
+the child's redacted error and diagnose before accepting a rerun. Personnel credential
+federation then needs an explicit enrollment/issuer contract, trust roots, key lifecycle,
+fresh challenge binding and revocation rules. No operational deployment or TRL advancement
+is claimed.
 
 ## PS-69 mission readiness candidate (2026-11-07)
 
