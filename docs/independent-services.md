@@ -1,5 +1,10 @@
 # Independent services and trust boundaries
 
+Current integration addition: [ADR-015](decisions/ADR-015-sealed-document-staging.md) defines
+the separate v2 ciphertext-staging service and source-side sealed outbox. Legacy examples
+below retain the trusted plaintext endpoint and require explicit laboratory enablement.
+The v2 path has no personnel session or wrapped content key at its connector.
+
 The checkpoint custodian, monitoring collector, and synthetic integration adapter are separate processes with separate databases and identity material.
 
 The checkpoint custodian accepts only a signed authority evidence chain and authorization-state digest over mutual TLS. It retains a monotonic head and refuses a validly signed but older or forked database. The control service enters recovery quarantine when the custodian cannot establish a current lease.

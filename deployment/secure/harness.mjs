@@ -4,7 +4,8 @@ import {
   authoritySnapshot,
   authorizationDigest,
 } from '../../services/evidence/custody.mjs';
-import { packet } from '../../services/control/primitives.mjs';
+import { packet, verifyPacket } from '../../services/control/primitives.mjs';
+import { anchorFromAnswer, RANGE_VERSION } from '../../services/evidence/incremental.mjs';
 import { spawn } from 'node:child_process';
 import { reservePort } from './ports.mjs';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -57,6 +58,7 @@ export function prepareSecureLab(dir) {
     'observer-client',
     'operator-client',
     'adapter-client',
+    'sealed-relay-client',
     'unit-a',
     'unit-b',
     'unit-denied',
@@ -117,6 +119,7 @@ export function labEnvironment(
       env[prefix + '_TLS_CLIENT_PINS'] = pki.pin(
         role === 'control' ? 'web-client' : 'control-client',
       );
+    if (role === 'relay') env[prefix + '_TLS_CLIENT_PINS'] += ',' + pki.pin('sealed-relay-client');
   }
   for (const role of ['web', 'control']) {
     const prefix = 'SIEPMU_' + role.toUpperCase() + '_CLIENT_TLS_';
@@ -141,7 +144,7 @@ export function labEnvironment(
 }
 export async function startSecureStack(
   dir,
-  { root = resolve('.'), lab = prepareSecureLab(dir) } = {},
+  { root = resolve('.'), lab = prepareSecureLab(dir), spawnService = spawn } = {},
 ) {
   await seedLabCustodian(dir, lab.independent);
   const ports = {};
@@ -159,7 +162,7 @@ export async function startSecureStack(
     web: 'services/web/server.mjs',
   };
   const start = (role) => {
-    const child = spawn(process.execPath, [files[role]], {
+    const child = spawnService(process.execPath, [files[role]], {
       cwd: root,
       env,
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -183,6 +186,31 @@ export async function startSecureStack(
   };
   const baseUrl = env.SIEPMU_PUBLIC_ORIGIN,
     tls = { ca: readFileSync(join(lab.pki.dir, 'ca.crt')) };
+  const authorityKey = JSON.parse(readFileSync(join(dir, 'server-key.json'))),
+    custodyKey = JSON.parse(readFileSync(join(lab.independent, 'public-key.json')));
+  const custodyReady = async () => {
+    const nonce = crypto.randomUUID();
+    const response = await requestBytes(new URL('anchor', env.SIEPMU_CUSTODY_URL).href, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(
+        packet(authorityKey, {
+          version: RANGE_VERSION,
+          kind: 'ANCHOR_QUERY',
+          nonce,
+          issuedAt: Date.now(),
+        }),
+      ),
+      tls: lab.pki.material('control-client'),
+      timeoutMs: 500,
+      maxBytes: 4096,
+    });
+    if (response.status !== 200) return false;
+    const answer = JSON.parse(response.body);
+    if (!verifyPacket(custodyKey, answer) || answer.payload?.anchored !== true) return false;
+    anchorFromAnswer(answer.payload, nonce, Date.now(), 30000);
+    return true;
+  };
   try {
     for (const role of Object.keys(files)) start(role);
     let ready = false;
@@ -191,7 +219,8 @@ export async function startSecureStack(
         throw new Error('Secure service exited: ' + logs.join(''));
       try {
         if (
-          (await requestBytes(baseUrl + '/health/ready', { tls, timeoutMs: 500 })).status === 200
+          (await requestBytes(baseUrl + '/health/ready', { tls, timeoutMs: 500 })).status === 200 &&
+          (await custodyReady())
         ) {
           ready = true;
           break;

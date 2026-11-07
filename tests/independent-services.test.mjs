@@ -40,6 +40,7 @@ test('independent adapter and collector processes enforce mTLS, exchange, idempo
   );
   const env = {
     ...stack.env,
+    SIEPMU_ENABLE_LEGACY_PLAINTEXT_ADAPTER: '1',
     SIEPMU_ADAPTER_PORT: String(port),
     SIEPMU_ADAPTER_PROFILE: profilePath,
     SIEPMU_ADAPTER_DESTINATIONS: destPath,

@@ -1,5 +1,78 @@
 # Current engineering state (single authoritative handover file)
 
+## Source-sealed integration and dependency review (7 November 2026)
+
+Publication follow-up: draft PR #33 is open at
+https://github.com/richardrich999888-rgb/SIEMPU/pull/33, targeting draft PR #32's branch.
+Initial published head `c8cf3bcac15dd26e0546fb77b9822c0453a32f05` has the same complete
+tree `07c69bca43980d9ca4384b12f789aa26f07a5344` as locally validated candidate
+`11f0768f31f00679066faa6122c4ee463f0369eb`. On Node 24.22.1 / Linux x64 with a clean
+tree, all ten native gates passed: 410 tests, zero failures/cancellations/skips;
+coverage 97.96% lines, 90.67% branches and 98.75% functions. E2E passed 3/3.
+The separate adversarial execution passed 220 tests across nine families, retained
+all nineteen gaps and assigned no readiness level. Source remained unchanged.
+
+Initial hosted runs were launched on that published head (not yet observed complete
+at this handover edit): push CI
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42392946845,
+push Security https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42392946841,
+PR CI https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42392997177,
+PR Security https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42392997154.
+This documentation follow-up requires fresh final-candidate checks. Exact final
+published identity, completed run outcomes and artifact links are retained in PR #33.
+Next continuation: inspect that PR's current head/runs before attributing any result;
+finish its hosted gates if pending, then address the remaining gap register. No merge.
+
+Active branch: `codex/siepmu-sealed-integration-trl5`, based on draft PR #32 at
+`5c465d290a002a551a83ef74b235cd5a97990da8`, tree `48cb1f7293d78c55992d886b03ff3043a051f90d`.
+That base passed all 9 CI and 3 Security jobs on both events: push CI 42384141258,
+push Security 42384141375, PR CI 42384144786 and PR Security 42384144785. The base
+has 395 native tests, 3 E2E and a 205-test adversarial campaign; these are historical
+results, not this candidate's evidence. No branch has been merged.
+
+The user requested advancement toward the next readiness assessment and dependency research.
+`INTEGRATION_DEPENDENCY_REVIEW.md` records primary-source options: Keycloak/OIDC,
+WebAuthn, vendor PKCS#11, optional OpenBao/OTel and ZAP/k6. It records a concrete
+cryptoki advisory and distinguishes external specifications from optional packages.
+No third-party dependency was installed.
+
+Implemented a separate v2 ciphertext-staging connector and source-side sealed outbox.
+Neither plaintext, endpoint keys, bearer sessions nor the wrapped content key is sent
+to the connector. Source admission and recipient release use the unchanged authority
+policy path. Staging cannot award admission. Row HMACs protect outbox storage; the
+independent source HMAC key is never persisted there. Configuration changes fail closed.
+See ADR-015 for bounds, current duplicate relay PUT, metadata exposure and trust limits.
+Legacy v1 startup now requires explicit enablement in its historical lab harnesses.
+The new service never falls back to v1; legacy stores are not migrated or erased.
+
+Initial new tests passed 14/14; combined integration/boundary/package preflight passed
+46/46, no failures or skips. A lint check found two unused test imports; they were removed.
+The inventory now covers 15 components and 66 source/test bindings. ADV-05 includes
+the new tests; all 19 gaps stay open. G05 is PARTIAL_LAB for the new path, with legacy
+migration, representative host isolation and IAF interface/placement still unresolved.
+G18 remains ROOT_CAUSE_OPEN. No external status axis or TRL has been raised.
+
+First complete local candidate `edaac8b93b068c303d20d7c18a6291025ca1e482` failed three
+of 409 native tests: a handover wording hit in the claims audit, independent-adapter
+startup (503 at AUTHENTICATE), and a network test's first login (RECOVERY_QUARANTINED).
+The new sealed-path tests passed. The wording is corrected without an audit exception.
+Twenty-five instrumented ordinary startup probes and eight coverage repetitions of the
+three affected process/network tests did not reproduce the startup failures. Temporary
+diagnostic code was removed; these passes alone do not establish their historical cause.
+
+A deterministic delayed-custodian regression did reproduce a separate readiness defect:
+the launcher returned READY while the gateway/relay were available and custody was blocked.
+The lab launcher now verifies a fresh, nonce-bound, signed anchor over pinned mTLS before
+returning ready. This probe is read-only and never bypasses the recovery guard. The new
+regression failed before the change and passed after it. Corrected preflight: 33/33 tests,
+no failures or skips. G18 remains open; the original failures are not conclusively attributed.
+
+Next: commit this correction, run full validation, E2E and the adversarial campaign,
+publish a draft PR based on `codex/siepmu-ps69-trl5-review`, and observe every hosted
+CI/Security job. Retain exact local/published identities and
+run/artifact links in the draft PR. The network matrices still exercise the legacy
+integration path; new v2 process/restart tests are same-host laboratory evidence.
+
 ## PS-69 technical review and monitoring build (7 November 2026)
 
 Publication follow-up: draft PR #32 is open at

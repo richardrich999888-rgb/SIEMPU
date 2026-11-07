@@ -1,0 +1,129 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Synthetic sealed ciphertext staging",
+    "version": "2.0.0",
+    "description": "Laboratory connector only. No plaintext, envelope, wrapped key or personnel credential. Staging is not authority admission, release or delivery."
+  },
+  "security": [
+    {
+      "sourceMtls": []
+    }
+  ],
+  "paths": {
+    "/v2/ciphertext": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["manifest", "signature", "ciphertext"],
+                "properties": {
+                  "manifest": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "domain",
+                      "version",
+                      "requestId",
+                      "issuedAt",
+                      "objectId",
+                      "senderUserId",
+                      "senderDeviceId",
+                      "recipientUserId",
+                      "ciphertextHash"
+                    ],
+                    "properties": {
+                      "domain": {
+                        "const": "SIEPMU_SEALED_TRANSPORT_V2"
+                      },
+                      "version": {
+                        "const": 2
+                      },
+                      "issuedAt": {
+                        "type": "integer"
+                      },
+                      "ciphertextHash": {
+                        "type": "string",
+                        "pattern": "^[a-f0-9]{64}$"
+                      },
+                      "requestId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "objectId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "senderUserId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "senderDeviceId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "recipientUserId": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    }
+                  },
+                  "signature": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_-]{86}$"
+                  },
+                  "ciphertext": {
+                    "type": "string",
+                    "maxLength": 349526,
+                    "pattern": "^[A-Za-z0-9_-]+$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "STAGED_CIPHERTEXT with requestId, objectId, ciphertextHash and byte count; not an authority receipt"
+          },
+          "403": {
+            "description": "Client certificate is not pinned"
+          },
+          "409": {
+            "description": "TRANSFER_REJECTED; schema, replay, bounds, signature, credential or upstream failure"
+          },
+          "503": {
+            "description": "TRANSFER_BUSY; Retry-After: 1"
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Database, staging capacity and relay connectivity probes passed; not proof of future admission"
+          },
+          "403": {
+            "description": "Client certificate not pinned"
+          },
+          "503": {
+            "description": "Not ready"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "sourceMtls": {
+        "type": "mutualTLS",
+        "description": "TLS 1.3 and exact pinned source certificate. Authorization header is forbidden."
+      }
+    }
+  }
+}

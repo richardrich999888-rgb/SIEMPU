@@ -34,6 +34,7 @@ export async function startLabAdapter({
   writeFileSync(destinationsPath, JSON.stringify(destinations), { mode: 0o600 });
   const env = {
     ...stack.env,
+    SIEPMU_ENABLE_LEGACY_PLAINTEXT_ADAPTER: '1',
     SIEPMU_ADAPTER_PORT: String(port),
     SIEPMU_ADAPTER_PROFILE: profilePath,
     SIEPMU_ADAPTER_DESTINATIONS: destinationsPath,
