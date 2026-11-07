@@ -1,6 +1,7 @@
 # ADR-015: source-sealed document staging
 
-Status: implemented candidate, laboratory validation pending on this revision.
+Status: implemented; local laboratory results on candidate `11f0768` are recorded in CURRENT_STATE.
+Hosted final-candidate validation remains pending at this documentation edit.
 Date: 7 November 2026. Baseline: PR #32 at `5c465d290a002a551a83ef74b235cd5a97990da8`.
 
 ## Problem and decision

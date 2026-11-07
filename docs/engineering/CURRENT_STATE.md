@@ -2,6 +2,27 @@
 
 ## Source-sealed integration and dependency review (7 November 2026)
 
+Publication follow-up: draft PR #33 is open at
+https://github.com/richardrich999888-rgb/SIEMPU/pull/33, targeting draft PR #32's branch.
+Initial published head `c8cf3bcac15dd26e0546fb77b9822c0453a32f05` has the same complete
+tree `07c69bca43980d9ca4384b12f789aa26f07a5344` as locally validated candidate
+`11f0768f31f00679066faa6122c4ee463f0369eb`. On Node 24.22.1 / Linux x64 with a clean
+tree, all ten native gates passed: 410 tests, zero failures/cancellations/skips;
+coverage 97.96% lines, 90.67% branches and 98.75% functions. E2E passed 3/3.
+The separate adversarial execution passed 220 tests across nine families, retained
+all nineteen gaps and assigned no readiness level. Source remained unchanged.
+
+Initial hosted runs were launched on that published head (not yet observed complete
+at this handover edit): push CI
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42392946845,
+push Security https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42392946841,
+PR CI https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42392997177,
+PR Security https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42392997154.
+This documentation follow-up requires fresh final-candidate checks. Exact final
+published identity, completed run outcomes and artifact links are retained in PR #33.
+Next continuation: inspect that PR's current head/runs before attributing any result;
+finish its hosted gates if pending, then address the remaining gap register. No merge.
+
 Active branch: `codex/siepmu-sealed-integration-trl5`, based on draft PR #32 at
 `5c465d290a002a551a83ef74b235cd5a97990da8`, tree `48cb1f7293d78c55992d886b03ff3043a051f90d`.
 That base passed all 9 CI and 3 Security jobs on both events: push CI 42384141258,
