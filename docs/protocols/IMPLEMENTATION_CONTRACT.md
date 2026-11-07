@@ -67,3 +67,12 @@ Each record is signed `{payload:{sequence,previousHash,eventId,eventType,timesta
 ## Test hooks
 
 Core functions expose optional constructor hooks for tests only, never HTTP knobs. Inject before release commit / after commit failures; use independent processes/connections for race ordering. Persist revocations/epochs/evidence across restart. Required test artifacts contain synthetic content, no runtime credentials. Comparison baseline is ordinary un-fenced check/send vs current-authority transactional claim; no world-first/patentable claim.
+
+## Independent collector detection extension
+
+The separate operator-mTLS collector offers `GET /v1/detections` and
+`POST /v1/detections/ack {detectionId,disposition}`. It signs detections and dispositions,
+rejects source-identity access, retains open investigations, and rolls back ingest
+when resource bounds are exceeded. These are not gateway or authority routes.
+The exact JSON contract is [monitoring.openapi.json](../monitoring.openapi.json);
+rule semantics and limitations are in [monitoring-detections.md](../monitoring-detections.md).

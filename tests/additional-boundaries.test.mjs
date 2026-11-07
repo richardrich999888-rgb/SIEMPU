@@ -170,7 +170,7 @@ test('concurrent recovery writers reserve one output and rotate identity exactly
       import { recoverIdentity } from ${JSON.stringify(recoveryModule)};
       process.on('message', () => {
         try { recoverIdentity(process.argv[1], 'alice', process.argv[2]); process.exit(0); }
-        catch (error) { process.stderr.write(error.message); process.exit(1); }
+        catch (error) { process.stderr.write(error.message, () => process.exit(1)); }
       });
       process.send('ready');
     `,
@@ -185,7 +185,9 @@ test('concurrent recovery writers reserve one output and rotate identity exactly
     });
     const done = new Promise((resolve, reject) => {
       child.once('error', reject);
-      child.once('exit', (code) => resolve({ code, error }));
+      // Process exit can precede delivery of the final stderr chunk. Wait for the
+      // pipes to close before asserting the reason that each losing writer failed.
+      child.once('close', (code) => resolve({ code, error }));
     });
     const ready = new Promise((resolve) => child.once('message', resolve));
     return { child, ready, done };

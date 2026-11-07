@@ -127,3 +127,8 @@ The [evaluation preparation tools](assurance/sag/README.md) package a clean comm
 with source-bound reports. The [TRL 8 target plan](docs/trl/TRL8_QUALIFICATION.md)
 identifies nineteen remaining implementation/design/evaluation gaps and their owners.
 This tooling does not assign a TRL or establish external qualification.
+
+The [current PS-69 technical review and pending TRL 5 declaration](docs/trl5/PS69_TECHNICAL_REVIEW.md)
+reconciles the official requirements, implemented capabilities and remaining evaluation
+gates. The system remains provisionally assessed at TRL 4; the new
+[signed threat-signal detector](docs/monitoring-detections.md) adds laboratory R6 evidence.

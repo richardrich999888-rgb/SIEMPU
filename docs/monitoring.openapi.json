@@ -1,0 +1,253 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SIEPMU independent collector threat-detection extension",
+    "version": "1.0.0",
+    "description": "Synthetic laboratory collector routes only; not gateway routes. mTLS certificate fingerprint must equal the configured operator pin. Existing /v1/events and /v1/ack are documented separately. No IAF interface or SLA is claimed."
+  },
+  "servers": [
+    {
+      "url": "https://collector:8445"
+    }
+  ],
+  "security": [
+    {
+      "OperatorMTLS": []
+    }
+  ],
+  "paths": {
+    "/v1/detections": {
+      "get": {
+        "operationId": "listThreatDetections",
+        "description": "Maximum 2000 rows, unacknowledged first and oldest first. Bounded view, not a completeness proof.",
+        "responses": {
+          "200": {
+            "description": "Success; signatures require independent key verification.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["detections"],
+                  "properties": {
+                    "detections": {
+                      "type": "array",
+                      "maxItems": 2000,
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["detection", "ack"],
+                        "properties": {
+                          "detection": {
+                            "$ref": "#/components/schemas/SignedDetection"
+                          },
+                          "ack": {
+                            "anyOf": [
+                              {
+                                "$ref": "#/components/schemas/SignedAcknowledgement"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "COLLECTOR_ACCESS_DENIED: wrong identity, route, method or acknowledgement fields."
+          },
+          "409": {
+            "description": "COLLECTOR_REJECTED: invalid body, unknown detection or validation/capacity failure."
+          }
+        }
+      }
+    },
+    "/v1/detections/ack": {
+      "post": {
+        "operationId": "acknowledgeThreatDetection",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["detectionId", "disposition"],
+                "properties": {
+                  "detectionId": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "disposition": {
+                    "enum": ["INVESTIGATING", "RESOLVED", "FALSE_POSITIVE"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success; signatures require independent key verification.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedAcknowledgement"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "COLLECTOR_ACCESS_DENIED: wrong identity, route, method or acknowledgement fields."
+          },
+          "409": {
+            "description": "COLLECTOR_REJECTED: invalid body, unknown detection or validation/capacity failure."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "OperatorMTLS": {
+        "type": "mutualTLS",
+        "description": "Valid service CA certificate plus exact configured operator fingerprint; source pin is denied."
+      }
+    },
+    "schemas": {
+      "SignedDetection": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["payload", "signature", "keyId"],
+        "properties": {
+          "payload": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "version",
+              "kind",
+              "detectionId",
+              "sourceId",
+              "ruleId",
+              "ruleVersion",
+              "windowStart",
+              "windowEnd",
+              "threshold",
+              "observedSignals",
+              "firstEventAt",
+              "lastEventAt",
+              "triggerEventId",
+              "detectedAt"
+            ],
+            "properties": {
+              "version": {
+                "const": 1
+              },
+              "kind": {
+                "const": "SIEPMU_THREAT_SIGNAL"
+              },
+              "detectionId": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "sourceId": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "ruleId": {
+                "enum": ["AUTH_FAILURE_SIGNALS", "ACCESS_DENIAL_SIGNALS", "RELEASE_DENIAL_SIGNALS"]
+              },
+              "ruleVersion": {
+                "const": 1
+              },
+              "windowStart": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "windowEnd": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "threshold": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "observedSignals": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "firstEventAt": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "lastEventAt": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "triggerEventId": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "detectedAt": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "signature": {
+            "type": "string"
+          },
+          "keyId": {
+            "type": "string"
+          }
+        }
+      },
+      "SignedAcknowledgement": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["payload", "signature", "keyId"],
+        "properties": {
+          "payload": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["version", "kind", "detectionId", "disposition", "operator", "timestamp"],
+            "properties": {
+              "version": {
+                "const": 1
+              },
+              "kind": {
+                "const": "SIEPMU_DETECTION_ACK"
+              },
+              "detectionId": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "disposition": {
+                "enum": ["INVESTIGATING", "RESOLVED", "FALSE_POSITIVE"]
+              },
+              "operator": {
+                "type": "string"
+              },
+              "timestamp": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "signature": {
+            "type": "string"
+          },
+          "keyId": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

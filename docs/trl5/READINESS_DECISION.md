@@ -1,5 +1,10 @@
 # TRL readiness decision after the 24-hour advancement sprint
 
+> Current review (7 November 2026): [PS69_TECHNICAL_REVIEW.md](PS69_TECHNICAL_REVIEW.md).
+> The dated analysis below is historical. D-T5-01 has been fixed; its old open status
+> is superseded by the recorded retest. General TRL guidance permits justified controlled
+> simulations; this project retains its declared relevance and external-review gates.
+
 **Decision:** **TRL 4: validated laboratory prototype, with the TRL 5 advancement tests completed
 and gates outstanding.**
 

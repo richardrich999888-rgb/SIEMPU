@@ -72,7 +72,7 @@ Never use that result to issue sessions, release content keys or enable deployme
 
 `catalogue.json` is a human-reviewed inventory, not an exhaustive cryptographic scanner.
 Its 14 components include password/TOTP, vault, transport and release cryptography as
-well as document encryption. It binds 55 implementation/test files by hash. A change
+well as document encryption. It binds 60 implementation/test files by hash. A change
 to any bound file fails the inventory test and package builder until the inventory is
 reviewed and its binding deliberately updated. Do not blindly refresh hashes to pass.
 Dependency lockfiles for native, laboratory and optional components remain separate

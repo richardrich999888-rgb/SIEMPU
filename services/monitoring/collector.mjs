@@ -2,6 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { canonical, hash, verifyPacket, packet } from '../control/primitives.mjs';
 import { createTransportServer, fingerprint } from '../../packages/transport/tls.mjs';
 import { X509Certificate } from 'node:crypto';
+import { ThreatDetections } from './detections.mjs';
 
 const fields = ['eventId', 'eventType', 'timestamp', 'epoch', 'correlationId', 'reason'];
 const token = /^[A-Z][A-Z0-9_]{0,63}$/;
@@ -30,7 +31,15 @@ export function redactSecurityEvents(authority) {
   return { version: 1, events };
 }
 export class SecurityCollector {
-  constructor({ database, sourceKey, signingKey, retentionMs = 7 * 86400000, maxEvents = 100000 }) {
+  constructor({
+    database,
+    sourceKey,
+    signingKey,
+    retentionMs = 7 * 86400000,
+    maxEvents = 100000,
+    maxDetectionBuckets = 32768,
+    maxDetections = 10000,
+  }) {
     if (
       !Number.isSafeInteger(retentionMs) ||
       retentionMs < 60000 ||
@@ -43,6 +52,18 @@ export class SecurityCollector {
     this.db.exec(
       'PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; CREATE TABLE IF NOT EXISTS events(id TEXT PRIMARY KEY,digest TEXT NOT NULL,event TEXT NOT NULL,received INTEGER NOT NULL,ack TEXT);',
     );
+    try {
+      this.detections = new ThreatDetections({
+        db: this.db,
+        sourceKey,
+        signingKey,
+        maxBuckets: maxDetectionBuckets,
+        maxDetections,
+      });
+    } catch (error) {
+      this.db.close();
+      throw error;
+    }
   }
   ingest(signed, now = Date.now()) {
     if (
@@ -70,6 +91,7 @@ export class SecurityCollector {
         throw new Error('TELEMETRY_REDACTION_OR_TIME');
     this.db.exec('BEGIN IMMEDIATE');
     try {
+      this.detections.prune(now, this.retentionMs);
       this.db
         .prepare('DELETE FROM events WHERE received<? AND ack IS NOT NULL')
         .run(now - this.retentionMs);
@@ -82,6 +104,7 @@ export class SecurityCollector {
           this.db
             .prepare('INSERT INTO events VALUES(?,?,?,?,NULL)')
             .run(e.eventId, digest, canonical(e), now);
+          this.detections.observe(e, now);
           accepted++;
         }
       }
@@ -149,6 +172,15 @@ export function createCollectorServer({ collector, tls, sourcePin, operatorPin }
         result = collector.ingest(body);
       else if (req.url === '/v1/events' && req.method === 'GET' && peer === operatorPin)
         result = { events: collector.list() };
+      else if (req.url === '/v1/detections' && req.method === 'GET' && peer === operatorPin)
+        result = { detections: collector.detections.list() };
+      else if (
+        req.url === '/v1/detections/ack' &&
+        req.method === 'POST' &&
+        peer === operatorPin &&
+        Object.keys(body).sort().join() === 'detectionId,disposition'
+      )
+        result = collector.detections.acknowledge(body, peer);
       else if (
         req.url === '/v1/ack' &&
         req.method === 'POST' &&

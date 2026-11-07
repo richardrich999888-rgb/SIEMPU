@@ -382,7 +382,7 @@
   ],
   "systemAssessment": {
     "provisionalTrl": 4,
-    "statement": "Integrated laboratory prototype: the full exchange workflow runs end to end across separate service processes with automated and scripted evidence on a pinned revision. Three elements (monitoring, existing-system integration, crypto-provider agility toward a graded provider) are at TRL 3 because their sponsor-relevant form is not yet implemented. Release, relay and offline queue are TRL 5 validation candidates once a relevant environment is defined; evidence custody additionally requires the D-T5-01 scaling fix (docs/trl5/PERFORMANCE_REPORT.md).",
+    "statement": "Integrated laboratory prototype, provisional TRL 4. The element records retain their stated historical revision and measured results; currentReview identifies the latest technical review and new increment. Release, relay, offline queue and evidence custody are candidates for relevant-environment validation. D-T5-01 custody scaling was fixed and retested under ADR-014. Agreed environment, representative interfaces/criteria and external review remain outstanding.",
     "notClaimed": [
       "TRL 5 or 6",
       "IAF approval",
@@ -406,5 +406,21 @@
         "G6 per-device enrolment"
       ]
     }
+  },
+  "currentReview": {
+    "date": "2026-11-07",
+    "baselineRevision": "62291027db51d641b8215925190349501f342301",
+    "record": "docs/trl5/PS69_TECHNICAL_REVIEW.md",
+    "declaration": "PROVISIONAL_TRL4_TRL5_NOT_ESTABLISHED",
+    "sources": "Official PS-69 PDF body pages 161-162 retrieved and visually checked; NITI Aayog and Ministry of Education Innovation Cell TRL guidance checked. No programme-specific evaluation profile supplied by these sources.",
+    "newImplementation": "Persistent signed laboratory threat-signal detection; eleven adverse tests. Final exact-candidate evidence is recorded in the draft PR and CURRENT_STATE.",
+    "historicalCorrection": "D-T5-01 is fixed and retested at 1a0218db8684e363f7dc3000b5f1bce396571f22; historical advancementTests below describe their original execution, not current open-gate status.",
+    "remainingGates": [
+      "Agreed scope and relevant-environment fidelity",
+      "Realistic interface/identity/crypto substitutions and acceptance profile",
+      "Representative independently administered host execution",
+      "Project-required external review or witness",
+      "Scope-specific assessment decision"
+    ]
   }
 }

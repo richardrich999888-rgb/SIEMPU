@@ -96,18 +96,26 @@
     },
     {
       "id": "CR-06",
-      "purpose": "Decision evidence and checkpoint custody",
+      "purpose": "Decision evidence, checkpoint custody and monitoring signatures",
       "mechanisms": ["ECDSA P-256 SHA-256", "SHA-256 hash chain"],
-      "boundary": "Authority, verifier and custodian",
+      "boundary": "Authority, verifier, custodian and independent security collector",
       "deploymentScope": "APPLICATION",
       "custody": "Software signing key; separately trusted public key and retained checkpoint",
-      "limitations": "Signatures do not establish human actions, trustworthy hardware or honest authority decisions.",
+      "limitations": "Signatures do not establish human actions, trustworthy hardware or honest authority decisions. Collector detection and acknowledgement signatures do not establish complete event delivery, unique attack counts or append-only retention.",
       "sources": [
         "services/control/primitives.mjs",
         "services/evidence/custody.mjs",
-        "apps/verifier/verify.mjs"
+        "apps/verifier/verify.mjs",
+        "services/monitoring/collector.mjs",
+        "services/monitoring/detections.mjs",
+        "services/monitoring/exporter.mjs",
+        "services/monitoring/server.mjs"
       ],
-      "tests": ["tests/verifier-replay.test.mjs", "tests/checkpoint-custody.test.mjs"]
+      "tests": [
+        "tests/verifier-replay.test.mjs",
+        "tests/checkpoint-custody.test.mjs",
+        "tests/threat-detections.test.mjs"
+      ]
     },
     {
       "id": "CR-07",
@@ -369,6 +377,18 @@
     "services/integration/server.mjs": {
       "sha256": "acde8f08cbd877fc199ee1e827db0026052926571177af663f4eb37242a9f72c"
     },
+    "services/monitoring/collector.mjs": {
+      "sha256": "c0ddc1fdb8946b6b9d51849af38d87877bca8d7a6a54efd15835ba68f47357e0"
+    },
+    "services/monitoring/detections.mjs": {
+      "sha256": "99f5ecbd70f498a3994703e420e7cdd1e5fb33278b079e8d8457cc2b1342f0f0"
+    },
+    "services/monitoring/exporter.mjs": {
+      "sha256": "38593f5b51ac77e4780905137773dbdffffa2305821fdd1f398fe31e970cdabd"
+    },
+    "services/monitoring/server.mjs": {
+      "sha256": "afc4acafe0e42036c0ad85e5ee082b6ff107e477565b231c41b81334d54f5773"
+    },
     "services/relay/auth.mjs": {
       "sha256": "1dd10731534b2ff8ee1db7177f6768623169842e15bb16a95f92c90e61a89f74"
     },
@@ -385,7 +405,7 @@
       "sha256": "af65e7a58db6bccc3a0eb793c7af0bbd1074f95ce5af15db2a0a55da1d005cb5"
     },
     "tests/additional-boundaries.test.mjs": {
-      "sha256": "5c3d592a1aaf457cdb7cd29a780a87c3728170601aaad81a33f08cbcd210e9c6"
+      "sha256": "c23fc43cda693cc2d94cde6e024996113f0afc9d11df17742cf21002d9c19826"
     },
     "tests/auth-routing.test.mjs": {
       "sha256": "058c5b000e9c927ba271d79a55422b52f272af9cbdf9d81998a44978a6bf7e47"
@@ -419,6 +439,9 @@
     },
     "tests/pqc/end-to-end.test.mjs": {
       "sha256": "a073d80a3fd539bf61eeb26aa81d4afbb3d11fcc3279fd8b610e40072f482f92"
+    },
+    "tests/threat-detections.test.mjs": {
+      "sha256": "3ecc73a8288972f3d17c246f52ecc221f515b3899802f48f001632fd5fe2321a"
     },
     "tests/transport/secure-stack.test.mjs": {
       "sha256": "ff1d2905fc3d4b6ae5e6111ac19f3ffeb47bcafa8bb3999d8e3bbe4e12244675"

@@ -24,3 +24,12 @@ are usable; failure yields 503. This does not qualify the service for any IAF SL
 Startup failures emit a redacted `ADAPTER_STARTUP_FAILED` stage/code/status record.
 The lab helper rejects ordinary 404/503 responses as readiness and bounds shutdown.
 Session expiration withdraws readiness; supervised credential renewal remains open.
+
+## Threat-signal detection
+
+The independent collector now correlates distinct authenticated failure records into
+persistent signed detections, with fixed laboratory thresholds, bounded storage and
+operator-only acknowledgement. Open investigations are retained; exhausted capacity
+rejects the complete ingest transaction. See [behavior and limits](monitoring-detections.md)
+and the [collector API extension](monitoring.openapi.json). No content inspection or
+authorization decision is delegated to the detector.
