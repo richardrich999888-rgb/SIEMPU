@@ -92,5 +92,62 @@
     "services/web/web.test.mjs": "983d36ad091da0588a10fb4d3ab261db33134815e776ef935f8c5d28840fa681",
     "tests/helpers/fixture.mjs": "fa9c6c8e1f5f3ce2a9dd36522b625d945102560e5d9e9f3923ec3896a8549627",
     "tests/mission-readiness.test.mjs": "187633d15730071da76cab275225459b69b815130c353091c29bc28b00a07968"
+  },
+  "followUp": {
+    "candidate": "188be1612b1b955910f805771f4a3668bbf664aa",
+    "ciRun": "https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42355976435",
+    "securityRun": "https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42355976393",
+    "hostedBrowser": "PASS",
+    "hostedSecurity": "PASS",
+    "nativeClaimsAudit": "One new document line required explicit pending wording; corrected and all 9 claims tests pass on tracked files. Initial worktree audit omitted then-untracked documentation.",
+    "formalToolPin": {
+      "officialRelease": "https://github.com/tlaplus/tlaplus/releases/tag/v1.8.0",
+      "assetId": 718777374,
+      "sha256": "e1f11b75c4b5bc4478ba0ac5cb6ae28e40a01b0016bc33e0aa97da22dfdbcd7f",
+      "sha1": "0b57675323babad8ab3815b1db9f30e75dac1cdb",
+      "verification": "Independent local download matches official asset SHA-256 digest and release SHA-1; strict checksum enforcement retained."
+    },
+    "localFormal": {
+      "model": "formal/ReleaseAuthority.tla",
+      "instance": "formal/MCReleaseAuthority.tla",
+      "tlc": "TLC2 Version 2026.11.06.222357 (rev: d8fb231)",
+      "results": [
+        {
+          "config": "faithful",
+          "expected": "no error",
+          "observed": "no error",
+          "ok": true,
+          "exitStatus": 0,
+          "distinctStates": 3837180,
+          "depth": 29,
+          "counterexampleStates": 0
+        },
+        {
+          "config": "nonatomic",
+          "expected": "violation of IssueRequiresCurrentAuthority",
+          "observed": "violation of IssueRequiresCurrentAuthority",
+          "ok": true,
+          "exitStatus": 13,
+          "distinctStates": 289,
+          "depth": 8,
+          "counterexampleStates": 6
+        },
+        {
+          "config": "unguarded",
+          "expected": "violation of AckedRevocationHolds",
+          "observed": "violation of AckedRevocationHolds",
+          "ok": true,
+          "exitStatus": 13,
+          "distinctStates": 2831,
+          "depth": 8,
+          "counterexampleStates": 7
+        }
+      ],
+      "limitations": [
+        "Bounded model checking of one finite instance (see formal/README.md), not a proof for all sizes.",
+        "The model abstracts the implementation; conformance of core.mjs to the model is argued, not mechanically checked."
+      ]
+    },
+    "runtimeCodeChanged": false
   }
 }

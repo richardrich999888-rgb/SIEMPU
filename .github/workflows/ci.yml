@@ -183,7 +183,7 @@ jobs:
     timeout-minutes: 30
     env:
       TLA2TOOLS_URL: https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/tla2tools.jar
-      TLA2TOOLS_SHA256: 7beec0f04818732a62fa193731711a99aa4f11279499b2360a7d156c519ea78d
+      TLA2TOOLS_SHA256: e1f11b75c4b5bc4478ba0ac5cb6ae28e40a01b0016bc33e0aa97da22dfdbcd7f
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6, resolved 2026-10-07
         with:

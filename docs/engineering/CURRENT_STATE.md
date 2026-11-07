@@ -26,6 +26,23 @@ not reached. Browser checks for the new view, live dependency check and download
 were added to the existing runner. Hosted CI, browser, container and operational
 deployment are not established by the local results. No TRL advancement is claimed.
 
+**Hosted observation on candidate `188be1612b1b955910f805771f4a3668bbf664aa`:**
+[CI run 42355976435](https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42355976435)
+passed the browser and PQC jobs; [Security run 42355976393](https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42355976393)
+passed CodeQL, secret scanning and dependency/security regression. Native CI found
+one ambiguous qualification-plan line in the tracked-file claims audit; it now
+explicitly says the SAG process is pending. The initial local claims scan did not
+include that then-untracked document; tracked-file checks were rerun after correction.
+Formal CI stopped before model execution because the current upstream v1.8.0 JAR
+published on 6 November does not match the recorded checksum. The strict SHA-256 pin
+is updated to the independently downloaded asset's hash, which matches both the
+official GitHub asset digest and the release's SHA-1. The checks are not disabled. Local formal validation with the verified JAR passed:
+3,837,180 states for the faithful model; both deliberately broken models produced
+their expected invariant violations.
+Official asset: `https://api.github.com/repos/tlaplus/tlaplus/releases/assets/718777374`;
+SHA-256: `e1f11b75c4b5bc4478ba0ac5cb6ae28e40a01b0016bc33e0aa97da22dfdbcd7f`.
+PR: https://github.com/richardrich999888-rgb/SIEMPU/pull/28 (draft).
+
 **Next executable tasks:** obtain hosted CI/security/browser results on the pushed
 candidate, resolve failures, and execute the sponsor-agreed environment and
 qualification work in `docs/trl/PS69_QUALIFICATION_PLAN.md`. Keep the branch unmerged
