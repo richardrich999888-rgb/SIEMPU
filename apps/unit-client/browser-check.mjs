@@ -421,6 +421,28 @@ try {
   const alice = await loginUser('alice');
   const bob = await loginUser('bob');
   const admin = await loginUser('admin');
+  await admin.page.getByRole('button', { name: 'Mission readiness', exact: true }).click();
+  await admin.page.getByRole('heading', { name: 'PS-69 mission readiness', exact: true }).waitFor();
+  await admin.page.getByRole('button', { name: 'Check exchange services', exact: true }).click();
+  await admin.page
+    .getByText('Gateway, authority database and ciphertext relay responded.', { exact: false })
+    .waitFor();
+  const snapshotDownload = admin.page.waitForEvent('download');
+  await admin.page
+    .getByRole('button', { name: 'Download readiness snapshot', exact: true })
+    .click();
+  const snapshot = JSON.parse(await readFile(await (await snapshotDownload).path(), 'utf8'));
+  assert.equal(snapshot.releaseDecision, 'NOT_QUALIFIED');
+  assert.ok(snapshot.qualificationGates.every((gate) => gate.status === 'EVIDENCE_REQUIRED'));
+  await admin.page.screenshot({
+    path: resolve(artifactDir, 'mission-readiness.png'),
+    fullPage: true,
+  });
+  results.push(
+    'PS-69 readiness shows configuration observations, verifies exchange dependencies and exports pending qualification gates',
+  );
+  await admin.page.getByRole('button', { name: 'Overview', exact: true }).click();
+
   results.push('MFA, encrypted provisioning vault and device binding through real browser UI');
   const bravo = await enrollFreshDevice(admin);
   await checkRoleTransition(admin, bravo);

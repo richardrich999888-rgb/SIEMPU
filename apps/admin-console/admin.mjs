@@ -5,7 +5,10 @@ import { can } from '/apps/unit-client/capabilities.mjs';
 /** Administrative metadata only; never render protected object plaintext. */
 export async function renderAdmin(root, helpers) {
   const { api, adminMutation, action, notify, state, verified, download } = helpers;
-  const overview = await api('/api/admin/overview');
+  const [overview, readiness] = await Promise.all([
+    api('/api/admin/overview'),
+    api('/api/admin/readiness'),
+  ]);
   state.admin = overview;
   const canWrite = can(state.user, 'admin.manage');
   const units = overview.units || [];
@@ -567,8 +570,102 @@ export async function renderAdmin(root, helpers) {
         : null,
     );
   }
+  function readinessView() {
+    const healthResult = el(
+      'p',
+      { role: 'status', 'aria-live': 'polite' },
+      'Not checked in this view.',
+    );
+    return el(
+      'div',
+      {},
+      panel(
+        'PS-69 mission readiness',
+        'Secure information exchange for authorized IAF personnel over the public Internet.',
+        el(
+          'div',
+          { className: 'health-list' },
+          el('div', {}, 'Qualification', badge('Evidence required')),
+          el(
+            'div',
+            {},
+            'Recorded baseline',
+            'Provisional TRL ' + readiness.baseline.provisionalTrl,
+          ),
+          el('div', {}, 'Observation time', new Date(readiness.observedAt).toLocaleString()),
+          el('div', {}, 'Declared build', readiness.build.revision || 'Not supplied'),
+        ),
+        hint(readiness.baseline.note),
+        button(
+          'Download readiness snapshot',
+          () => download(readiness, 'siepmu-ps69-readiness.json'),
+          'quiet small',
+        ),
+      ),
+      panel(
+        'Current deployment observations',
+        'Configuration observations are separate from independently verified qualification.',
+        table(
+          ['Control', 'Observation', 'Meaning'],
+          readiness.checks.map((c) => [c.label, badge(c.status), c.detail]),
+        ),
+        button(
+          'Check exchange services',
+          action(async () => {
+            healthResult.textContent = 'Checking gateway, authority and ciphertext relay…';
+            try {
+              await api('/health/ready');
+              healthResult.textContent =
+                'Gateway, authority database and ciphertext relay responded. This does not authorize release or establish operational qualification.';
+            } catch {
+              healthResult.textContent =
+                'Exchange services are unavailable or their response could not be verified. Check the authority and relay before attempting exchange.';
+            }
+          }),
+          'quiet small',
+        ),
+        healthResult,
+      ),
+      panel(
+        'Evidence needed for qualification',
+        'Each gate requires evidence for the final system and the intended IAF environment.',
+        table(
+          ['Gate', 'Owner', 'Status', 'Required evidence'],
+          readiness.qualificationGates.map((g) => [
+            g.label,
+            g.owner,
+            badge('Pending'),
+            g.evidenceNeeded,
+          ]),
+        ),
+      ),
+      panel(
+        'Cryptography and custody',
+        'Read from the current authority. Private keys and message content are never included.',
+        el(
+          'div',
+          { className: 'health-list' },
+          el('div', {}, 'Custody state', readiness.recovery.state),
+          el(
+            'div',
+            {},
+            'Laboratory PQC',
+            readiness.crypto.laboratoryEnabled ? 'Enabled — laboratory only' : 'Disabled',
+          ),
+        ),
+        el(
+          'details',
+          {},
+          el('summary', {}, 'Inspect current crypto policy and inventory'),
+          el('pre', {}, JSON.stringify(readiness.crypto, null, 2)),
+        ),
+        ...readiness.limits.map((limit) => hint(limit)),
+      ),
+    );
+  }
   const views = {
     overview: ['Overview', overviewView],
+    readiness: ['Mission readiness', readinessView],
     identities: ['Units & users', identityView],
     devices: ['Devices & sessions', deviceView],
     policies: ['Policies', policiesView],

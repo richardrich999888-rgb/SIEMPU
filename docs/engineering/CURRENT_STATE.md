@@ -1,5 +1,37 @@
 # Current engineering state (single authoritative handover file)
 
+## PS-69 mission readiness candidate (2026-11-07)
+
+**Active branch:** `codex/siepmu-ps69-readiness`, based on sovereign research head
+`09b18103268603b35a9801b2679fa589bf54160c`. Older sections below are historical.
+User-confirmed scope: IAF DISC-14 PS-69 secure exchange of sensitive/confidential
+information between authorized personnel over the public Internet. Hosting is a
+service delivery model; this is not consumer SaaS or public self-registration.
+
+Implemented: protected admin/auditor mission-readiness API and UI, unsigned snapshot
+export, configuration observations, crypto policy/inventory, custody state and
+pending qualification evidence. Gateway readiness now checks the authority database
+and ciphertext relay; actual outage/restart and malformed-response cases are tested.
+Immutable browser shell bumped to v8. ADR-015 records the availability semantics.
+
+Local modified-tree verification (Node 24.22.1, Linux x64): `npm run validate` PASS,
+360/360 tests, 97.76% lines, 90.13% branches, 99.05% functions; all ten validation
+gates PASS. `npm run test:e2e` 3/3 PASS; new readiness tests 6/6 PASS; research record
+consistency PASS. Exact tested source digest and runtime/test hashes are recorded in
+`docs/engineering/ps69-readiness-validation.json`; do not attribute these runs to the
+unchanged historical base SHA. Only handover documentation was added after the run.
+
+Browser run BLOCKED: local Playwright Chromium executable missing; assertions were
+not reached. Browser checks for the new view, live dependency check and download
+were added to the existing runner. Hosted CI, browser, container and operational
+deployment are not established by the local results. No TRL advancement is claimed.
+
+**Next executable tasks:** obtain hosted CI/security/browser results on the pushed
+candidate, resolve failures, and execute the sponsor-agreed environment and
+qualification work in `docs/trl/PS69_QUALIFICATION_PLAN.md`. Keep the branch unmerged
+until review. No approved IAF deployment target, PKI/provider interface or external
+qualification evidence was supplied in this session.
+
 **Review date:** 2026-10-10. **Active branch:** `claude/siepmu-sovereign-research-w886dv` (see first section). Previous active branch: `claude/siepmu-trl5-24h-validation`, created from PR #18's head
 `4190797`, which contains PR #17's head `12989fb`. Not merged into `main`. The sections below this sprint's section
 describe earlier branches and are kept for provenance.

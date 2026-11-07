@@ -1,4 +1,5 @@
 import { buildInfo } from './build-info.mjs';
+import { missionReadiness } from './readiness.mjs';
 import {
   DUTY_ROLES,
   validMissionProfile,
@@ -128,6 +129,7 @@ export class Authority {
     this.masterKey = masterKey;
     this.hooks = hooks;
     this.relay = relay;
+    this.deployment = Object.freeze({});
     this.db = new DatabaseSync(dbPath);
     this.db.exec(
       'PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA busy_timeout=5000;',
@@ -1073,8 +1075,17 @@ export class Authority {
     switch (`${method} ${path}`) {
       case 'GET /health':
       case 'GET /live':
-      case 'GET /ready':
         return publicHealth(this);
+      case 'GET /ready': {
+        // Dependency availability only; neither qualification nor release authorization.
+        try {
+          this.get('SELECT 1');
+          if ((await this.relay.health?.()) !== true) throw new Error('RELAY_NOT_READY');
+          return { status: 200, body: { status: 'ok', service: 'control' } };
+        } catch {
+          return { status: 503, body: { status: 'unavailable', service: 'control' } };
+        }
+      }
       case 'GET /api/meta':
         return publicMetadata(this);
       case 'POST /api/auth/login':
@@ -1277,7 +1288,8 @@ export class Authority {
       s = this.bound(s);
       this.role(
         s,
-        method === 'GET' && ['/api/admin/overview', '/api/admin/crypto'].includes(path)
+        method === 'GET' &&
+          ['/api/admin/overview', '/api/admin/crypto', '/api/admin/readiness'].includes(path)
           ? ['admin', 'auditor']
           : ['admin'],
       );
@@ -1305,6 +1317,7 @@ export class Authority {
     return { status: 200, body: value };
   }
   admin(method, path, b, s) {
+    if (method === 'GET' && path === '/api/admin/readiness') return missionReadiness(this);
     if (method === 'GET' && path === '/api/admin/overview')
       return {
         units: this.all('SELECT * FROM units'),

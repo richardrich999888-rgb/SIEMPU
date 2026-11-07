@@ -14,6 +14,15 @@ The central experiment is **policy-epoch-bound release**: ciphertext can be queu
 
 The [reconciled TRL 5/6 dossier](research/trl56/README.md) compares the actual submitted technical annexures with the delivered code, records all remote branch heads, maps 12 requirements to 17 checks, and defines 23 work packages. [Proposal claims](research/trl56/17-proposal-reconciliation.md) and [planned acceptance tests](research/trl56/08-trl5-verification-matrix.md) remain distinct from implemented results.
 
+## PS-69 mission readiness
+
+The admin console now has a **Mission readiness** tab for bound administrators and
+read-only auditors: current deployment observations, crypto policy/inventory,
+custody state, downloadable snapshots and qualification evidence still needed.
+The gateway readiness probe also detects a ciphertext-relay outage.
+See the [qualification execution plan](docs/trl/PS69_QUALIFICATION_PLAN.md).
+This remains an IAF secure-exchange prototype; these additions do not establish TRL 8.
+
 ## Run locally
 
 Requires Node **24.x (>=24.19.0)**, npm and a current browser with WebCrypto. Hosted CI and the container use **24.21.0**; local compatibility has also been tested on **24.19.0**. Runtime services use Node built-ins; npm dependencies are development tools only.

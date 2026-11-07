@@ -24,6 +24,7 @@ export async function openAuthority(dir, hooks = {}, options = {}) {
   if (!relayStores.has(dir)) relayStores.set(dir, new Map());
   const blobs = relayStores.get(dir);
   const relay = {
+    health: async () => true,
     putBlob: async (hash, bytes) => {
       blobs.set(hash, Buffer.from(bytes));
     },

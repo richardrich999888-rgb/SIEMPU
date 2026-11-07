@@ -8,6 +8,10 @@ test('gateway restricts origins, hosts, assets and content type; forwards approv
   const control = createServer((req, res) => {
     upstreamRequests++;
     res.writeHead(200, { 'content-type': 'application/json' });
+    if (req.url === '/ready') {
+      res.end(JSON.stringify({ status: 'ok', service: 'control' }));
+      return;
+    }
     res.end(
       JSON.stringify({
         path: req.url,

@@ -2,7 +2,7 @@
  * Bump CACHE whenever any shell asset changes; deploy the release directory atomically.
  * Each installed cache is an immutable generation. Never refresh one module in isolation.
  */
-const CACHE = 'siepmu-public-shell-v7';
+const CACHE = 'siepmu-public-shell-v8';
 const ASSETS = [
   '/',
   '/unit',

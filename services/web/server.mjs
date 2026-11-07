@@ -149,8 +149,12 @@ export function createWebServer({
         return;
       }
       if (path === '/health/ready' && req.method === 'GET') {
-        const health = await forward('GET', '/health', {}, undefined, AbortSignal.timeout(2000));
-        const healthy = health.status === 200;
+        const health = await forward('GET', '/ready', {}, undefined, AbortSignal.timeout(2000));
+        let healthy = false;
+        try {
+          const body = JSON.parse(health.body.toString('utf8'));
+          healthy = health.status === 200 && body.status === 'ok' && body.service === 'control';
+        } catch {}
         send(healthy ? 200 : 503, {
           status: healthy ? 'ok' : 'unavailable',
           service: 'web-gateway',

@@ -22,6 +22,12 @@ export function createControlServer({
   tls = serverTLS('control'),
   telemetry,
 }) {
+  // Summaries of actual server options only; never expose certificate paths or secrets.
+  authority.deployment = Object.freeze({
+    controlMutualTls: Boolean(tls?.requestCert && tls?.clientFingerprints?.length),
+    publicOriginHttps: Boolean(allowedOrigin?.startsWith('https://')),
+    monitoringConfigured: Boolean(telemetry),
+  });
   const server = createTransportServer(async (req, res) => {
     const started = performance.now(),
       requestId = randomUUID();
