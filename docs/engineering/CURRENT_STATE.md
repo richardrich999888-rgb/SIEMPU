@@ -57,6 +57,22 @@ network/independent-services 3/3 PASS. Exact digest/hashes and environment are i
 `ps69-dependency-validation.json`. Container execution remains hosted-only. No scanner
 exceptions were introduced.
 
+Hosted `b2e1785154547d05a70bfea4419e4ad5613517f5` caught a Clippy rule newly
+applicable at the raised Rust minimum (1.87): the CLI's odd argument-count check.
+The equivalent standard `is_multiple_of` predicate replaces manual modulo. The
+initial local lint preceded the minimum-version change. Follow-up local format,
+Clippy, 26 Rust unit tests and 3 vector suites PASS with the final manifest;
+full validation 360/360 and acceptance 3/3 PASS on modified source digest
+`604326cff0bbc3452e3da15edd59cc7f7f2870aa57adc1a225b74b86c6355b14`.
+Rust CLI SHA-256: `433d79fb2b938129052c513d2bd61117efa73255e7ff270f4fc5e129bcdcd623`.
+The native-validation source digest covers the JavaScript source; the CLI hash binds
+the separate Rust checks. Only this handover update followed that run. No lint
+suppression is used.
+Hosted container job 128358817829 on `b2e1785` passed build, actual exchange,
+HIGH/CRITICAL scan and SBOM generation; Security run 42357429642 passed all jobs.
+The final CLI-fix candidate still requires its own hosted run; consult PR #28 for
+exact candidate SHA and run results rather than carrying older passes forward.
+
 **NEXORA clarification:** user asked why VANIAN NEXORA cannot provide authentication.
 Source inspected at AIP `4ee39f359430277a48c34b957609104d3cf781f6` establishes a portable
 commitment/proof verifier. The proposed SIEPMU integration and authentication boundary
