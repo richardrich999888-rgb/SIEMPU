@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "kind": "EXTERNAL_SCOPE_REQUESTS",
+  "requests": [
+    {
+      "id": "SAG-01",
+      "owner": "IAF sponsor and SAG",
+      "question": "Confirm service sponsorship, required grading and algorithm/module/product scope.",
+      "publicReference": null
+    },
+    {
+      "id": "SAG-02",
+      "owner": "SAG and authorised supplier",
+      "question": "Supply permitted implementation/version, module/firmware, SDK/interface and applicability of existing grading.",
+      "publicReference": null
+    },
+    {
+      "id": "SAG-03",
+      "owner": "IAF information owner",
+      "question": "Confirm content-key custody, retention, escrow and recovery requirements.",
+      "publicReference": null
+    },
+    {
+      "id": "SAG-04",
+      "owner": "SAG evaluator",
+      "question": "Provide submission proforma, design material, authoritative vectors, methods and acceptance criteria.",
+      "publicReference": null
+    },
+    {
+      "id": "SAG-05",
+      "owner": "IAF crypto custodian",
+      "question": "Confirm key generation, distribution, rotation, revocation, destruction and repair procedures.",
+      "publicReference": null
+    },
+    {
+      "id": "SAG-06",
+      "owner": "IAF cryptographic authority",
+      "question": "Confirm suite migration, historical access, downgrade protection and change re-evaluation.",
+      "publicReference": null
+    },
+    {
+      "id": "IAF-01",
+      "owner": "IAF security sponsor",
+      "question": "Confirm permitted classification and public-Internet exchange conditions.",
+      "publicReference": null
+    },
+    {
+      "id": "IAF-02",
+      "owner": "IAF identity and endpoint owner",
+      "question": "Name authorised users, enrolment/issuer/PKI, OS/devices and authentication requirements.",
+      "publicReference": null
+    },
+    {
+      "id": "IAF-07",
+      "owner": "IAF programme evaluation authority",
+      "question": "Nominate lab, representative hardware/network, witnessing, formats and fees/waiver applicability.",
+      "publicReference": null
+    },
+    {
+      "id": "IAF-08",
+      "owner": "IAF hosting authority",
+      "question": "Confirm hosting, remote administration, logging, separation and operational model.",
+      "publicReference": null
+    },
+    {
+      "id": "IAF-10",
+      "owner": "IAF endpoint and crypto owner",
+      "question": "Specify hardware custody, attestation, device-loss recovery and zeroisation.",
+      "publicReference": null
+    },
+    {
+      "id": "IAF-12",
+      "owner": "SYNTRIASS and IAF sponsor",
+      "question": "Agree NDA/IP/handling restrictions and approved source/document transfer channels.",
+      "publicReference": null
+    }
+  ]
+}

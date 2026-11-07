@@ -12,8 +12,8 @@
     "bootstrap": "node scripts/bootstrap.mjs",
     "start": "node scripts/start.mjs",
     "check": "node scripts/check.mjs",
-    "test": "node --test --test-concurrency=1",
-    "test:coverage": "node --experimental-test-coverage --test-coverage-include='services/**/*.mjs' --test-coverage-include='packages/**/*.mjs' --test-coverage-include='apps/verifier/**/*.mjs' --test-coverage-include='scripts/sarif-gate.mjs' --test-coverage-exclude='**/*.test.mjs' --test-coverage-exclude='tests/**' --test-coverage-lines=85 --test-coverage-branches=75 --test-coverage-functions=85 --test --test-concurrency=1",
+    "test": "node --test --test-concurrency=1 'apps/**/*.test.mjs' 'scripts/**/*.test.mjs' 'services/**/*.test.mjs' 'tests/**/*.test.mjs'",
+    "test:coverage": "node --experimental-test-coverage --test-coverage-include='services/**/*.mjs' --test-coverage-include='packages/**/*.mjs' --test-coverage-include='apps/verifier/**/*.mjs' --test-coverage-include='scripts/sarif-gate.mjs' --test-coverage-exclude='**/*.test.mjs' --test-coverage-exclude='tests/**' --test-coverage-lines=85 --test-coverage-branches=75 --test-coverage-functions=85 --test --test-concurrency=1 'apps/**/*.test.mjs' 'scripts/**/*.test.mjs' 'services/**/*.test.mjs' 'tests/**/*.test.mjs'",
     "security": "node scripts/security.mjs",
     "sbom": "node scripts/sbom.mjs",
     "build": "node scripts/build.mjs",
@@ -56,7 +56,10 @@
     "bench:d-t5-01": "node assurance/bench/d-t5-01.mjs",
     "claims:audit": "node scripts/claims-audit.mjs --write docs/assurance/claims-audit.md",
     "build:nexora": "cargo build --release --locked --manifest-path integrations/nexora/Cargo.toml",
-    "test:nexora": "node --test --test-concurrency=1 tests/nexora/*.check.mjs"
+    "test:nexora": "node --test --test-concurrency=1 tests/nexora/*.check.mjs",
+    "sag:package": "node assurance/sag/package.mjs",
+    "sag:verify": "node assurance/sag/verify.mjs",
+    "test:sag": "node --test --test-concurrency=1 tests/sag-evaluation.test.mjs"
   },
   "devDependencies": {
     "@types/node": "24.10.0",

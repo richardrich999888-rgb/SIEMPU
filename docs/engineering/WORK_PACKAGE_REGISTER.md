@@ -42,3 +42,11 @@ Added on `claude/siepmu-trl56-recovery-9o6qet` (hosted CI and Security green on 
 WP01–WP03, WP05, WP06, WP22 are documentation, evidence-freezing or external items; see the research dossier.
 "CI native" means the `native` job of `.github/workflows/ci.yml`; the run URL for the SHA is in
 `docs/engineering/CURRENT_STATE.md`. An entry is never upgraded without a command and SHA.
+
+## WP11 preparation increment (7 November 2026)
+
+Applicant dossier and executable package builder/verifier: `assurance/sag/`,
+`tests/sag-evaluation.test.mjs`, `docs/security-assurance/SAG_EVALUATION_DOSSIER.md`.
+The preparation implementation is separate from the WP11 external grading decision,
+which remains EXTERNAL_BLOCKED. Commands, candidate revision and final evidence are
+recorded in CURRENT_STATE and the preparation PR; no external axis is upgraded here.
