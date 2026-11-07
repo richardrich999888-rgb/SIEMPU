@@ -23,9 +23,9 @@ const validPath = (p) =>
   /^[A-Za-z0-9_./-]+$/.test(p) &&
   !p.startsWith('/') &&
   p.split('/').every((x) => x && x !== '.' && x !== '..');
-// Laboratory-only source never enters a signed release: it holds endpoint PQC
-// providers and an unaudited third-party dependency (see packages/pqc-lab/README.md).
-export const RELEASE_EXCLUDED_PATHS = Object.freeze(['packages/pqc-lab']);
+// Laboratory-only source never enters a signed release: endpoint PQC providers
+// and the optional NEXORA operator bridge have separate dependency/qualification boundaries.
+export const RELEASE_EXCLUDED_PATHS = Object.freeze(['packages/pqc-lab', 'integrations/nexora']);
 function files(root, prefix = '', excluded = []) {
   const out = [];
   for (const name of readdirSync(join(root, prefix)).sort()) {

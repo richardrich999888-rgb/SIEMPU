@@ -1,0 +1,27 @@
+[package]
+name = "siepmu-nexora-bridge"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.87"
+license = "Apache-2.0"
+publish = false
+description = "Optional offline SIEPMU evidence snapshots sealed with pinned VANIAN NEXORA"
+
+# Separate dependency graph: this optional operator tool does not enter the exchange runtime.
+[workspace]
+resolver = "2"
+
+[dependencies]
+aip-nexora = { git = "https://github.com/richardrich999888-rgb/AIP-agent-identity-protocol-.git", rev = "4ee39f359430277a48c34b957609104d3cf781f6" }
+aip-crypto = { git = "https://github.com/richardrich999888-rgb/AIP-agent-identity-protocol-.git", rev = "4ee39f359430277a48c34b957609104d3cf781f6" }
+aip-types = { git = "https://github.com/richardrich999888-rgb/AIP-agent-identity-protocol-.git", rev = "4ee39f359430277a48c34b957609104d3cf781f6" }
+siepmu-evidence-verify = { path = "../../native/evidence-verify" }
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.151"
+libc = "=0.2.190"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = "deny"

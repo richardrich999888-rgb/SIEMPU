@@ -8,6 +8,7 @@ export default [
       'artifacts/**',
       'coverage/**',
       'native/target/**',
+      'integrations/nexora/target/**',
     ],
   },
   {

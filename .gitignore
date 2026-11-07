@@ -20,3 +20,4 @@ dist/
 native/target/
 formal/states/
 formal/*_TTrace_*
+integrations/nexora/target/
