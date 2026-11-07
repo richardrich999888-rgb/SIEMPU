@@ -43,11 +43,31 @@ Official asset: `https://api.github.com/repos/tlaplus/tlaplus/releases/assets/71
 SHA-256: `e1f11b75c4b5bc4478ba0ac5cb6ae28e40a01b0016bc33e0aa97da22dfdbcd7f`.
 PR: https://github.com/richardrich999888-rgb/SIEMPU/pull/28 (draft).
 
-**Next executable tasks:** obtain hosted CI/security/browser results on the pushed
-candidate, resolve failures, and execute the sponsor-agreed environment and
-qualification work in `docs/trl/PS69_QUALIFICATION_PLAN.md`. Keep the branch unmerged
-until review. No approved IAF deployment target, PKI/provider interface or external
-qualification evidence was supplied in this session.
+**Dependency follow-up after `76fb20e348b9f9b66ecad16e17729f2f8bd6691b`:**
+CI run 42356230201 passed native, browser, PQC, formal, relevant-env and testbed.
+Security run 42356230189 passed all three jobs. Two release gates failed:
+RustSec RUSTSEC-2026-0387 in crypto-bigint 0.5.5, and image HIGH findings in musl/zlib.
+The next candidate upgrades p256/sha2 and their locked dependencies, adapts only the
+upstream point-parser API names, and pins the refreshed official Node/Alpine image.
+Rust 1.97.0 local results on the modified tree: format/clippy PASS, 26 unit + 3 vector
+suites PASS, Node/Rust differential 3/3 PASS including 400 mutations, both 18-step
+mission profiles PASS, cargo-audit 0.22.0 with `--deny warnings` PASS.
+Full modified-tree validation also PASS (360/360), acceptance 3/3 PASS, engineering PASS,
+network/independent-services 3/3 PASS. Exact digest/hashes and environment are in
+`ps69-dependency-validation.json`. Container execution remains hosted-only. No scanner
+exceptions were introduced.
+
+**NEXORA clarification:** user asked why VANIAN NEXORA cannot provide authentication.
+Source inspected at AIP `4ee39f359430277a48c34b957609104d3cf781f6` establishes a portable
+commitment/proof verifier. The proposed SIEPMU integration and authentication boundary
+are recorded in `docs/decisions/NEXORA_INTEGRATION_BOUNDARY.md`; no NEXORA login or
+cross-format compatibility is implemented or claimed by this candidate.
+
+**Next executable tasks:** finish validation and hosted checks for the dependency
+candidate, then execute sponsor-agreed qualification work in
+`docs/trl/PS69_QUALIFICATION_PLAN.md`. Keep the draft unmerged for review. No approved
+IAF deployment target, PKI/provider interface or external qualification evidence was
+supplied. Provisional TRL 4 remains unchanged.
 
 **Review date:** 2026-10-10. **Active branch:** `claude/siepmu-sovereign-research-w886dv` (see first section). Previous active branch: `claude/siepmu-trl5-24h-validation`, created from PR #18's head
 `4190797`, which contains PR #17's head `12989fb`. Not merged into `main`. The sections below this sprint's section

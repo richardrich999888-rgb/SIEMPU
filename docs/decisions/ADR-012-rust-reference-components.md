@@ -67,3 +67,7 @@ the places that carry the security argument (canonical encoding, signature check
 - Next candidates, in order: authorization/release state-machine model checking (formal model, not a
   port), then a native endpoint key-custody helper only when a TPM/PKCS#11 target is available.
   Ciphertext relay and protocol parsing in Rust remain unjustified until a measured bottleneck exists.
+
+## Dependency update, 2026-11-07
+
+The original backend pins above describe the initial decision. The current candidate uses `p256 =0.14.0` and `sha2 =0.11.1` to remove RUSTSEC-2026-0387 from the locked graph. See [dependency provenance](../../native/DEPENDENCIES.md); the evidence wire contracts and frozen vectors are unchanged.

@@ -19,7 +19,7 @@ Open `http://localhost:8080/` for the unit workspace and `http://localhost:8080/
 
 The gateway binds loopback on port 8080. Authority and ciphertext relay bind loopback on 8081 and 8082. Stop the parent with Ctrl-C; it terminates all three children. The startup script fails on missing provisioning rather than generating credentials. Environment settings are documented in `.env.example`; the process environment must be populated explicitly (the app does not implicitly load `.env`).
 
-Health: `/health` and `/health/live` are liveness endpoints on the gateway and relay; `/health/ready` checks authority availability on the gateway and database usability on the relay. Authority's `/health` is used for its container health check. Health responses do not disclose identities or secrets.
+Health: `/health` and `/health/live` are liveness endpoints on the gateway and relay. Gateway `/health/ready` checks the authority database and ciphertext relay through authority `/ready`. Relay `/health/ready` checks its database; authority `/health` remains a liveness check. Health responses do not disclose identities or secrets. Availability does not establish authorization or qualification.
 
 ## Container execution
 
@@ -37,7 +37,7 @@ The optional `bootstrap` profile is enabled implicitly by `compose run bootstrap
 
 Each container runs UID/GID 1000, a read-only application filesystem, dropped Linux capabilities, no new privileges, restricted temporary storage and PID/memory limits. The only published port is gateway port 8080 on host loopback. Two internal networks restrict ordinary service reachability; only the gateway also joins an edge bridge for its loopback-published ingress. The gateway therefore has an outbound network path that requires operator egress policy in any managed deployment; Docker host administrators can still cross these boundaries. Internal HTTP is explicitly enabled only for this synthetic local configuration. TLS is not implied by Docker networking.
 
-The image is pinned to `node:24.21.0-alpine3.24` by an officially published manifest digest in Dockerfile. Pinning provides reproducibility, not freedom from vulnerabilities. The runtime excludes unused npm/Yarn; the application starts directly with Node. Review security scans and update the pin when required. See [remediation provenance](../security/README.md#container-remediation-evidence).
+The image is pinned to `node:24.22.2-alpine3.24` by an officially published manifest digest in Dockerfile. Pinning provides reproducibility, not freedom from vulnerabilities. The runtime excludes unused npm/Yarn; the application starts directly with Node. Review security scans and update the pin when required. See [remediation provenance](../security/README.md#container-remediation-evidence).
 
 ## TLS and managed deployment gate
 
