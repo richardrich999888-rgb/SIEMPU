@@ -1,5 +1,24 @@
 # Current engineering state (single authoritative handover file)
 
+## Native integration host follow-up (8 November 2026)
+
+Draft PR #36: https://github.com/richardrich999888-rgb/SIEMPU/pull/36. Initial head
+`a2eaeefcb68cc594b0fc369270915d334c577af4` passed all ten local gates / 432 tests,
+3 E2E, 9 token tests, 7 separate PQC tests and 233 adversarial cases. An ungraded
+source-bound evaluation bundle was built and independently verified offline. Its digest
+was `eca7804f1c5c8f5235c38d258c63f120fb2fa78bfd97425adb1710d75e950c43`.
+
+Head `2fb909e9ae3d785ebd9c320015368198bbe70650` also passed 432 local tests, 3 E2E
+and 9 token tests. Native PKCS11 CI passed after fixing the SoftHSM configuration/state
+install directories to stay within the private runner workspace:
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42462812497.
+The native scanner probe still refused isolation: Ubuntu blocked network-namespace
+setup capabilities (`RTM_NEWADDR`). The follow-up grants only the dedicated root-owned
+launcher an AppArmor userns exception and explicitly prevents nested user namespaces
+inside the parser. It does not disable the global host restriction or remove parser
+isolation. Final exact-head local/hosted results and bundle identity belong in PR #36;
+prior passes must not be attributed to the follow-up. No merge or deployment occurred.
+
 ## Endpoint integration evaluation candidate (8 November 2026)
 
 Active branch: `codex/siepmu-evaluation-integrations`, based on PR #35 exact head

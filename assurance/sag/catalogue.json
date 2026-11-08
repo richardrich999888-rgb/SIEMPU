@@ -388,7 +388,7 @@
       "sha256": "3d5da6d0f7e007039b8217928e80d69e66302f799a8d6a7eca6bf0f4726e24fb"
     },
     "packages/file-inspection/sandbox.mjs": {
-      "sha256": "ec4bb47455155b4dded7633a795bd8acf9908648c3293d0f254ac150e884865a"
+      "sha256": "771c761410437fa2b73172e66c78e28ed852c44b92e130a24d95f3247c8f87e4"
     },
     "packages/integration/client.mjs": {
       "sha256": "bc79b0246736a63f738d75b2c69bbf6ec8ef1267204767d7d2cd9001d9814f09"
@@ -505,7 +505,7 @@
       "sha256": "699a4681119a725429bb3fe649842a6ddabbac3d23e5b46ed99115825051e377"
     },
     "tests/inspection-sandbox.test.mjs": {
-      "sha256": "934ffd89d512b06924e8185e1a7b929cb54e02eb405b400f585921d7078a8c28"
+      "sha256": "9e0a455711d79c65c1ca3d53d9d549cdb993e2aa033b51b0159d44efc1f6fa51"
     },
     "tests/native/evidence-differential.check.mjs": {
       "sha256": "5d208c2fb8eb15fd2d6535a91f123f1cb0316d4f87523bb794e7f862a1890241"

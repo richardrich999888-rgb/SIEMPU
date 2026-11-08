@@ -1,4 +1,6 @@
 /* Synthetic Linux boundary probe. Replaces the parser only in a separate test image. */
+#define _GNU_SOURCE
+#include <sched.h>
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -10,6 +12,7 @@
 #include <sys/statfs.h>
 #include <unistd.h>
 int main(void) {
+ if(unshare(CLONE_NEWUSER)==0)return 34;
  struct rlimit limit;
  if (getrlimit(RLIMIT_CORE,&limit) || limit.rlim_cur != 0) return 21;
  if (getrlimit(RLIMIT_AS,&limit) || limit.rlim_cur != 4294967296ULL) return 22;

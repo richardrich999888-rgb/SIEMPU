@@ -40,11 +40,13 @@ sha=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
 config=json.loads((lab/'config.json').read_text())
 config['executable']=str(root/'bin/clamscan')
 config['executableSha256']=sha(config['executable'])
-config['sandbox']={'bwrap':'/usr/bin/bwrap','bwrapSha256':sha('/usr/bin/bwrap'),
+config['sandbox']={'bwrap':'/usr/local/libexec/siepmu-bwrap','bwrapSha256':sha('/usr/local/libexec/siepmu-bwrap'),
  'prlimit':'/usr/bin/prlimit','prlimitSha256':sha('/usr/bin/prlimit'),'runtimeRoot':str(root),
  'files':{str(p.relative_to(root)):sha(p) for p in sorted(root.rglob('*')) if p.is_file()}}
 (lab/'isolated-config.json').write_text(json.dumps(config))
 Path('artifacts/clamav-host/isolation-inventory.json').write_text(json.dumps({
- 'bubblewrapVersion':subprocess.check_output(['/usr/bin/bwrap','--version'],text=True).strip(),
+ 'bubblewrapVersion':subprocess.check_output(['/usr/local/libexec/siepmu-bwrap','--version'],text=True).strip(),
  'bwrapSha256':config['sandbox']['bwrapSha256'],'prlimitSha256':config['sandbox']['prlimitSha256'],
- 'runtimeFiles':config['sandbox']['files'],'scope':'Linux laboratory runtime; no host attestation or aggregate cgroup limits'},indent=2)+'\n')
+ 'runtimeFiles':config['sandbox']['files'],
+ 'launcherProfileSha256':sha('integrations/endpoint-inspection/siepmu-bwrap.apparmor'),
+ 'globalUsernsRestriction':Path('/proc/sys/kernel/apparmor_restrict_unprivileged_userns').read_text().strip(),'scope':'Linux laboratory runtime; no host attestation or aggregate cgroup limits'},indent=2)+'\n')

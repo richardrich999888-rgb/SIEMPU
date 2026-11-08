@@ -36,9 +36,27 @@ makes the caller responsible for sandbox policy. Versions preceding the 0.12 sec
 must not be substituted. Selection/advisory review date: 8 November 2026.
 
 `.github/workflows/clamav-native.yml` builds the pinned tool on an ephemeral Linux runner,
-uses Ubuntu's path-scoped AppArmor policy without relaxing global controls, executes the
+loads a path-scoped AppArmor exception for the dedicated root-owned launcher, executes the
 native isolation probe and then the three actual ClamAV smoke cases inside the sandbox.
 The probe checks denied root/signature writes, invisible host files, network route absence,
 zero effective capabilities, tmpfs size and resource limits. No unsupported host is silently
 skipped. Failure of native namespaces is a blocking result. The development container cannot
 create this namespace; its unit tests check configuration/refusal, not isolation success.
+
+## Ubuntu 24.04 host prerequisite
+
+The hosted probe reproduced `loopback: Failed RTM_NEWADDR: Operation not permitted` before
+parser execution. Ubuntu's unprivileged-user-namespace restriction denies setup capabilities
+unless the launcher has an explicit profile. The CI host now installs the root-owned pinned
+binary at `/usr/local/libexec/siepmu-bwrap` and loads `siepmu-bwrap.apparmor` for that path.
+The system-wide restriction is left unchanged. This profile grants namespace setup to the
+launcher; it is **not** a restrictive parser AppArmor policy. The fixed runtime invocation
+explicitly creates a user namespace, disables further user namespaces, asserts that denial,
+and drops all capabilities before executing the parser. The native probe tests the denial.
+
+Administrators must review/provision this host exception; the application never installs it
+or relaxes host policy automatically. A host without the required permission refuses scans.
+This follows the application-specific option in the official
+[Ubuntu 24.04 release notes](https://documentation.ubuntu.com/release-notes/24.04/).
+No namespace, capability or filesystem restriction in the parser command is removed to
+obtain a passing result. The CI inventory records the profile hash and global restriction.

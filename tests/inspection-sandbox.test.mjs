@@ -49,6 +49,9 @@ test('sandbox command contains a private namespace, exact image, bounded tmpfs a
   assert.equal(command.executable, f.config.prlimit);
   for (const flag of [
     '--unshare-all',
+    '--unshare-user',
+    '--disable-userns',
+    '--assert-userns-disabled',
     '--clearenv',
     '--die-with-parent',
     '--new-session',
