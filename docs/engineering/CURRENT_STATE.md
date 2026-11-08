@@ -1,5 +1,32 @@
 # Current engineering state (single authoritative handover file)
 
+## CI tool acquisition follow-up (8 November 2026)
+
+Draft PR #36 remains the active candidate. Evidence head
+`c65fa4ccffe72ae3b34d5e29b199ed51b35a6da4` passed all ten local gates (432 tests),
+3 E2E, 233 adversarial cases across nine families, both hosted Security/token workflows,
+and the browser, Rust, PQC, Nexora, relevant-environment and testbed jobs. The PR formal
+model check passed on its matching merge tree. Repeated push formal downloads returned
+HTTP 504; container jobs stopped in the upstream Trivy installer before its scanner ran.
+Run references: https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42464566040
+and https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42464568928.
+
+This follow-up changes CI tool acquisition only: bounded curl retries for the existing
+TLA+ pin and a direct, SHA-256-pinned Trivy 0.69.3 Linux x64 archive, installed once per
+job. The archive digest was verified against the upstream release API asset metadata.
+Both container scans and the optional Python scan use that binary; no mutable installer
+is fetched. Hash mismatches and vulnerability findings still fail the gates. Runtime,
+provider and scanner code are unchanged, but the validation source digest changes because
+it includes workflows. Freeze and validate this exact follow-up, run E2E and the adversarial
+suite, rebuild/verify the candidate bundle, then record final hosted outcomes in PR #36.
+
+The prior hosted 653-file candidate was downloaded and independently verified against
+manifest `109c0aada96b1ab51539376bad804c02749720751fd8a2eac149ed4c8eece81a` and artifact
+ZIP `e433359096ca3c3b2be5ee378ec5259fffb455df8011647a43a9f8e2c860c121`; it belongs only
+to `c65fa4c`. The final follow-up requires a new bundle. Native parser evidence remains
+bound to `f9eac4d` below; exact runtime-source equivalence must be retained when citing it.
+Provisional TRL4, all nineteen qualification gaps and external SAG/IAF decisions remain open.
+
 ## Native endpoint integrations accepted in the lab (8 November 2026)
 
 Active draft: https://github.com/richardrich999888-rgb/SIEMPU/pull/36,

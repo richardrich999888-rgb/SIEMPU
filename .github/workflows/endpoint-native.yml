@@ -9,6 +9,7 @@ on:
         'tests/pkcs11/**',
         'packages/crypto/crypto.mjs',
         '.github/workflows/endpoint-native.yml',
+        '.github/actions/setup-trivy/**',
       ]
   workflow_dispatch:
 permissions:
@@ -55,10 +56,13 @@ jobs:
           set -euo pipefail
           export SIEPMU_PKCS11_LAB_CONFIG="$RUNNER_TEMP/pkcs11-lab/config.json"
           node --test --test-reporter=tap tests/pkcs11/provider.check.mjs > artifacts/pkcs11/tests.tap
+      - name: Install hash-pinned scanner
+        uses: ./.github/actions/setup-trivy
       - name: Scan isolated Python dependency lock
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
         with:
           version: v0.69.3
+          skip-setup-trivy: true
           cache: false
           scan-type: fs
           scan-ref: integrations/pkcs11

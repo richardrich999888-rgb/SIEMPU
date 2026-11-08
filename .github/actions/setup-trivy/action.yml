@@ -1,0 +1,19 @@
+name: Install pinned Trivy
+description: Install the reviewed Linux x64 archive with bounded retries and an independent hash pin.
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        set -euo pipefail
+        test "$RUNNER_OS" = Linux
+        test "$RUNNER_ARCH" = X64
+        tool_dir=$(mktemp -d "$RUNNER_TEMP/siepmu-trivy.XXXXXXXX")
+        archive="$tool_dir/trivy.tar.gz"
+        curl --fail --silent --show-error --location --retry 5 --retry-all-errors --retry-delay 2 --retry-max-time 180 --connect-timeout 15 --max-time 60 \
+          --output "$archive" https://github.com/aquasecurity/trivy/releases/download/v0.69.3/trivy_0.69.3_Linux-64bit.tar.gz
+        echo "1816b632dfe529869c740c0913e36bd1629cb7688bd5634f4a858c1d57c88b75  $archive" | sha256sum --check --strict
+        tar --extract --gzip --file "$archive" --directory "$tool_dir" --no-same-owner --no-same-permissions trivy
+        chmod 755 "$tool_dir/trivy"
+        "$tool_dir/trivy" --version
+        printf '%s\n' "$tool_dir" >> "$GITHUB_PATH"
