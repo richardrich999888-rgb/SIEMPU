@@ -44,7 +44,7 @@ jobs:
           lab="$RUNNER_TEMP/clamav-native"
           export SIEPMU_CLAMAV_LAB="$lab"
           mkdir -p "$lab/engine" "$lab/update" "$lab/snapshot" artifacts/clamav-host
-          curl --fail --location --max-time 180 --output "$lab/engine.deb" https://github.com/Cisco-Talos/clamav/releases/download/clamav-1.5.4/clamav-1.5.4.linux.x86_64.deb
+          curl --fail --location --connect-timeout 15 --max-time 180 --retry 3 --retry-all-errors --retry-delay 2 --retry-max-time 240 --output "$lab/engine.deb" https://github.com/Cisco-Talos/clamav/releases/download/clamav-1.5.4/clamav-1.5.4.linux.x86_64.deb
           printf '%s  %s\n' 28d6efc5b4423e7830c3559339552eb53870a9eac51ac4efb37d60530d329886 "$lab/engine.deb" | sha256sum --check
           dpkg-deb --extract "$lab/engine.deb" "$lab/engine"
           python3 - <<'PY'
@@ -74,7 +74,7 @@ jobs:
           lab="$RUNNER_TEMP/clamav-native"
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends apparmor libcap-dev meson ninja-build pkg-config
-          curl --fail --location --max-time 180 --output "$lab/bubblewrap.tar.xz" https://github.com/containers/bubblewrap/releases/download/v0.13.1/bubblewrap-0.13.1.tar.xz
+          curl --fail --location --connect-timeout 15 --max-time 180 --retry 3 --retry-all-errors --retry-delay 2 --retry-max-time 240 --output "$lab/bubblewrap.tar.xz" https://github.com/containers/bubblewrap/releases/download/v0.13.1/bubblewrap-0.13.1.tar.xz
           printf '%s  %s\n' 0e85c8702248b8dd64144f594147553650cdd0e4c951690345faace79c217c4d "$lab/bubblewrap.tar.xz" | sha256sum --check
           tar -xJf "$lab/bubblewrap.tar.xz" -C "$lab"
           meson setup "$lab/bwrap-build" "$lab/bubblewrap-0.13.1" -Dman=disabled -Dselinux=disabled -Dtests=false -Dbash_completion=disabled -Dzsh_completion=disabled

@@ -56,7 +56,12 @@ test('standalone package resolves its import closure outside the repository and 
   );
   const manifest = JSON.parse(readFileSync(join(result.package, 'manifest.json')));
   assert.equal(
-    manifest.files.some((f) => /server-key|\.data|core\.mjs|server\.mjs|\.html$/.test(f.path)),
+    manifest.files.some(
+      (f) =>
+        ['server-key', '.data', 'core.mjs', 'server.mjs'].some((marker) =>
+          f.path.includes(marker),
+        ) || f.path.endsWith('.html'),
+    ),
     false,
   );
   assert.equal(

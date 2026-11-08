@@ -1,5 +1,24 @@
 # Current engineering state (single authoritative handover file)
 
+## Companion validation follow-up (8 November 2026)
+
+Draft PR #37: https://github.com/richardrich999888-rgb/SIEMPU/pull/37. Initial candidate
+`7f4ba06b303637ab465379054bd5d9013084d88c` passed all ten local gates (440 tests),
+3 HTTP E2E and five extracted-package offline tests. Its 25-payload-file companion verified
+against manifest `6279f66afbc1e3f1e6634033c6184ccebaaaa38304239f235b540ce4ba20e42f`.
+Hosted CI's native job also passed, but CodeQL flagged an unanchored expression in the package
+test's filename exclusion assertion. The follow-up uses explicit substring/suffix checks
+with the same rejection behavior; it does not suppress the finding or alter a security gate.
+
+The combined native run stopped before testing because the pinned engine download returned
+HTTP 504. Both token jobs ran native tests but were blocked installing the dependency scanner.
+The native engine/source downloads now have bounded retries; their exact hashes and all
+isolation/database checks remain mandatory. FreshClam's single update attempt is unchanged.
+Base run: https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42471223555.
+Record the follow-up's exact validation, package identity and hosted outcomes in PR #37.
+No combined native PASS is established by the initial candidate's offline results.
+SAG grading is not established. Provisional TRL4; all nineteen qualification gaps remain open.
+
 ## Separate managed endpoint package (8 November 2026)
 
 Active branch: `codex/siepmu-managed-endpoint-pack`, based on PR #36 head
