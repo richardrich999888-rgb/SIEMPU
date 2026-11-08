@@ -25,7 +25,7 @@ manifest `109c0aada96b1ab51539376bad804c02749720751fd8a2eac149ed4c8eece81a` and 
 ZIP `e433359096ca3c3b2be5ee378ec5259fffb455df8011647a43a9f8e2c860c121`; it belongs only
 to `c65fa4c`. The final follow-up requires a new bundle. Native parser evidence remains
 bound to `f9eac4d` below; exact runtime-source equivalence must be retained when citing it.
-Provisional TRL4, all nineteen qualification gaps and external SAG/IAF decisions remain open.
+SAG grading is not established. Provisional TRL4; all nineteen qualification gaps remain open.
 
 ## Native endpoint integrations accepted in the lab (8 November 2026)
 
