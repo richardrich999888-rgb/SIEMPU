@@ -1,0 +1,201 @@
+{
+  "schemaVersion": 1,
+  "kind": "EXACT_COMMIT_NATIVE_ENDPOINT_EVIDENCE",
+  "gitCommit": "f9eac4d6b6a8726795e46660dcc15496da00eb48",
+  "gitTree": "e058810eb2562a000991a5b23a6f96e6c97bf1b2",
+  "capturedOn": "2026-11-08",
+  "clamav": {
+    "workflowRun": 42463858700,
+    "artifactId": 13610737862,
+    "artifactSha256": "b0390fbcbb242c85e28a07f3498105a03e061fb1366c1b881f9627751c23358a",
+    "report": {
+      "schemaVersion": 1,
+      "kind": "clamav-native-acceptance",
+      "startedAt": "2026-11-08T08:39:59.474Z",
+      "gitCommit": "f9eac4d6b6a8726795e46660dcc15496da00eb48",
+      "sourceDigest": "0ac5f1c403b029ca082271ec06ef3a03c87e00fe4995221c44fc00145bb70ef2",
+      "workingTreeClean": true,
+      "runtime": {
+        "node": "v24.21.0",
+        "platform": "linux",
+        "architecture": "x64"
+      },
+      "outcome": "PASS",
+      "nativeTests": {
+        "outcome": "PASS",
+        "exitCode": 0,
+        "counts": {
+          "tests": 3,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "failureCodes": [],
+        "tapSha256": "85e313328aeda5ee50b5dd5edc7c20f7cbf41b2ec9d9484ec3d6ee9b41ba4253"
+      },
+      "limits": [
+        "Synthetic three-case smoke test only; no representative corpus qualification",
+        "Launcher hash does not attest its interpreter, engine libraries or host",
+        "tmpfs check does not prevent swap, dumps, parser compromise or mount changes",
+        "No readiness, grading or operational authorization is assigned"
+      ],
+      "isolationProfile": "BUBBLEWRAP_SELECTED",
+      "configurationSha256": "791b1d5e1d390e4bc1b7b4b30194a5d5d7213bdbb467a7f0309182b56dd330a8",
+      "executableSha256": "e94f394a8b806522dd9cef27dfe2a6f7989334d1ca320f20a5af2b22507a0271",
+      "temporaryStorage": "PRIVATE_OWNER_0700_TMPFS_OBSERVED",
+      "engineVersion": "1.5.4",
+      "databases": [
+        {
+          "filename": "main.cvd",
+          "bytes": 89072577,
+          "sha256": "0b2182d229f46981ec8f535382222f7c9dfdd656b250ad47988b910a8d302365"
+        },
+        {
+          "filename": "daily.cvd",
+          "bytes": 23448729,
+          "sha256": "6ab32a3161368af4cd55ccb89cbc79c5b787289174667893e774e3ef6854dc01"
+        },
+        {
+          "filename": "bytecode.cvd",
+          "bytes": 281702,
+          "sha256": "6d4aa01f219e988060fc419f495d07f27e0cdf1a2cccc065971da922c76f7ffb"
+        },
+        {
+          "filename": "bytecode-339.cvd.sign",
+          "bytes": 9078,
+          "sha256": "94eb76eff8cf3ab90ec3a67992727e84f9be257f294d72504228e89fa566592f"
+        },
+        {
+          "filename": "daily-28177.cvd.sign",
+          "bytes": 9078,
+          "sha256": "23ead89e8ea171674dbac0fd8bf3107ecbc8bb81d24619add73ea8eefd905109"
+        },
+        {
+          "filename": "main-63.cvd.sign",
+          "bytes": 9078,
+          "sha256": "c030a2235e0ac8b53f95bc6f79563c2b3ddfdcf4fd1d722634578a79530898e2"
+        }
+      ],
+      "sourceUnchanged": true,
+      "finishedAt": "2026-11-08T08:40:21.773Z"
+    },
+    "runtimeInventory": {
+      "bubblewrapVersion": "bubblewrap 0.13.1",
+      "bwrapSha256": "a355bebd3416b4d08e3fbc54f9905b4a9985e9ec88dce2835f269f64a04ac3e5",
+      "prlimitSha256": "17064f67e650d6152a6902b013aab496b54c87587c8eea6f5023aafee6154069",
+      "runtimeFiles": {
+        "bin/clamscan": "e94f394a8b806522dd9cef27dfe2a6f7989334d1ca320f20a5af2b22507a0271",
+        "etc/certs/clamav.crt": "60200e4b4b1b1b7257bb4550487aeb142034341f3300a8526e77a3134a940e9d",
+        "lib/libclamav.so.12": "f178ae341c72c5ec875f94a617e3b18482a96034586eadca26335fda676aca40",
+        "lib/libclammspack.so.0": "33c873df0b6cb0ee66c14483d77fd24c4d0d6b216e5722fead4d70f95a431c6e",
+        "lib/x86_64-linux-gnu/libc.so.6": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf",
+        "lib/x86_64-linux-gnu/libdl.so.2": "c2994527172cc23b7fb0f7d611b71e00a37da27af12c2e5e9e0dc1a742886c96",
+        "lib/x86_64-linux-gnu/libgcc_s.so.1": "d93224d2b0dab4247598be683adca02f5cf00586f99c187579cd7e92058fb7cb",
+        "lib/x86_64-linux-gnu/libm.so.6": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0",
+        "lib/x86_64-linux-gnu/libpthread.so.0": "90491a21ce44efcf3bd4b65ec82501c091d7ebe7f8d9b341dd01d721001d9ecd",
+        "lib64/ld-linux-x86-64.so.2": "c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da"
+      },
+      "launcherProfileSha256": "85c30b4d1563bcbfc80e0f885cf11e7f21dbd5f22d273603b6644db5573863f8",
+      "globalUsernsRestriction": "1",
+      "scope": "Linux laboratory runtime; no host attestation or aggregate cgroup limits"
+    },
+    "probe": {
+      "tapSha256": "52fc5998d597f0317f536f6563239a5ce8ed941a59c17d0cd177e3c21df586f2",
+      "counts": {
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    }
+  },
+  "pkcs11": {
+    "workflowRun": 42463858775,
+    "artifactId": 13610708163,
+    "artifactSha256": "878d0e8ccc612976ebb11dca39173155b5ba3958bc8bdfbb44e5cb05bdcdac18",
+    "inventory": {
+      "kind": "SOFTWARE_TOKEN_LAB_ONLY",
+      "gitCommit": "f9eac4d6b6a8726795e46660dcc15496da00eb48",
+      "gitTree": "e058810eb2562a000991a5b23a6f96e6c97bf1b2",
+      "softHsmSource": "13e6e86b83748fef74046dbf0c91f664b7acc1c3",
+      "sha256": {
+        "python": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+        "module": "0c67c296d432ff2b99eefc358964ad930b41699f6417ddfac7aba1f850287187",
+        "util": "82f6c779d0a8f78def93b5cab4799dba21844f2801cdb88aefd70468d1f914a8"
+      },
+      "hardwareQualified": false,
+      "sagGraded": false
+    },
+    "tests": {
+      "tapSha256": "00e8d7f9107e889178e4dedba2ed0fb38b802ac389ca55eea63679b1efe423ee",
+      "counts": {
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "dependencyScan": {
+      "SchemaVersion": 2,
+      "Trivy": {
+        "Version": "0.69.3"
+      },
+      "ReportID": "01a1ba50-e558-7312-bbd8-bdb6f2d27e3e",
+      "CreatedAt": "2026-11-08T08:40:26.200202173Z",
+      "ArtifactName": "integrations/pkcs11",
+      "ArtifactType": "filesystem",
+      "Results": [
+        {
+          "Target": "requirements.txt",
+          "Class": "lang-pkgs",
+          "Type": "pip",
+          "Packages": [
+            {
+              "Name": "asn1crypto",
+              "Identifier": {
+                "PURL": "pkg:pypi/asn1crypto@1.5.1",
+                "UID": "6e39852710f81b5e"
+              },
+              "Version": "1.5.1",
+              "Locations": [
+                {
+                  "StartLine": 3,
+                  "EndLine": 3
+                }
+              ],
+              "AnalyzedBy": "pip"
+            },
+            {
+              "Name": "python-pkcs11",
+              "Identifier": {
+                "PURL": "pkg:pypi/python-pkcs11@0.10.1",
+                "UID": "dba4ed0ac70981d2"
+              },
+              "Version": "0.10.1",
+              "Locations": [
+                {
+                  "StartLine": 2,
+                  "EndLine": 2
+                }
+              ],
+              "AnalyzedBy": "pip"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "qualification": "NOT_ESTABLISHED",
+  "limitations": [
+    "SoftHSM is a software token, not hardware-custody qualification.",
+    "One isolation probe and three scanner smoke cases are not a representative file corpus or host security assessment.",
+    "Dependency scan covers the two pinned Python packages for known high/critical findings at that run; it does not establish absence of vulnerabilities.",
+    "All nineteen qualification gaps remain open."
+  ]
+}

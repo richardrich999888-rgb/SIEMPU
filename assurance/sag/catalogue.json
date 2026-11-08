@@ -16,7 +16,7 @@
       "boundary": "Sender and recipient endpoints",
       "deploymentScope": "APPLICATION",
       "custody": "Software endpoint keys; plaintext and recipient private key at endpoints",
-      "limitations": "No agency qualification or static-recipient forward secrecy. Optional managed endpoint scanning binds bytes to results; original native smoke evidence exists. A selected Bubblewrap profile fails closed; isolated native acceptance and representative corpus qualification are separate gates. Browser enforcement and managed deployment remain open.",
+      "limitations": "No agency qualification or static-recipient forward secrecy. Optional managed endpoint scanning binds bytes to results; original native smoke evidence exists. A selected Bubblewrap profile fails closed; Isolated native smoke acceptance passed on the exact code recorded in docs/testing/endpoint-native-acceptance-2026-11-08.json; representative corpus qualification remains open. Browser enforcement and managed deployment remain open.",
       "sources": [
         "packages/crypto/crypto.mjs",
         "packages/protocol/canonical.mjs",

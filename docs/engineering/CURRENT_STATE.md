@@ -1,5 +1,36 @@
 # Current engineering state (single authoritative handover file)
 
+## Native endpoint integrations accepted in the lab (8 November 2026)
+
+Active draft: https://github.com/richardrich999888-rgb/SIEMPU/pull/36,
+`codex/siepmu-evaluation-integrations`, stacked on unmerged PR #35. Executed native code
+commit `f9eac4d6b6a8726795e46660dcc15496da00eb48`, tree
+`e058810eb2562a000991a5b23a6f96e6c97bf1b2`, passed local all-ten-gate validation
+(432 tests) and 3 E2E tests on Node 24.22.1/Linux x64.
+
+Hosted native results on that exact code:
+
+- PKCS11: 9/9 tests plus a complete two-package high/critical dependency scan passed;
+  https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42463858775.
+- Isolated ClamAV: 1/1 real namespace probe plus 3/3 actual engine smoke tests passed;
+  https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42463858700.
+- Both native artifact ZIPs were downloaded and SHA-256 verified. Exact reports,
+  inventories, hashes, counts and dependency-scan data are preserved in
+  `docs/testing/endpoint-native-acceptance-2026-11-08.json`.
+
+The host exception is limited to one root-owned launcher. The recorded global Ubuntu
+userns restriction remained 1; the parser could not create further user namespaces.
+The probe correction tests creating a new file on a read-only mount instead of opening
+the running executable, which confounds the check with executable text protection.
+
+This evidence/documentation follow-up leaves executable source unchanged. Validate its
+final exact commit and E2E before publishing. Final push/PR CI, Security, token acceptance,
+adversarial result and final bundle identity are recorded in PR #36. Native scanner evidence
+belongs to the code commit above; preserve that identity and verify code equivalence.
+The candidate remains ungraded, provisional TRL4; all nineteen qualification gaps are open.
+Hardware custody, managed/browser enforcement, production failover, service-identity
+lifecycle, representative corpus and sponsor/evaluator acceptance are not established.
+
 ## Native integration host follow-up (8 November 2026)
 
 Draft PR #36: https://github.com/richardrich999888-rgb/SIEMPU/pull/36. Initial head
