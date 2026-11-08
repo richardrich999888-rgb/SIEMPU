@@ -87,4 +87,4 @@ outbox restart/tampering/capacity, lost monitoring ACKs, backlog beyond the old 
 window, cursor binding/rollback and stale restore anchors. Native acceptance exercises the
 extracted companion with SoftHSM, isolated ClamAV, TLS, queue restart and revocation.
 Freeze one candidate before full validation and retain actual hosted outcomes.
-Provisional TRL4, open qualification gaps and unestablished SAG grading remain unchanged.
+Provisional TRL4 and open qualification gaps remain unchanged. SAG grading is not established.

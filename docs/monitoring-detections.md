@@ -38,7 +38,11 @@ Open and INVESTIGATING detections are retained even past the event retention int
 Only RESOLVED or FALSE_POSITIVE detections older than that interval are pruned during
 ingestion. Full storage rejects the entire new batch; it never silently evicts an open
 detection. Old window state is pruned only after the whole window is outside the retention
-interval. The existing event retention, export truncation and polling limitations still apply.
+interval. Collector event retention and bounded list APIs still apply. The legacy snapshot exporter
+retains its recent-event limit. The configured control server now uses the durable cursor
+exporter in ADR-016: bounded ascending batches, persisted pending data, signed receipt
+checks and five-second draining. Retention rejection or source gaps stop progress without
+silently skipping records. External SOC mapping and complete archive export remain open.
 
 The collector's HTTPS/mTLS API adds:
 

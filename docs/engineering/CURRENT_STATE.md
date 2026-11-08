@@ -17,8 +17,11 @@ never trigger automatic login. The v2 connector has no personnel credentials. Ou
 submission still uses current authority admission; stale objects are held, never resealed.
 Monitoring never skips rejected, missing or expired source records to claim delivery.
 
-Development checks covered eight renewal cases, six storage/telemetry tests and the restore
-CLI. Complete exact-candidate validation and native acceptance still need to be recorded
+The initial frozen candidate `6c941d56783fdd4e6054e2b6ccbbdf331b146a70` ran 455 tests;
+one claims-wording guard failed, and the separate formatting gate also failed. Behavioral
+tests and the remaining eight gates passed. Follow-up changes clarify the status wording,
+correct formatting and document the new exporter; no test or gate is weakened.
+Complete exact-candidate validation and native acceptance still need to be recorded
 in the candidate PR. Freeze the source, refresh crypto inventory bindings, validate all gates,
 E2E and the adversarial suite, then rebuild and independently verify the companion and
 observe hosted CI/Security/token/combined native runs. No previous result proves this head.
@@ -26,8 +29,8 @@ observe hosted CI/Security/token/combined native runs. No previous result proves
 G09 advances to PARTIAL_LAB only. All nineteen qualification gaps remain open. Source retention,
 complete multi-service backup, failover/fencing, hardware/fleet identity, token lifecycle,
 legacy-store migration, browser enforcement and large-file transport remain follow-on work.
-G18's historical startup failure remains unresolved. Provisional TRL4; SAG grading and
-operational authorization are not established. No merge or deployment.
+G18's historical startup failure remains unresolved. Provisional TRL4 is unchanged.
+SAG grading is not established. Operational authorization is not established. No merge or deployment.
 
 ## Companion validation follow-up (8 November 2026)
 

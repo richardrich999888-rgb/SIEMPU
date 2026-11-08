@@ -87,7 +87,8 @@
         "apps/unit-client/trust.test.mjs",
         "apps/unit-client/authority-pin.test.mjs",
         "tests/offline-release.test.mjs",
-        "tests/file-inspection.test.mjs"
+        "tests/file-inspection.test.mjs",
+        "tests/managed-outbox.test.mjs"
       ],
       "oracle": "Tampered vault/update, stale state and untrusted authority keys are refused; no silent downgrade. Configured managed-endpoint inspection refuses detections and incomplete scans before encryption or plaintext return; default and browser clients remain unscanned."
     },

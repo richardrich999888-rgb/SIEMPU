@@ -44,17 +44,15 @@ export class DurableTelemetryExporter {
       );
       transaction(this.#db, () => {
         if (!this.#db.prepare('SELECT signed FROM telemetry_cursor WHERE id=1').get())
-          this.#db
-            .prepare('INSERT INTO telemetry_cursor VALUES(1,?)')
-            .run(
-              this.#sign({
-                evidence: 0,
-                alert: 0,
-                evidenceHash: zero,
-                alertHash: zero,
-                pending: null,
-              }),
-            );
+          this.#db.prepare('INSERT INTO telemetry_cursor VALUES(1,?)').run(
+            this.#sign({
+              evidence: 0,
+              alert: 0,
+              evidenceHash: zero,
+              alertHash: zero,
+              pending: null,
+            }),
+          );
         this.#read();
       });
     } catch (error) {
