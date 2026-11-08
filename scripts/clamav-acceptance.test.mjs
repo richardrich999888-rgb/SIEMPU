@@ -17,6 +17,9 @@ const summary = '# tests 3\n# pass 3\n# fail 0\n# cancelled 0\n# skipped 0\n# to
 
 test('acceptance evidence requires the complete three-case summary and successful exit', () => {
   assert.equal(testOutcome(summary, 0).outcome, 'PASS');
+  assert.deepEqual(testOutcome('FILE_INSPECTION_INCOMPLETE\n' + summary, 1).failureCodes, [
+    'FILE_INSPECTION_INCOMPLETE',
+  ]);
   for (const output of [
     '',
     summary.replace('# pass 3', '# pass 2'),

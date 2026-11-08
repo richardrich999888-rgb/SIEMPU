@@ -28,7 +28,16 @@ all three native positive/detection cases remain unexecuted. The earlier curl HT
 was an unsupported download method, not proof that a supported updater was refused.
 See `docs/testing/endpoint-inspection-engine-probe-1.5.4.json` and the endpoint guide.
 
-Next executable task: provision official signatures through FreshClam/CVDUpdate on a
+A separate synthetic hosted workflow now provides a bounded FreshClam attempt on an
+unprivileged GitHub runner, with the native package/hash pinned and CVD certificates
+configured. It records blocked prerequisites instead of skipping the acceptance gate.
+It runs once when its workflow file is pushed on this branch, without a duplicate PR
+trigger. The preceding candidate `87fae9db1dce89cbe895b53770f6349fd528746a` passed all
+ten local validation gates (428 tests); those results precede this workflow addition.
+Validate the final candidate and E2E before branch publication; observe its hosted
+CI, Security and Native ClamAV acceptance outcomes and record them in the draft PR.
+
+Next executable task: inspect the hosted native result; if still blocked, provision official signatures through FreshClam/CVDUpdate on a
 managed host with permitted DNS/HTTPS; freeze a database snapshot and run the explicit
 gate on a clean checkout. Do not disable official-database or freshness controls. Then
 extend real-engine coverage to the representative corpus and endpoint isolation before

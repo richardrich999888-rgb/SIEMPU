@@ -129,6 +129,17 @@ freshness relaxation or fabricated signature database was used. Provide permitte
 and HTTPS access on a separate managed test host, use FreshClam/CVDUpdate, then repeat
 the command above. Observe updater retry/cooldown instructions.
 
+`.github/workflows/clamav-native.yml` provides a separate synthetic hosted experiment.
+It downloads the exact 1.5.4 package, verifies the pinned SHA-256, extracts without a
+system install, and runs FreshClam as the unprivileged hosted user. The native package's
+CVD certificate directory is explicitly configured. The updater makes one bounded
+attempt; a failed update yields an empty snapshot and a blocked acceptance report.
+Only selected package hashes and the redacted acceptance report are uploaded. This
+workflow initially triggers on changes to its own file on the acceptance branch; it
+also supports manual dispatch. It does not run duplicate downloads for pull requests.
+Do not rerun after an upstream rate-limit/denial without honoring its cooldown and
+resolving the stated cause. Hosted results must be observed before being claimed.
+
 See `docs/testing/endpoint-inspection-engine-probe-1.5.4.json` for the exact observed
 package/binary/library hashes and negative-only execution. The package digest comparison
 is not detached-signature verification or a complete native-library/OS SBOM.

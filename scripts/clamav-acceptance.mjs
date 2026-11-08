@@ -81,7 +81,12 @@ export function testOutcome(output, exitCode) {
     counts.tests === 3 &&
     counts.pass === 3 &&
     ['fail', 'cancelled', 'skipped', 'todo'].every((key) => counts[key] === 0);
-  return { outcome: passed ? 'PASS' : 'FAIL', exitCode, counts };
+  return {
+    outcome: passed ? 'PASS' : 'FAIL',
+    exitCode,
+    counts,
+    failureCodes: [...new Set(output.match(/FILE_INSPECTION_[A-Z_]+/g) ?? [])].sort(),
+  };
 }
 
 export async function runAcceptance(configuration, destination) {
