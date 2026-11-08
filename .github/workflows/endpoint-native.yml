@@ -1,7 +1,7 @@
 name: Endpoint PKCS11 acceptance
 on:
   push:
-    branches: ['codex/siepmu-evaluation-integrations']
+    branches: ['codex/siepmu-evaluation-integrations', 'codex/siepmu-managed-endpoint-pack']
   pull_request:
     paths:
       [
@@ -10,6 +10,7 @@ on:
         'packages/crypto/crypto.mjs',
         '.github/workflows/endpoint-native.yml',
         '.github/actions/setup-trivy/**',
+        '.github/actions/setup-pkcs11-lab/**',
       ]
   workflow_dispatch:
 permissions:
@@ -25,31 +26,8 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: 24.21.0
-      - name: Build exact SoftHSM source and install hash-locked Python wheels
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          lab="$RUNNER_TEMP/pkcs11-lab"
-          mkdir -p "$lab" artifacts/pkcs11
-          python3.12 -m venv "$lab/venv"
-          "$lab/venv/bin/pip" --disable-pip-version-check install --require-hashes --only-binary=:all: -r integrations/pkcs11/requirements.txt
-          git clone --quiet https://github.com/softhsm/SoftHSMv2.git "$lab/source"
-          git -C "$lab/source" checkout --detach 13e6e86b83748fef74046dbf0c91f664b7acc1c3
-          test "$(git -C "$lab/source" rev-parse HEAD)" = 13e6e86b83748fef74046dbf0c91f664b7acc1c3
-          cmake -S "$lab/source" -B "$lab/build" -DCMAKE_INSTALL_PREFIX="$lab/install" -DCMAKE_INSTALL_SYSCONFDIR="$lab/install/etc" -DCMAKE_INSTALL_LOCALSTATEDIR="$lab/install/var" -DBUILD_TESTS=OFF -DWITH_MIGRATE=OFF
-          cmake --build "$lab/build" -j2
-          cmake --install "$lab/build"
-          export SIEPMU_PKCS11_LAB="$lab"
-          python3 - <<'PY'
-          import hashlib,json,os,subprocess
-          from pathlib import Path
-          lab=Path(os.environ['SIEPMU_PKCS11_LAB'])
-          config={'python':str(lab/'venv/bin/python'),'module':str(lab/'install/lib/softhsm/libsofthsm2.so'),'util':str(lab/'install/bin/softhsm2-util')}
-          (lab/'config.json').write_text(json.dumps(config))
-          report={'kind':'SOFTWARE_TOKEN_LAB_ONLY','gitCommit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'gitTree':subprocess.check_output(['git','rev-parse','HEAD^{tree}'],text=True).strip(),'softHsmSource':'13e6e86b83748fef74046dbf0c91f664b7acc1c3','sha256':{k:hashlib.sha256(Path(p).read_bytes()).hexdigest() for k,p in config.items()},'hardwareQualified':False,'sagGraded':False}
-          Path('artifacts/pkcs11/inventory.json').write_text(json.dumps(report,indent=2)+'\n')
-          PY
+      - name: Prepare pinned PKCS11 laboratory
+        uses: ./.github/actions/setup-pkcs11-lab
       - name: Exercise native key operations and negative cases
         shell: bash
         run: |

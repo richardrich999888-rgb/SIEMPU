@@ -75,6 +75,19 @@ jobs:
           retention-days: 14
       - name: Require native evidence after successful checks
         run: test -s artifacts/validation/report.json && test -s artifacts/application.cdx.json && test -s dist/manifest.json
+      - name: Build and exercise the separate endpoint companion
+        run: |
+          node integrations/managed-endpoint/bundle.mjs artifacts/managed-endpoint-pack > artifacts/managed-package-receipt.json
+          npm --prefix artifacts/managed-endpoint-pack test
+          node --input-type=module -e 'import {readFileSync} from "node:fs"; import {verifyCompanion} from "./integrations/managed-endpoint/verify.mjs"; const r=JSON.parse(readFileSync("artifacts/managed-package-receipt.json")); console.log(JSON.stringify(verifyCompanion(r.package,r.manifestSha256)));'
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: managed-endpoint-companion
+          path: |
+            artifacts/managed-endpoint-pack/
+            artifacts/managed-package-receipt.json
+          if-no-files-found: error
+          retention-days: 30
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6, resolved 2026-10-07
         if: always()
         with:

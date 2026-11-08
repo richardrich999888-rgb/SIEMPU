@@ -1,7 +1,12 @@
 name: Native ClamAV acceptance
 on:
   push:
-    branches: [codex/siepmu-clamav-acceptance, codex/siepmu-evaluation-integrations]
+    branches:
+      [
+        codex/siepmu-clamav-acceptance,
+        codex/siepmu-evaluation-integrations,
+        codex/siepmu-managed-endpoint-pack,
+      ]
     paths:
       [
         '.github/workflows/clamav-native.yml',
@@ -9,6 +14,9 @@ on:
         'tests/file-inspection/**',
         'integrations/endpoint-inspection/**',
         'scripts/clamav-acceptance.mjs',
+        'integrations/managed-endpoint/**',
+        'tests/managed-endpoint/**',
+        '.github/actions/setup-pkcs11-lab/**',
       ]
   workflow_dispatch:
 permissions:
@@ -19,7 +27,7 @@ concurrency:
 jobs:
   native-clamav:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
@@ -105,6 +113,17 @@ jobs:
           export SIEPMU_CLAMAV_CONFIG="$lab/isolated-config.json"
           node --test --test-reporter=tap tests/file-inspection/isolation.check.mjs > artifacts/clamav-host/isolation.tap
           node scripts/clamav-acceptance.mjs "$lab/isolated-config.json" artifacts/clamav-host/run
+      - name: Prepare pinned PKCS11 laboratory
+        uses: ./.github/actions/setup-pkcs11-lab
+      - name: Test the separate endpoint with both native integrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          export SIEPMU_PKCS11_LAB_CONFIG="$RUNNER_TEMP/pkcs11-lab/config.json"
+          export SIEPMU_CLAMAV_CONFIG="$RUNNER_TEMP/clamav-native/isolated-config.json"
+          node integrations/managed-endpoint/bundle.mjs artifacts/native-managed-pack > artifacts/clamav-host/managed-package.json
+          export SIEPMU_MANAGED_PACK_ENTRY="$GITHUB_WORKSPACE/artifacts/native-managed-pack/index.mjs"
+          node --test --test-reporter=tap tests/managed-endpoint/native.check.mjs > artifacts/clamav-host/managed-endpoint.tap
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         if: always()
         with:
