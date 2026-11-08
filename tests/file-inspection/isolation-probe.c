@@ -17,8 +17,9 @@ int main(void) {
  if (getrlimit(RLIMIT_CORE,&limit) || limit.rlim_cur != 0) return 21;
  if (getrlimit(RLIMIT_AS,&limit) || limit.rlim_cur != 4294967296ULL) return 22;
  if (getrlimit(RLIMIT_NOFILE,&limit) || limit.rlim_cur != 128) return 23;
- int f=open("/bin/clamscan",O_WRONLY);
- if (f>=0 || errno!=EROFS) return 24;
+ // Creating a new file tests the mount; opening this running executable can fail with ETXTBSY first.
+ int f=open("/bin/forbidden-write",O_WRONLY|O_CREAT,0600);
+ if (f>=0 || errno!=EROFS) { fprintf(stderr,"PROBE_ROOT_WRITE_ERRNO=%d\n",errno); return 24; }
  f=open("/signatures/forbidden-write",O_WRONLY|O_CREAT,0600);
  if (f>=0 || errno!=EROFS) return 25;
  if (access("/etc/passwd",F_OK)==0 || access("/proc/1/root/etc/passwd",F_OK)==0) return 26;
