@@ -1,5 +1,11 @@
 # Third-party and migration provenance
 
+The optional ClamAV endpoint adapter invokes a separately installed program. No ClamAV
+code, binary or signature database is included here. The primary program is GPL-2.0;
+additional component notices and redistribution obligations require deployment review.
+See [endpoint inspection](../docs/integration/endpoint-file-inspection.md) for its limited
+laboratory status and external dependency acceptance gates.
+
 This clean repository must not inherit trust from a project name, previous test count or a `production` label. No private legacy source is authorised for automatic publication by the existence of this public repository.
 
 The current legacy-source migration decision is **no code imported**. `migration-ledger.csv` records that decision. New open-source dependencies must be inventoried from the package/lock files, with version, source and licence. A dependency declaration is not ownership or security approval.

@@ -10,11 +10,18 @@ import {
 // Synthetic managed endpoint SDK. Authority/recipient public keys are supplied
 // by the operator; neither TOFU nor a directory response replaces those pins.
 export class IntegrationEndpoint {
-  constructor({ url, tls, profile, authorityKey, provider }) {
+  #fileInspector;
+  constructor({ url, tls, profile, authorityKey, provider, fileInspector = null }) {
     if (new URL(url).protocol !== 'https:' || !tls) throw new Error('SDK_TLS_REQUIRED');
     Object.assign(this, { url, tls, profile, authorityKey });
+    if (fileInspector !== null && typeof fileInspector?.inspect !== 'function')
+      throw new Error('FILE_INSPECTION_CONFIG');
+    this.#fileInspector = fileInspector;
     this.crypto = createObjectCryptography(provider);
     this.token = null;
+  }
+  get fileInspectionMode() {
+    return this.#fileInspector ? 'ENDPOINT_REQUIRED' : 'UNSCANNED';
   }
   async call(method, path, body) {
     const r = await requestBytes(this.url + path, {
@@ -93,6 +100,8 @@ export class IntegrationEndpoint {
     payload,
     { missionId = 'DEMO-MISSION', messagePriority = 'ROUTINE', messageDomain = 'GENERAL' } = {},
   ) {
+    // Copy before obtaining a grant; caller mutation across awaits cannot replace the file.
+    payload = structuredClone(payload);
     const creationGrant = await this.call('POST', '/api/grants', {
       proof: await this.proof('grant'),
     });
@@ -108,6 +117,7 @@ export class IntegrationEndpoint {
     creationGrant,
     { missionId = 'DEMO-MISSION', messagePriority = 'ROUTINE', messageDomain = 'GENERAL' } = {},
   ) {
+    payload = await this.inspectPayload(payload);
     if (!(await this.crypto.verifyPacket(this.authorityKey, creationGrant)))
       throw new Error('GRANT_SIGNATURE');
     const now = Date.now(),
@@ -159,6 +169,36 @@ export class IntegrationEndpoint {
       throw new Error('SUBMISSION_RECEIPT');
     return result;
   }
+  async inspectPayload(payload) {
+    const snapshot = structuredClone(payload);
+    const unpacked = this.crypto.unpackPayload(snapshot);
+    if (unpacked.kind === 'file' && this.#fileInspector) {
+      // The scanner gets a separate copy, never the object later passed to encryption.
+      const expectedHash = await this.crypto.sha256(unpacked.bytes);
+      let result;
+      try {
+        result = await this.#fileInspector.inspect(unpacked.bytes);
+      } catch (error) {
+        const code = /^FILE_INSPECTION_[A-Z_]+$/.test(error?.code ?? '')
+          ? error.code
+          : 'FILE_INSPECTION_FAILED';
+        throw Object.assign(new Error(code), { code });
+      } finally {
+        unpacked.bytes.fill(0);
+      }
+      if (
+        result?.version !== 1 ||
+        Object.keys(result).sort().join(',') !== 'bytes,sha256,status,version' ||
+        result.status !== 'NO_THREAT_DETECTED' ||
+        result.sha256 !== expectedHash ||
+        result.bytes !== unpacked.bytes.length
+      )
+        throw Object.assign(new Error('FILE_INSPECTION_RESULT'), {
+          code: 'FILE_INSPECTION_RESULT',
+        });
+    }
+    return snapshot;
+  }
   async receive(objectId, senderPublicKey) {
     return (await this.receiveWithRelease(objectId, senderPublicKey)).plaintext;
   }
@@ -186,7 +226,9 @@ export class IntegrationEndpoint {
       this.profile.keys.encryption.privateKey,
       senderPublicKey,
     );
-    return { plaintext, release: result.receipt, object: result.object };
+    // A release receipt authorizes access; it is not a malware verdict or delivery ACK.
+    const inspected = await this.inspectPayload(plaintext);
+    return { plaintext: inspected, release: result.receipt, object: result.object };
   }
   /** Objects visible to this user (as sender or recipient), as reported by the authority. */
   async listObjects() {

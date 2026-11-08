@@ -478,5 +478,25 @@
     "source_ids": [],
     "owner_role": "Dependency qualification lead",
     "adoption_gate": "Released version/hash, complete notices, advisories, platform test, SBOM and reviewer sign-off before integration"
+  },
+  {
+    "id": "clamav-endpoint",
+    "name": "ClamAV local endpoint process",
+    "category": "optional-external",
+    "official_source": "https://docs.clamav.net/manual/Usage/Scanning.html",
+    "decision": "PROTOTYPE",
+    "rationale": "Inspect endpoint file bytes before encryption and before returning decrypted files, without exposing plaintext to platform services",
+    "stage": "laboratory",
+    "version": null,
+    "license": "Primary program GPL-2.0; distribution and linked components require separate notice review; no binary/source bundled",
+    "maintenance": "Operator must select maintained exact engine and signed signature update procedure; no deployment version cleared",
+    "integration_complexity": "Optional Node SDK adapter implemented; managed/browser deployment and real positive acceptance pending",
+    "security_review": "Subprocess-double regressions and real missing-database refusal only; full native detection and representative corpus qualification pending",
+    "provenance_status": "EXTERNAL_OPERATOR_PROVISIONED_NOT_BUNDLED",
+    "version_status": "DEPLOYMENT_VERSION_NOT_SELECTED",
+    "qualification_status": "PARTIAL_LAB_NOT_QUALIFIED",
+    "source_ids": [],
+    "owner_role": "Endpoint security and dependency qualification leads",
+    "adoption_gate": "Pinned executable and full native-library/OS SBOM, licence/advisory review, official database integrity/freshness, private memory-backed sandbox and real engine acceptance; see docs/integration/endpoint-file-inspection.md"
   }
 ]

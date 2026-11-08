@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "kind": "APPLICANT_CRYPTO_INVENTORY",
-  "reviewDate": "2026-11-07",
+  "reviewDate": "2026-11-08",
   "coverage": "Reviewed application mechanisms and separately scoped laboratory/optional tools; not exhaustive discovery, cryptanalysis, an SBOM substitute or an agency decision.",
   "components": [
     {
@@ -16,18 +16,20 @@
       "boundary": "Sender and recipient endpoints",
       "deploymentScope": "APPLICATION",
       "custody": "Software endpoint keys; plaintext and recipient private key at endpoints",
-      "limitations": "No forward secrecy for static recipient keys, hardware custody or agency qualification. Legacy v1 DMS integration remains a managed plaintext endpoint requiring explicit enablement. The v2 connector excludes plaintext, endpoint credentials and the wrapped content key; source encryption uses the existing provider. IAF-G05 deployment/migration qualification remains pending.",
+      "limitations": "No forward secrecy for static recipient keys, hardware custody or agency qualification. Legacy v1 DMS integration remains a managed plaintext endpoint requiring explicit enablement. The v2 connector excludes plaintext, endpoint credentials and the wrapped content key; source encryption uses the existing provider. IAF-G05 deployment/migration qualification remains pending. Optional managed endpoint inspection uses SHA-256 byte binding, not scanner attestation or cryptographic grading; actual engine positive-path qualification and browser enforcement remain pending.",
       "sources": [
         "packages/crypto/crypto.mjs",
         "packages/protocol/canonical.mjs",
         "packages/integration/client.mjs",
         "services/integration/adapter.mjs",
-        "services/integration/server.mjs"
+        "services/integration/server.mjs",
+        "packages/file-inspection/clamav.mjs"
       ],
       "tests": [
         "tests/crypto.test.mjs",
         "tests/crypto-provider.test.mjs",
-        "tests/adapter-adversarial.test.mjs"
+        "tests/adapter-adversarial.test.mjs",
+        "tests/file-inspection.test.mjs"
       ]
     },
     {
@@ -353,8 +355,11 @@
     "packages/crypto/crypto.mjs": {
       "sha256": "07d80d9bc68a63571133ab93d482a99dab64571defffdee998c1ba1e0283a31a"
     },
+    "packages/file-inspection/clamav.mjs": {
+      "sha256": "e12e948908b075a21bf2f2fff0608b9d6ac0deed9ebd9089b4a3e339e8fe7a93"
+    },
     "packages/integration/client.mjs": {
-      "sha256": "4f30af1f1e672fe5ffaf82550f3f576356ce8258c406235552b2e556d954cf6e"
+      "sha256": "bc79b0246736a63f738d75b2c69bbf6ec8ef1267204767d7d2cd9001d9814f09"
     },
     "packages/integration/sealed-transfer.mjs": {
       "sha256": "31092c4b9059d41e704ff1e885019293c590b5dcfc20420dab6c30afa7fd1f16"
@@ -463,6 +468,9 @@
     },
     "tests/crypto.test.mjs": {
       "sha256": "75f826b11b487b2b6ac3e33fc409e5f0d66bd2fbbae7d37b2bc6fcc1f022e01d"
+    },
+    "tests/file-inspection.test.mjs": {
+      "sha256": "699a4681119a725429bb3fe649842a6ddabbac3d23e5b46ed99115825051e377"
     },
     "tests/native/evidence-differential.check.mjs": {
       "sha256": "5d208c2fb8eb15fd2d6535a91f123f1cb0316d4f87523bb794e7f862a1890241"

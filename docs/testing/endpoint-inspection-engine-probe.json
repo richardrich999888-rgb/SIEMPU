@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-08",
+  "scope": "Synthetic local engine missing-database refusal only; not a positive malware-detection qualification",
+  "runtime": {
+    "node": "24.22.1",
+    "os": "Ubuntu 24.04 x86_64"
+  },
+  "engine": {
+    "reportedVersion": "1.5.3",
+    "ubuntuPackage": "1.5.3+dfsg-0ubuntu0.24.04.1",
+    "packageSha256": "655057edd5efa990e791e9b6c0ffde2f38e587a4a6afd021e94523bae1d2e965",
+    "clamscanSha256": "178719b9b8b2136b0cc7434d756b1d023e688fba3f1b25175b78ef8cc89f6a4b",
+    "libclamavSha256": "72fcaca34cb24dcfd27d9fa35c4baf17e5ad76cfd4c61614a26bd9e34c36aa3e",
+    "source": "https://snapshot.ubuntu.com/ubuntu/20260828T000000Z",
+    "deploymentSelected": false
+  },
+  "execution": {
+    "invocation": "ClamAvInspector.inspect(Buffer.from(synthetic text)), with a pinned local launcher loading the extracted native engine/libraries",
+    "officialDatabase": "ABSENT",
+    "expected": "REFUSED",
+    "actualCode": "FILE_INSPECTION_INCOMPLETE",
+    "positiveAcceptance": "NOT_EXECUTED",
+    "signatureDownload": "https://database.clamav.net/daily.cvd returned HTTP 403",
+    "temporaryStorage": "Private scratch directory with synthetic data only; memory backing not verified",
+    "updater": "Extracted freshclam could not initialize user/group switching in this container"
+  },
+  "sourceHashes": {
+    "packages/file-inspection/clamav.mjs": "e12e948908b075a21bf2f2fff0608b9d6ac0deed9ebd9089b4a3e339e8fe7a93"
+  }
+}

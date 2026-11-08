@@ -85,9 +85,10 @@
         "apps/unit-client/vault-store.test.mjs",
         "apps/unit-client/trust.test.mjs",
         "apps/unit-client/authority-pin.test.mjs",
-        "tests/offline-release.test.mjs"
+        "tests/offline-release.test.mjs",
+        "tests/file-inspection.test.mjs"
       ],
-      "oracle": "Tampered vault/update, stale state and untrusted authority keys are refused; no silent downgrade."
+      "oracle": "Tampered vault/update, stale state and untrusted authority keys are refused; no silent downgrade. Configured managed-endpoint inspection refuses detections and incomplete scans before encryption or plaintext return; default and browser clients remain unscanned."
     },
     {
       "id": "ADV-08",
@@ -242,15 +243,15 @@
     {
       "id": "IAF-G11",
       "priority": "P1",
-      "status": "IMPLEMENTATION_PENDING",
+      "status": "PARTIAL_LAB",
       "requirements": ["R5", "R10"],
       "owner": "SYNTRIASS + endpoint/security owner",
       "title": "Content safety and endpoint data handling",
-      "current": "File validation is not malware scanning. Decrypted content and endpoint compromise remain outside server-side revocation.",
-      "implementationNeeded": "Implement required endpoint scanning, safe viewers, storage/session-lock and leakage controls consistent with the approved E2EE boundary.",
+      "current": "Optional ClamAV process adapter and source/recipient SDK hooks implemented with subprocess-double and in-process authority regressions. Real engine missing-database refusal observed; fresh official database positive/EICAR qualification is pending. Browser/default SDK remain unscanned. Endpoint compromise and decrypted content remain outside server-side revocation.",
+      "implementationNeeded": "Qualify real engine and signatures with representative corpus; integrate required managed endpoint/browser deployment, safe viewers, storage/session-lock and leakage controls under the approved E2EE boundary.",
       "sponsorInputs": "Q09, IAF-10",
       "exitEvidence": "Malicious-file, unsafe-viewer, disk-cache, clipboard/print and lost-device procedures are tested for the approved scope.",
-      "source": "apps/unit-client/README.md"
+      "source": "docs/integration/endpoint-file-inspection.md"
     },
     {
       "id": "IAF-G12",

@@ -2,6 +2,12 @@
 
 The application has **zero npm runtime dependencies**. Native Node HTTP, crypto, WebCrypto and SQLite are the runtime facilities. This reduces npm package exposure; it does not eliminate Node, OpenSSL, SQLite, browser, operating-system, Docker, build-host or GitHub Actions supply-chain risk.
 
+The optional [managed endpoint file inspector](integration/endpoint-file-inspection.md)
+uses an externally installed ClamAV process. It is not bundled in the application image
+or npm lockfile. Enabling it adds native engine, library, signature-update and licence
+obligations; the operator must supply the exact deployment inventory. The repository's
+application SBOM does not inventory that separately provisioned endpoint installation.
+
 All application source is newly authored. No private portfolio repository source, uploaded proposal, secret or restricted external document belongs in this public repository. `third_party/migration-ledger.csv` records reuse decisions. Apache-2.0 is the repository license, not a permission to incorporate unrelated source without license review.
 
 Controls implemented:
