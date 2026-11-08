@@ -40,8 +40,8 @@ contract tests on an injected *local fake transport*, not a live DX test.
    was contacted during testing. No real credentials or sensitive data used.
 4. API Setu's sandbox is suitable for separate sample-data experiments only.
    There is no asserted compatibility between its products and IUDX.
-5. This integration does not establish cryptographic approval, SAG grading,
-   government sponsorship, TRL 5 or procurement eligibility.
+5. This integration is only a research adapter; it is not graded or approved.
+   It provides no government funding, readiness or procurement evidence.
 6. The adapter supports incremental body-size limits on Fetch streams. The
    text-only response fallback is for unit-test mocks, not an approved live
    transport. TLS client policy, response schemas, certificate operations,
