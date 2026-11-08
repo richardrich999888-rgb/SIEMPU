@@ -61,7 +61,8 @@
     "sag:verify": "node assurance/sag/verify.mjs",
     "test:sag": "node --test --test-concurrency=1 tests/sag-evaluation.test.mjs",
     "test:adversarial": "node assurance/iaf/run.mjs",
-    "start:adapter:sealed": "node services/integration/sealed-server.mjs"
+    "start:adapter:sealed": "node services/integration/sealed-server.mjs",
+    "test:clamav": "node scripts/clamav-acceptance.mjs"
   },
   "devDependencies": {
     "@types/node": "24.10.0",

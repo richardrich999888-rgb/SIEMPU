@@ -65,6 +65,25 @@ ClamAV can create temporary plaintext; cleanup is not secure erasure on disk. Th
 executable hash detects a changed entry point but is not protection against a privileged
 attacker replacing it between checking and execution, or changing linked libraries.
 
+## Executed native smoke result (8 November 2026)
+
+Hosted [run 42458112330](https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42458112330)
+passed all three native checks on commit `db782b64d66b5cb0af2533c27f5ac839d79b5d66`,
+Node 24.21.0 / Ubuntu x64: benign file accepted, EICAR rejected and expanded-size limit
+rejected. There were zero failures, skips, cancellations or TODOs. FreshClam obtained
+and tested official daily 28177, main 63 and bytecode 339. The preflight observed a
+private tmpfs, and source/configuration/executable/database stability checks passed.
+
+The downloaded artifact digest matched GitHub's reported SHA-256
+`55b39480e960277db355e28f1df238129087e76325f4074aef20587b2381bbf9`.
+Its exact report and selected inventory are retained as
+`docs/testing/clamav-native-acceptance-2026-11-08.json` and
+`docs/testing/clamav-native-inventory-2026-11-08.json`. Executable-source digest:
+`69dfdf62ca5bff8f6322276a55dbeab931add359bdf80f75dd60189b3ede0f2e`.
+The earlier local missing-database results below remain historical/local observations.
+This result closes the initial three-case native smoke-test gap only; IAF-G11 remains
+PARTIAL_LAB and representative corpus, host isolation and browser integration remain open.
+
 ## Dependencies and acceptance
 
 There are no new npm packages. ClamAV is an **external optional dependency**, absent
@@ -78,23 +97,78 @@ Apache-2.0 licence. Redistribution/licence review remains an operator release ga
 cases and real application cryptography/authority with an in-process transport for SDK
 checks. These tests do not demonstrate malware-detection quality or actual engine success.
 
-Run the separate external-engine gate with the provisioned configuration:
+Run the separate Linux external-engine evidence gate with the provisioned configuration
+and a new output directory (the parent directory must already exist):
 
 ```sh
-SIEPMU_CLAMAV_CONFIG=/absolute/operator/scanner.json node --test --test-concurrency=1 tests/file-inspection/clamav.check.mjs
+npm run test:clamav -- /absolute/operator/scanner.json artifacts/clamav-run-001
 ```
 
-It requires a benign-file success, EICAR refusal and expanded-size-limit refusal, without
-silently skipping when configuration is absent. Extend qualification with encrypted and
+The gate checks the pinned executable hash, the exact reviewed laboratory version 1.5.4,
+a current-user-owned 0700 tmpfs temporary root, a clean source checkout, and a dedicated
+database snapshot. That snapshot must contain one `main.cvd` or `main.cld`, one
+`daily.cvd` or `daily.cld`, and optionally one bytecode database plus matching `.sign`
+sidecars named with the upstream version, such as `main-63.cvd.sign`. Each sidecar
+version must match its database header; native verification still authenticates the
+content. Other files, symlinks, empty databases and duplicate formats are refused. Copy
+completed updates from the supported updater into this dedicated snapshot; do not point
+the gate at its live working directory. Inventory checks do not authenticate signatures.
+The unchanged native adapter still enforces official databases and its freshness bound.
+
+The gate runs `tests/file-inspection/clamav.check.mjs`, requiring benign-file success,
+EICAR refusal and expanded-size-limit refusal. All three must pass with zero skips,
+cancellations or TODOs; a zero exit alone is insufficient. `report.json` binds the result
+to the commit/source digest, executable/configuration and database hashes. It refuses
+changed inputs/source and never overwrites an earlier run. Missing prerequisites produce
+`BLOCKED`, `NOT_EXECUTED` and a nonzero command exit; executed test failures produce
+`FAIL`. Reports retain counts and a TAP digest, without raw diagnostics or operator paths.
+The regression suite tests this evidence gate, not antivirus detection quality.
+
+This preflight is an explicit laboratory command, not enforcement added to every SDK scan.
+Its exact-version allowlist is a reviewed selection, not a vulnerability-free claim;
+review upstream advisories before any new run or deployment. Linked libraries, shell
+launchers/interpreters, system time, swap, dumps, mount races and parser isolation still
+need an independently reviewed endpoint configuration. Extend qualification with encrypted and
 malformed formats, archive depth, stale/future databases, tampered updates, endpoint
 resource pressure, and the sponsor-approved representative file corpus. Browser/managed
 helper integration, safe viewers and host isolation remain open under IAF-G11.
 
-On 8 November 2026 the locally extracted Ubuntu package `1.5.3+dfsg-0ubuntu0.24.04.1`
-reported ClamAV `1.5.3`. The real adapter refused a missing official database with
-`FILE_INSPECTION_INCOMPLETE`. A fresh official database download returned HTTP 403;
-the positive external-engine gate has **not** been completed. No production engine
-version is selected or declared vulnerability-cleared by this experiment.
+The first 8 November 2026 probe used ClamAV 1.5.3 only to observe missing-database
+refusal. Subsequent upstream advisory review identified security fixes in 1.5.4; do not
+reuse 1.5.3 for acceptance or deployment. The replacement official 1.5.4 Linux package
+matched its release-metadata SHA-256 and started successfully. Its real missing-database
+scan also returned `FILE_INSPECTION_INCOMPLETE`. The separate acceptance command reports
+`BLOCKED` because official databases are absent. Benign/EICAR/expanded-file acceptance
+was **not executed in that local environment**; the later hosted result above passed.
+No production engine version has been qualified.
+
+Correction to the earlier download investigation: upstream explicitly disallows scripted
+curl/wget signature downloads. The supported CVDUpdate 1.2.0 updater was installed in an
+isolated laboratory Python environment but failed its system-resolver DNS TXT query for
+`current.cvd.clamav.net` before downloading. FreshClam previously failed initialization
+under this container's user/group restrictions. No DNS-policy bypass, unofficial mirror,
+freshness relaxation or fabricated signature database was used. Provide permitted DNS
+and HTTPS access on a separate managed test host, use FreshClam/CVDUpdate, then repeat
+the command above. Observe updater retry/cooldown instructions.
+
+`.github/workflows/clamav-native.yml` provides a separate synthetic hosted experiment.
+It downloads the exact 1.5.4 package, verifies the pinned SHA-256, extracts without a
+system install, and runs FreshClam as the unprivileged hosted user. The native package's
+CVD certificate directory is explicitly configured. The updater makes one bounded
+attempt; a failed update yields an empty snapshot and a blocked acceptance report.
+Only selected package hashes and the redacted acceptance report are uploaded. This
+workflow initially triggers on changes to its own file on the acceptance branch; it
+also supports manual dispatch. It does not run duplicate downloads for pull requests.
+Do not rerun after an upstream rate-limit/denial without honoring its cooldown and
+resolving the stated cause. Hosted results must be observed before being claimed. The initial hosted attempt
+downloaded and tested daily 28177, main 63 and bytecode 339 successfully, then exposed
+a filename mismatch in our preflight: FreshClam uses versioned `.cvd.sign` names. The
+preflight and regression coverage now follow that documented format; the first run
+remains a blocked result, not a detection pass. Final rerun results are recorded in PR #35.
+
+See `docs/testing/endpoint-inspection-engine-probe-1.5.4.json` for the exact observed
+package/binary/library hashes and negative-only execution. The package digest comparison
+is not detached-signature verification or a complete native-library/OS SBOM.
 
 Primary references retrieved 8 November 2026:
 
@@ -104,6 +178,14 @@ Primary references retrieved 8 November 2026:
   Specifies FreshClam database updates; availability is not an offline update procedure.
 - [Upstream clamscan manual](https://github.com/Cisco-Talos/clamav/blob/main/docs/man/clamscan.1.in).
   Documents the database-age failure flag; main is a moving reference, not a release pin.
+- [ClamAV 1.5.4 release](https://github.com/Cisco-Talos/clamav/releases/tag/clamav-1.5.4)
+  and [security patch notice](https://blog.clamav.net/2026/08/clamav-154-and-146-security-patch.html).
+  Upstream reports fixes affecting 1.5.3; this establishes patch rationale, not independent evaluation.
+- [Pinned FreshClam 1.5.4 signature naming source](https://github.com/Cisco-Talos/clamav/blob/clamav-1.5.4/libfreshclam/libfreshclam_internal.c).
+  Uses `<database>-<version>.cvd.sign`; inspected after the hosted preflight refusal.
+- [FreshClam FAQ](https://docs.clamav.net/faq/faq-freshclam.html) and
+  [CVDUpdate](https://github.com/Cisco-Talos/cvdupdate). Specify supported updater methods.
+  CVDUpdate 1.2.0 was installed for the local experiment only, not as an application dependency.
 - Installed Ubuntu package copyright file and `clamscan --help`, inspected locally for
   the exact test build. Package digest and execution limitations are in the local
   experiment record; production dependency review remains pending.

@@ -1,0 +1,86 @@
+name: Native ClamAV acceptance
+on:
+  push:
+    branches: [codex/siepmu-clamav-acceptance]
+    paths: ['.github/workflows/clamav-native.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: clamav-native-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  native-clamav:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24.21.0
+      - name: Prepare pinned external engine and synthetic laboratory configuration
+        id: prepare
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          lab="$RUNNER_TEMP/clamav-native"
+          export SIEPMU_CLAMAV_LAB="$lab"
+          mkdir -p "$lab/engine" "$lab/update" "$lab/snapshot" artifacts/clamav-host
+          curl --fail --location --max-time 180 --output "$lab/engine.deb" https://github.com/Cisco-Talos/clamav/releases/download/clamav-1.5.4/clamav-1.5.4.linux.x86_64.deb
+          printf '%s  %s\n' 28d6efc5b4423e7830c3559339552eb53870a9eac51ac4efb37d60530d329886 "$lab/engine.deb" | sha256sum --check
+          dpkg-deb --extract "$lab/engine.deb" "$lab/engine"
+          python3 - <<'PY'
+          import hashlib, json, os, shlex, tempfile
+          from pathlib import Path
+          lab = Path(os.environ['SIEPMU_CLAMAV_LAB'])
+          native = lab / 'engine/usr/local'
+          launcher = lab / 'clamscan'
+          launcher.write_text('#!/bin/sh\nexport LD_LIBRARY_PATH=' + shlex.quote(str(native/'lib')) + '\nexport CVD_CERTS_DIR=' + shlex.quote(str(native/'etc/certs')) + '\nexec ' + shlex.quote(str(native/'bin/clamscan')) + ' "$@"\n')
+          launcher.chmod(0o700)
+          def sha(path):
+              h = hashlib.sha256()
+              with path.open('rb') as f:
+                  for b in iter(lambda: f.read(1048576), b''): h.update(b)
+              return h.hexdigest()
+          config = {'executable':str(launcher), 'executableSha256':sha(launcher), 'database':str(lab/'snapshot'), 'tempRoot':tempfile.mkdtemp(prefix='siepmu-clamav-', dir='/dev/shm')}
+          (lab/'config.json').write_text(json.dumps(config))
+          (lab/'freshclam.conf').write_text('DatabaseDirectory '+str(lab/'update')+'\nDatabaseMirror database.clamav.net\nMaxAttempts 1\nConnectTimeout 30\nReceiveTimeout 60\n')
+          files = ['bin/clamscan','bin/freshclam','lib/libclamav.so.12.1.0','etc/certs/clamav.crt']
+          inventory = {'version':'1.5.4','packageSha256':sha(lab/'engine.deb'),'files':{p:sha(native/p) for p in files}, 'scope':'Selected extracted package files only; not a complete native/OS SBOM or detached-signature verification'}
+          Path('artifacts/clamav-host/inventory.json').write_text(json.dumps(inventory,indent=2)+'\n')
+          PY
+      - name: Obtain official signatures once with supported FreshClam
+        id: update
+        shell: bash
+        run: |
+          set -euo pipefail
+          lab="$RUNNER_TEMP/clamav-native"
+          export LD_LIBRARY_PATH="$lab/engine/usr/local/lib"
+          export CVD_CERTS_DIR="$lab/engine/usr/local/etc/certs"
+          # Non-root hosted runner. No CDN retries, alternate mirrors or disabled TLS checks.
+          timeout 300 "$lab/engine/usr/local/bin/freshclam" --config-file="$lab/freshclam.conf" --stdout
+      - name: Freeze database snapshot and record the actual acceptance outcome
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
+        env:
+          UPDATER_OUTCOME: ${{ steps.update.outcome }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          lab="$RUNNER_TEMP/clamav-native"
+          if [ "$UPDATER_OUTCOME" = success ]; then
+            shopt -s nullglob
+            # Preserve versioned CVD signature sidecars; exclude updater CDIFF patch signatures.
+            files=("$lab"/update/*.cvd "$lab"/update/*.cld "$lab"/update/*.cvd.sign "$lab"/update/*.cld.sign)
+            if [ "${#files[@]}" -gt 0 ]; then cp -- "${files[@]}" "$lab/snapshot/"; fi
+          fi
+          node scripts/clamav-acceptance.mjs "$lab/config.json" artifacts/clamav-host/run
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        if: always()
+        with:
+          name: clamav-native-acceptance
+          path: artifacts/clamav-host/
+          if-no-files-found: error
+          retention-days: 14

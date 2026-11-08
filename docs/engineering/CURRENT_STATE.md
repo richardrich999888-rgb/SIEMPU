@@ -1,5 +1,91 @@
 # Current engineering state (single authoritative handover file)
 
+## Native ClamAV smoke acceptance passed (8 November 2026)
+
+Active branch/PR: `codex/siepmu-clamav-acceptance`, draft
+https://github.com/richardrich999888-rgb/SIEMPU/pull/35, stacked on PR #34. The executed
+code commit is `db782b64d66b5cb0af2533c27f5ac839d79b5d66`, tree
+`1050dcff7c594d39e6052b8bfe40525c29dc3e3d`. It passed all ten local validation gates,
+429 tests and 3/3 E2E on a clean Linux x64 checkout / Node 24.22.1. Six added regressions
+cover evidence completeness, version selection, database snapshots/sidecars, temporary
+storage and blocked-report behavior.
+
+Real native [run 42458112330](https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42458112330)
+passed all three benign/EICAR/expanded-limit cases using ClamAV 1.5.4 and official daily
+28177/main 63/bytecode 339 on Node 24.21.0. Source and inputs remained unchanged. The
+exact report and selected inventory are preserved under `docs/testing/clamav-native-*2026-11-08.json`;
+the downloaded artifact matched its published SHA-256. The initial versioned-sidecar
+preflight defect was fixed without relaxing official-database, freshness or scan limits.
+
+This evidence-only follow-up retains the same executable-source digest
+`69dfdf62ca5bff8f6322276a55dbeab931add359bdf80f75dd60189b3ede0f2e`. It updates the gap
+and dependency descriptions without changing executable code or the native workflow.
+Fresh native signature downloads are not triggered by this documentation change. Validate
+its final exact commit and E2E, then record all hosted CI/Security outcomes and artifact
+links in PR #35. Do not attribute a result from a different commit without its identity
+and source-equivalence qualification. No branch is merged or deployed.
+
+Next engineering work: representative file corpus and native parser/resource isolation,
+then managed endpoint/browser enforcement. The initial native smoke gate is now passed;
+all nineteen broader qualification gaps remain open, IAF-G11 is PARTIAL_LAB, and the
+provisional TRL4 assessment and external authorization/grading status are unchanged.
+
+## Native scanner acceptance continuation (8 November 2026)
+
+Draft PR #35 is open at https://github.com/richardrich999888-rgb/SIEMPU/pull/35.
+Initial head `6f6c9647d6207ee237d22a49e852f08213a66b9b` passed all ten local gates
+(428 tests) and 3/3 E2E on a clean tree. Hosted native run 42457612734 successfully
+obtained and verified official daily 28177, main 63 and bytecode 339 databases, then
+reported BLOCKED / ACCEPTANCE_DATABASE_UNEXPECTED_FILE before running the three cases.
+Pinned upstream source confirmed versioned sidecars such as `main-63.cvd.sign`; the
+preflight originally expected unversioned names. This follow-up supports the upstream
+format, binds sidecars to the database header version, preserves unknown-file rejection,
+and adds a regression. The workflow excludes patch signatures from the snapshot.
+Revalidate and publish this fix as a fast-forward; final exact-head local and hosted
+results, including the actual native acceptance outcome, are recorded in PR #35.
+
+Active branch: `codex/siepmu-clamav-acceptance`, based on PR #34 head
+`560eb080eac3125533034efaa9d23caf3c827a1f` (tree `9dd352564a3267d798aa096219938a415912e520`).
+PR #34 remains open/draft and unmerged. Its final local result was 423 native tests plus
+3 E2E tests; its 233 adversarial cases overlap that native suite. Its push CI
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42454008250 and Security
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42454008218 passed, as did
+PR CI 42454012784 and Security 42454012724. PR checkout `aa4d057be02d4053716b6d526c3fee069d9e0f7f`
+had the same tree as the head. These results belong to the base, not this continuation.
+
+The new explicit `npm run test:clamav -- <config> <new-output-directory>` command binds
+native acceptance to a source commit/digest and pinned engine/database inputs, checks a
+private Linux tmpfs root, rejects unreviewed versions and incomplete test summaries,
+and distinguishes blocked prerequisites from executed failures. Five focused regressions
+passed during development; they exercise the evidence gate, not native malware detection.
+The runtime SDK adapter and its scan/freshness flags are unchanged. No npm runtime or
+production scanner dependency is added. This is a stacked draft candidate; exact final
+validation identity, local/hosted outcomes and run links belong in this branch's PR.
+
+ClamAV 1.5.3 has upstream security fixes in 1.5.4. The official 1.5.4 Linux package digest
+matched release metadata; its actual process started and refused the missing database
+with `FILE_INSPECTION_INCOMPLETE`. CVDUpdate 1.2.0 failed its system DNS TXT lookup before
+signature download. The new gate therefore reports `BLOCKED` / `ACCEPTANCE_DATABASE_MISSING`;
+all three native positive/detection cases remain unexecuted. The earlier curl HTTP 403
+was an unsupported download method, not proof that a supported updater was refused.
+See `docs/testing/endpoint-inspection-engine-probe-1.5.4.json` and the endpoint guide.
+
+A separate synthetic hosted workflow now provides a bounded FreshClam attempt on an
+unprivileged GitHub runner, with the native package/hash pinned and CVD certificates
+configured. It records blocked prerequisites instead of skipping the acceptance gate.
+It runs once when its workflow file is pushed on this branch, without a duplicate PR
+trigger. The preceding candidate `87fae9db1dce89cbe895b53770f6349fd528746a` passed all
+ten local validation gates (428 tests); those results precede this workflow addition.
+Validate the final candidate and E2E before branch publication; observe its hosted
+CI, Security and Native ClamAV acceptance outcomes and record them in the draft PR.
+
+Next executable task: inspect the hosted native result; if still blocked, provision official signatures through FreshClam/CVDUpdate on a
+managed host with permitted DNS/HTTPS; freeze a database snapshot and run the explicit
+gate on a clean checkout. Do not disable official-database or freshness controls. Then
+extend real-engine coverage to the representative corpus and endpoint isolation before
+browser/helper integration. All nineteen qualification gaps remain open, including
+IAF-G11 (PARTIAL_LAB); provisional TRL4 and external authorization axes are unchanged.
+
 ## Managed endpoint inspection continuation (8 November 2026)
 
 Active branch: `codex/siepmu-endpoint-file-inspection`, based on PR #33 head
