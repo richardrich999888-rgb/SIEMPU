@@ -1,5 +1,55 @@
 # Current engineering state (single authoritative handover file)
 
+## Managed endpoint inspection continuation (8 November 2026)
+
+Active branch: `codex/siepmu-endpoint-file-inspection`, based on PR #33 head
+`c7bf7c913cff88d2ebd0d2e08fe2539c7121830e`. This is a separate stacked draft change;
+no branch has been merged. Historical PR #33 validation is not this candidate's evidence.
+
+Implemented an optional local ClamAV process adapter and source/recipient SDK hooks.
+Plaintext inspection stays at the managed endpoint. Byte snapshots bind scanning to
+subsequent encryption/return, and failed recipient scans produce no delivery ACK.
+The adapter bounds input, output, time and concurrent work, pins the executable entry
+point, and requests official/current signatures plus encrypted-container/scan-limit
+alerts. No npm runtime dependency or scanner binary is added. Default SDK and browser
+clients remain explicitly unscanned. See `docs/integration/endpoint-file-inspection.md`.
+
+Candidate `71a279684678445e0b16672218ce2848962e3ac2` (tree
+`ea45fab702389e654673c09246ac2d12a0fc6e45`) passed all ten native validation gates
+and 423/423 tests, plus 3/3 E2E tests, with zero failures/cancellations/skips, on
+Node 24.22.1 / Linux x64 with a clean tree. Coverage was 97.93% lines, 90.77%
+branches and 98.45% functions. Research-register self-tests and claims checks passed.
+The local report is `artifacts/validation/report.json`; later runs identify their own
+exact commit and source digest and must not be attributed to this historical candidate.
+
+The new tests use labelled scanner-process doubles and real authority/crypto over an
+in-process transport; this is not real-engine positive-path qualification. A real locally
+extracted ClamAV 1.5.3 process refused a missing official database. Downloading current
+official signatures returned HTTP 403. `tests/file-inspection/clamav.check.mjs` is ready,
+but its benign/EICAR/expanded-file cases remain unexecuted. Do not remove freshness,
+official-signature or scan-completeness gates to make the laboratory run pass.
+
+A preliminary 233-test adversarial execution passed every family but correctly failed
+its source-immutability check because this handover document was edited while it ran.
+That run is not qualifying evidence. Re-execute all local gates and the adversarial
+campaign on the final committed, clean candidate, using a new artifact directory.
+
+Publication is blocked: automatic approval review rejected the attempted GitHub push
+because explicit authorization to publish this payload/destination was not established
+and repository trust/sensitivity was considered unresolved. A subsequent read-only
+check found no remote branch with this name. No draft PR or hosted CI/Security run
+exists for this continuation. No workaround or second publication attempt was made.
+Complete local validation and provide a reviewable patch; obtain explicit authorization
+before publishing this branch to `richardrich999888-rgb/SIEMPU` and opening a draft PR
+against `codex/siepmu-sealed-integration-trl5`. Do not merge any branch.
+
+IAF-G11 is PARTIAL_LAB; all nineteen gaps remain open. Native-engine acceptance, a
+representative corpus, browser/helper integration, endpoint sandboxing and memory-backed
+temporary storage verification are pending. Neither the provisional TRL4 assessment
+nor any external authorization axis changes. No operational or confidential information
+was used. Hosted validation is not substituted by the local checks. Final local candidate
+identity and results are in the generated validation report and the review patch handover.
+
 ## Source-sealed integration and dependency review (7 November 2026)
 
 Publication follow-up: draft PR #33 is open at
