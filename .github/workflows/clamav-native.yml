@@ -72,7 +72,8 @@ jobs:
           lab="$RUNNER_TEMP/clamav-native"
           if [ "$UPDATER_OUTCOME" = success ]; then
             shopt -s nullglob
-            files=("$lab"/update/*.cvd "$lab"/update/*.cld "$lab"/update/*.sign)
+            # Preserve versioned CVD signature sidecars; exclude updater CDIFF patch signatures.
+            files=("$lab"/update/*.cvd "$lab"/update/*.cld "$lab"/update/*.cvd.sign "$lab"/update/*.cld.sign)
             if [ "${#files[@]}" -gt 0 ]; then cp -- "${files[@]}" "$lab/snapshot/"; fi
           fi
           node scripts/clamav-acceptance.mjs "$lab/config.json" artifacts/clamav-host/run

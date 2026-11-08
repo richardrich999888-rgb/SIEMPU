@@ -2,7 +2,7 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import { lstat, mkdir, readFile, readdir, statfs, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, open, readFile, readdir, statfs, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { ClamAvInspector } from '../packages/file-inspection/clamav.mjs';
@@ -38,7 +38,11 @@ export async function databaseInventory(database) {
   const records = [];
   // Use a dedicated snapshot directory, not an updater's live working directory.
   const names = await readdir(database);
-  if (names.some((name) => !/^(main|daily|bytecode)\.(cvd|cld)(\.sign)?$/.test(name)))
+  if (
+    names.some(
+      (name) => !/^(main|daily|bytecode)(?:\.(cvd|cld)|-[0-9]{1,10}\.(cvd|cld)\.sign)$/.test(name),
+    )
+  )
     throw failure('ACCEPTANCE_DATABASE_UNEXPECTED_FILE');
   for (const name of ['main', 'daily', 'bytecode']) {
     const found = [];
@@ -60,7 +64,23 @@ export async function databaseInventory(database) {
     records.push(...found);
   }
   for (const filename of names.filter((name) => name.endsWith('.sign')).sort()) {
-    if (!names.includes(filename.slice(0, -5))) throw failure('ACCEPTANCE_DATABASE_FILE');
+    // FreshClam 1.5.4 uses e.g. main-63.cvd.sign, not main.cvd.sign.
+    // Check the version against the bounded public header; the engine authenticates it.
+    const [, name, version, extension] =
+      /^(main|daily|bytecode)-([0-9]{1,10})\.(cvd|cld)\.sign$/.exec(filename);
+    const databaseName = `${name}.${extension}`;
+    if (!names.includes(databaseName)) throw failure('ACCEPTANCE_DATABASE_FILE');
+    const handle = await open(resolve(database, databaseName), 'r');
+    let header;
+    try {
+      const bytes = Buffer.alloc(512);
+      const { bytesRead } = await handle.read(bytes, 0, bytes.length, 0);
+      header = bytes.subarray(0, bytesRead).toString('ascii');
+    } finally {
+      await handle.close();
+    }
+    if (!header.startsWith('ClamAV-VDB:') || header.split(':')[2] !== version)
+      throw failure('ACCEPTANCE_DATABASE_SIDECAR_VERSION');
     const path = resolve(database, filename);
     const info = await lstat(path);
     if (!info.isFile() || info.size === 0) throw failure('ACCEPTANCE_DATABASE_FILE');

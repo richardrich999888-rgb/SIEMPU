@@ -2,6 +2,18 @@
 
 ## Native scanner acceptance continuation (8 November 2026)
 
+Draft PR #35 is open at https://github.com/richardrich999888-rgb/SIEMPU/pull/35.
+Initial head `6f6c9647d6207ee237d22a49e852f08213a66b9b` passed all ten local gates
+(428 tests) and 3/3 E2E on a clean tree. Hosted native run 42457612734 successfully
+obtained and verified official daily 28177, main 63 and bytecode 339 databases, then
+reported BLOCKED / ACCEPTANCE_DATABASE_UNEXPECTED_FILE before running the three cases.
+Pinned upstream source confirmed versioned sidecars such as `main-63.cvd.sign`; the
+preflight originally expected unversioned names. This follow-up supports the upstream
+format, binds sidecars to the database header version, preserves unknown-file rejection,
+and adds a regression. The workflow excludes patch signatures from the snapshot.
+Revalidate and publish this fix as a fast-forward; final exact-head local and hosted
+results, including the actual native acceptance outcome, are recorded in PR #35.
+
 Active branch: `codex/siepmu-clamav-acceptance`, based on PR #34 head
 `560eb080eac3125533034efaa9d23caf3c827a1f` (tree `9dd352564a3267d798aa096219938a415912e520`).
 PR #34 remains open/draft and unmerged. Its final local result was 423 native tests plus

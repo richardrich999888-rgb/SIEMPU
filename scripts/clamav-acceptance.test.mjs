@@ -61,14 +61,33 @@ test('acceptance refuses missing, empty, ambiguous and symlink database files', 
     await writeFile(join(dir, 'other.cvd'), 'unexpected');
     await assert.rejects(databaseInventory(dir), { code: 'ACCEPTANCE_DATABASE_UNEXPECTED_FILE' });
     await rm(join(dir, 'other.cvd'));
-    await writeFile(join(dir, 'main.cvd.sign'), 'inventory-only-not-a-signature');
+    await writeFile(join(dir, 'main.cvd'), 'ClamAV-VDB:synthetic:63:not-an-authentic-database');
+    await writeFile(join(dir, 'main-63.cvd.sign'), 'inventory-only-not-a-signature');
     assert.equal((await databaseInventory(dir)).length, 3);
-    await writeFile(join(dir, 'bytecode.cvd.sign'), 'orphan');
+    await writeFile(join(dir, 'bytecode-339.cvd.sign'), 'orphan');
     await assert.rejects(databaseInventory(dir), { code: 'ACCEPTANCE_DATABASE_FILE' });
-    await rm(join(dir, 'bytecode.cvd.sign'));
+    await rm(join(dir, 'bytecode-339.cvd.sign'));
     await rm(join(dir, 'daily.cvd'));
     await symlink(join(dir, 'main.cvd'), join(dir, 'daily.cvd'));
     await assert.rejects(databaseInventory(dir), { code: 'ACCEPTANCE_DATABASE_FILE' });
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test('versioned signature sidecars must match the database header; unsupported names remain refused', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'clamav-sidecar-'));
+  try {
+    await writeFile(join(dir, 'main.cvd'), 'ClamAV-VDB:synthetic:63:not-an-authentic-database');
+    await writeFile(join(dir, 'daily.cvd'), 'ClamAV-VDB:synthetic:28177:not-an-authentic-database');
+    await writeFile(join(dir, 'main-64.cvd.sign'), 'inventory-only-not-a-signature');
+    await assert.rejects(databaseInventory(dir), { code: 'ACCEPTANCE_DATABASE_SIDECAR_VERSION' });
+    await rm(join(dir, 'main-64.cvd.sign'));
+    await writeFile(join(dir, 'main.cvd.sign'), 'unsupported-name');
+    await assert.rejects(databaseInventory(dir), { code: 'ACCEPTANCE_DATABASE_UNEXPECTED_FILE' });
+    await rm(join(dir, 'main.cvd.sign'));
+    await writeFile(join(dir, 'main-63.cvd.sign'), 'inventory-only-not-a-signature');
+    assert.equal((await databaseInventory(dir)).length, 3);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

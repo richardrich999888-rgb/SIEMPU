@@ -89,7 +89,9 @@ The gate checks the pinned executable hash, the exact reviewed laboratory versio
 a current-user-owned 0700 tmpfs temporary root, a clean source checkout, and a dedicated
 database snapshot. That snapshot must contain one `main.cvd` or `main.cld`, one
 `daily.cvd` or `daily.cld`, and optionally one bytecode database plus matching `.sign`
-sidecars. Other files, symlinks, empty databases and duplicate formats are refused. Copy
+sidecars named with the upstream version, such as `main-63.cvd.sign`. Each sidecar
+version must match its database header; native verification still authenticates the
+content. Other files, symlinks, empty databases and duplicate formats are refused. Copy
 completed updates from the supported updater into this dedicated snapshot; do not point
 the gate at its live working directory. Inventory checks do not authenticate signatures.
 The unchanged native adapter still enforces official databases and its freshness bound.
@@ -138,7 +140,11 @@ Only selected package hashes and the redacted acceptance report are uploaded. Th
 workflow initially triggers on changes to its own file on the acceptance branch; it
 also supports manual dispatch. It does not run duplicate downloads for pull requests.
 Do not rerun after an upstream rate-limit/denial without honoring its cooldown and
-resolving the stated cause. Hosted results must be observed before being claimed.
+resolving the stated cause. Hosted results must be observed before being claimed. The initial hosted attempt
+downloaded and tested daily 28177, main 63 and bytecode 339 successfully, then exposed
+a filename mismatch in our preflight: FreshClam uses versioned `.cvd.sign` names. The
+preflight and regression coverage now follow that documented format; the first run
+remains a blocked result, not a detection pass. Final rerun results are recorded in PR #35.
 
 See `docs/testing/endpoint-inspection-engine-probe-1.5.4.json` for the exact observed
 package/binary/library hashes and negative-only execution. The package digest comparison
@@ -155,6 +161,8 @@ Primary references retrieved 8 November 2026:
 - [ClamAV 1.5.4 release](https://github.com/Cisco-Talos/clamav/releases/tag/clamav-1.5.4)
   and [security patch notice](https://blog.clamav.net/2026/08/clamav-154-and-146-security-patch.html).
   Upstream reports fixes affecting 1.5.3; this establishes patch rationale, not independent evaluation.
+- [Pinned FreshClam 1.5.4 signature naming source](https://github.com/Cisco-Talos/clamav/blob/clamav-1.5.4/libfreshclam/libfreshclam_internal.c).
+  Uses `<database>-<version>.cvd.sign`; inspected after the hosted preflight refusal.
 - [FreshClam FAQ](https://docs.clamav.net/faq/faq-freshclam.html) and
   [CVDUpdate](https://github.com/Cisco-Talos/cvdupdate). Specify supported updater methods.
   CVDUpdate 1.2.0 was installed for the local experiment only, not as an application dependency.
