@@ -40,6 +40,15 @@ jobs:
         run: npm run validate
       - name: Required vertical slice acceptance tests
         run: npm run test:e2e
+      - name: Local public-interface contracts and policy-release comparison
+        run: node scripts/interop-assurance.mjs artifacts/interop-assurance
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        if: always()
+        with:
+          name: government-interop-assurance
+          path: artifacts/interop-assurance/
+          if-no-files-found: error
+          retention-days: 30
       - name: Trust Before Release demonstration on the secure stack (synthetic)
         run: npm run demo:trust-before-release
         env:

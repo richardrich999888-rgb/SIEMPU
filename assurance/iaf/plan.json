@@ -27,7 +27,8 @@
       "tests": [
         "tests/authority.test.mjs",
         "tests/flash-approval.test.mjs",
-        "tests/filed-mission-authority.test.mjs"
+        "tests/filed-mission-authority.test.mjs",
+        "scripts/policy-release-comparison.test.mjs"
       ],
       "oracle": "A revocation committed first produces zero new issuances; no self-approval or concealed metadata leak."
     },
@@ -63,7 +64,8 @@
         "tests/adapter-adversarial.test.mjs",
         "tests/integration-adapter.test.mjs",
         "tests/document-system.test.mjs",
-        "tests/sealed-integration.test.mjs"
+        "tests/sealed-integration.test.mjs",
+        "tests/india-dpi-iudx.test.mjs"
       ],
       "oracle": "Bound queued requests, preserve exact retry content, reject stale work and false readiness. Record plaintext endpoint exposure as an open deployment blocker."
     },

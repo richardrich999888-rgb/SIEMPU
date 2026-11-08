@@ -339,6 +339,20 @@
         "packages/storage/private-sqlite.mjs"
       ],
       "tests": ["tests/managed-outbox.test.mjs", "tests/managed-endpoint/native.check.mjs"]
+    },
+    {
+      "id": "CR-18",
+      "purpose": "Optional local DX resource reader integrity and transport",
+      "mechanisms": [
+        "TLS 1.3 using the existing transport",
+        "SHA-256 of received bounded JSON bytes"
+      ],
+      "boundary": "Opt-in endpoint laboratory process and literal-loopback synthetic server only",
+      "deploymentScope": "LAB_ONLY",
+      "custody": "Provider token stays in the endpoint process and TLS request header; private laboratory CA trust supplied separately",
+      "limitations": "No live provider token validation was exercised. Hashes identify received bytes, not truth or authority. Public-network transport and automatic SIEPMU imports are absent. This module is excluded from the application bundle.",
+      "sources": ["integrations/india-dpi/iudx-resource-reader.mjs", "packages/transport/tls.mjs"],
+      "tests": ["tests/india-dpi-iudx.test.mjs"]
     }
   ],
   "sourceBindings": {
@@ -362,6 +376,9 @@
     },
     "deployment/secure/sealed-adapter-process.mjs": {
       "sha256": "12032af7b6ceb4dd3a29b1413b1f708eb4942b107cfe31066385cc8d7cd7b3ab"
+    },
+    "integrations/india-dpi/iudx-resource-reader.mjs": {
+      "sha256": "05df9aff7068ef329f20d6eb8091436a9aefe31321f282ec649413f667fad072"
     },
     "integrations/managed-endpoint/index.mjs": {
       "sha256": "8df1ff08f3d3f7acda5ead0a896950e3980d0ca1638d83ecb7c63492b6360203"
@@ -545,6 +562,9 @@
     },
     "tests/file-inspection.test.mjs": {
       "sha256": "699a4681119a725429bb3fe649842a6ddabbac3d23e5b46ed99115825051e377"
+    },
+    "tests/india-dpi-iudx.test.mjs": {
+      "sha256": "e66d3fa0223d154b077a6127673141925cd4a7b595f443ba31be380ea5ac1c9c"
     },
     "tests/inspection-sandbox.test.mjs": {
       "sha256": "9e0a455711d79c65c1ca3d53d9d549cdb993e2aa033b51b0159d44efc1f6fa51"

@@ -1,70 +1,86 @@
-# India public digital infrastructure interoperability — IUDX contract candidate
+# India public-interface laboratory profile
 
-**Status: local synthetic contract tests, NOT government approval or live IAF integration.**
+This is an opt-in **local synthetic DX resource-proxy reader**, excluded from the application
+bundle. Live government interoperability and formal qualification are not established.
 
-## Official references and intended applicability
+## Pinned contract and deliberate subset
 
-- Public DX/IUDX Resource Proxy OpenAPI 3.0.2, v5.6.0: https://github.com/datakaveri/dx-rs-proxy/blob/main/docs/openapi.yaml
-- Government-backed API Setu sample-data sandbox: https://sandbox.api-setu.in/
-- Government open API access rules: https://docs.apisetu.gov.in/document-central/api-policy/Policy%20Statement.html
-- Government-linked OpenForge project platform: https://openforge.gov.in/openforge/about.php
+- Upstream: [DataKaveri DX proxy OpenAPI](https://github.com/datakaveri/dx-rs-proxy/blob/a6d2bbb2199f1db65aa67e7b807c5241aea2895c/docs/openapi.yaml),
+  commit `a6d2bbb2199f1db65aa67e7b807c5241aea2895c`, API 5.6.0 / OpenAPI 3.0.2.
+- Retrieved source SHA-256: `8e11d6138029dd94d3915472aa8bc46934fcc89f0a1b85a8a91b51315acf74c4`.
+- Request: `GET /ngsi-ld/v1/entities?id=<UUID>`; `token` header, at most 512 characters.
+  The upstream pattern permits alphanumerics, `/`, `@`, `.`. This profile additionally rejects
+  empty tokens. This is syntax checking, not provider authentication or a generic JWT validator.
+- Upstream `entityresponse` describes object properties `type`, `title`, `results`; its example
+  uses `urn:dx:rs:success`, resource IDs and pagination. It does **not** make these fields required.
+  `SIEPMU_DX_READ_V1` intentionally requires them and rejects unknown root fields. This narrower
+  application profile is not full schema equivalence or exhaustive upstream conformance.
+- Every result must be an object with the requested `id`. Optional `limit`, `offset`, `totalHits`
+  must be nonnegative safe integers. At most 1,000 results, depth 32 and 20,000 visited values.
+  Prototype-related keys and nonfinite numbers are refused. Other result properties stay untrusted.
+- UTF-8 JSON only; default 256 KiB, hard ceiling 1 MiB. Streams are bounded as consumed; there is
+  no `text()` fallback. Whole-request deadline defaults to 2 seconds, configurable 10–10,000 ms.
+  Invalid content, status, redirection or schema raises a fixed error code, never an upstream body.
+- HTTP 204 returns `EMPTY`; successful content returns `RECEIVED_UNTRUSTED`, an immutable value and
+  raw-byte digest. This digest does not establish truth, signatures, freshness or local authority.
+- The spec's `example-proxy.com` server is a placeholder. The general IUDX resource-server guide
+  describes `/entities/{id}`; that is a **different interface**, not implemented by this adapter.
 
-The code implements **only** the published read-only DX resource-proxy request:
-`GET /ngsi-ld/v1/entities?id=<UUID>` with the vendor-documented `token` header.
-It uses **no DX source code**, has **no new dependencies**, and is not loaded in
-the production SIEPMU runtime.
+## Transport and authority boundaries
 
-## Reproduce the validation
+`readIudxEntity` requires an explicitly injected trusted transport; it has no ambient networking.
+The concrete `createIudxLoopbackReader` requires `enabled: true`, a private CA and canonical literal
+`127.0.0.1` or `[::1]` HTTPS origin. It reuses TLS 1.3 with peer verification, byte/deadline limits
+and no redirect following. DNS aliases, public hosts and arbitrary TLS overrides are unavailable.
+The generic contract helper is not a public-network SSRF defence; a future public transport needs
+reviewed DNS/IP egress controls, owner-authorized origin, credentials and lifecycle policy.
+
+Provider tokens cannot become SIEPMU users, devices, mission roles or release grants. No response
+triggers automatic import, URL following, document rendering or forwarding. The optional reader
+runs at an endpoint; neither plaintext nor provider credentials enter the SIEPMU relay/authority.
+An explicit synthetic import test seals returned content with locally selected sender/recipient
+keys and traverses normal admission and policy release. Embedded roles remain ordinary data.
+There is no production import route, provider-token exchange or SIEPMU authority mapping.
+
+## Independent reproduction on a frozen revision
+
+Use Node 24.21.0 (CI), OpenSSL CLI for temporary test CA generation and the existing lockfile.
+The full evaluation uses Docker/Linux netem, Rust and Java as documented in the repository.
 
 ```sh
-node --test tests/india-dpi-iudx.test.mjs
+# In a checkout of the exact candidate SHA, with a clean working tree:
+npm ci --ignore-scripts --no-audit --no-fund
+npm run validate
+npm run test:e2e
+node scripts/interop-assurance.mjs artifacts/interop-observer-01
+npm run test:adversarial -- artifacts/adversarial-observer-01
+node assurance/sag/package.mjs artifacts/evaluation-observer-01
 ```
 
-The eight synthetic checks cover exact HTTPS origin allowlisting, the API
-path/token/header shape, malformed ID/token rejection, non-sensitive error
-reporting, upstream denial/redirect/error behavior, response content type and
-JSON validation, bounded response sizes and streaming refusal. These are
-contract tests on an injected *local fake transport*, not a live DX test.
+Use new artifact directories on every run. The interop runner refuses dirty source, checks the
+entire committed tree before/after, retains failing TAP output, and writes raw timing samples,
+source index, hashes, signed synthetic evidence, public verification key and the readiness report.
+Its manifest digest must be retained independently; self-authored hashes are not independent
+assessment. CI uploads this directory as `government-interop-assurance` on the exact checkout.
 
-## Threat boundary — mandatory before any further integration
+For a focused development check, including on a dirty working tree:
 
-1. An IUDX API token grants only data-provider permissions under that provider's
-   rules. It does **not** represent an IAF personnel identity, SIEPMU device
-   approval, local mission role or authority to receive a wrapped key.
-2. IUDX responses are **untrusted external content**. This prototype neither
-   imports files, nor seals any message, nor submits information to SIEPMU.
-   A future bridge needs written data-sharing authorisation, classification
-   controls, user consent where applicable, provenance, malware handling,
-   local sender approval and the normal SIEPMU encryption/policy checks.
-3. No IAF/DRDO system, government sandbox, C-DOT lab or production IUDX server
-   was contacted during testing. No real credentials or sensitive data used.
-4. API Setu's sandbox is suitable for separate sample-data experiments only.
-   There is no asserted compatibility between its products and IUDX.
-5. This integration is only a research adapter; it is not graded or approved.
-   It provides no government funding, readiness or procurement evidence.
-6. The adapter supports incremental body-size limits on Fetch streams. The
-   text-only response fallback is for unit-test mocks, not an approved live
-   transport. TLS client policy, response schemas, certificate operations,
-   consent checks and safe data mapping need independent review before any
-   authorised live connection.
+```sh
+node --test --test-concurrency=1 tests/india-dpi-iudx.test.mjs scripts/policy-release-comparison.test.mjs
+```
 
-## ASTRA review handoff
+Such a development result is not frozen-candidate evidence. Tests cover origin confusion, malformed
+credentials, oversized/invalid responses, schema drift, TLS identity, deadlines, cancellation,
+redirect token leakage and actual local authority denial. See the full adversarial plan for
+replay, cross-mission, ciphertext tampering, provider failure, crash and recovery coverage.
 
-Run the exact test command, record the commit, Node version, test outputs and
-failure list. Perform adversarial mutation tests for token leakage, redirects,
-SSRF, schema drift and cross-domain data handling. ASTRA should report each
-claim as `MOCK_TESTED`, `SOURCE_REVIEWED`, `LIVE_OWNER_AUTHORIZED` or
-`EXTERNAL_APPROVAL_PENDING` — never convert mock success into certification.
+## Live interface gate — still blocked
 
-### Next gates
+Provide the exact resource/proxy version, intended unclassified use case, owner-permitted test
+origin/resource and scoped token through a secret channel. Confirm data-owner permission and
+retention/consent rules. Review public-network transport, freshness, audit and endpoint content
+inspection before adding it. Do not reuse an API Setu token, IUDX token or MOSIP identity as
+military identity. No government API transaction was performed by these tests.
 
-- Written operational use case and data classification permission from the
-  relevant authority (if defence-related).
-- Approved test origin, access method and scope from IUDX/API Setu owner.
-- Live sandbox conformance tests only in the officially permitted environment,
-  with rate limits and an explicit allowlist.
-- Separate SIEPMU-source-endpoint policy, file inspection, audit and adversarial
-  tests before considering any information transfer.
-
-This is an isolated research connector suitable for review and further
-development; it is not a plug-in to any classified or restricted network.
+[Government Interoperability and Defence Assurance Report](GOVERNMENT_INTEROPERABILITY_AND_DEFENCE_ASSURANCE.md)
+contains the candidate-selection decisions, public sources, traceability and external gaps.
