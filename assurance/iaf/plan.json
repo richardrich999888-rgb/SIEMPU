@@ -15,7 +15,8 @@
         "tests/auth-routing.test.mjs",
         "tests/initial-password.test.mjs",
         "tests/additional-boundaries.test.mjs",
-        "tests/session-renewal.test.mjs"
+        "tests/session-renewal.test.mjs",
+        "tests/session-rate-limit.test.mjs"
       ],
       "oracle": "No unauthorized session, route bypass or device-bound operation."
     },

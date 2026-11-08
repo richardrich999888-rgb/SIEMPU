@@ -1,0 +1,307 @@
+{
+  "schemaVersion": 1,
+  "kind": "EXACT_COMMIT_CONTINUITY_EVIDENCE",
+  "gitCommit": "421863693183aac90a302cfb3f2ad93efdaf35d2",
+  "gitTree": "e47056cdcc0bcb45e3fe976da3814449dc8e6a98",
+  "capturedOn": "2026-11-08",
+  "assessment": "PROVISIONAL_TRL4_UNCHANGED",
+  "sagGrading": "NOT_ESTABLISHED",
+  "local": {
+    "node": "24.22.1",
+    "platform": "linux-x64",
+    "validationGatesPassed": 10,
+    "testsPassed": 455,
+    "e2ePassed": 3,
+    "adversarialPassed": 247,
+    "adversarialFamilies": 9,
+    "companionOfflinePassed": 5
+  },
+  "combinedNative": {
+    "workflowRun": 42481838366,
+    "artifactId": 13618121148,
+    "artifactSha256": "37634557abd8e53a3a21bc9ccd48cd0ec1129f04516b65683dee35d34bddc2b5",
+    "isolation": {
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "sha256": "28e83010def32496cc2682878f2028a2324f16593bc2cc435955c10b163d6681"
+    },
+    "managedCompanion": {
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "sha256": "86d0038f2f9ea3597d0824de0a8b3ec3288546675a16888b78e91c047f830061"
+    },
+    "package": {
+      "package": "/home/runner/work/SIEMPU/SIEMPU/artifacts/native-managed-pack",
+      "manifestSha256": "7f8281bcb66655e1404c7cb8ca66a84b378ed31a745655bda91352855bb99ecb",
+      "component": "airon-managed-endpoint",
+      "gitCommit": "421863693183aac90a302cfb3f2ad93efdaf35d2",
+      "files": 27,
+      "integrity": "MATCHES_EXPECTED_DIGEST",
+      "sagGrading": "NOT_ESTABLISHED"
+    },
+    "clamavReport": {
+      "schemaVersion": 1,
+      "kind": "clamav-native-acceptance",
+      "startedAt": "2026-11-08T12:47:26.591Z",
+      "gitCommit": "421863693183aac90a302cfb3f2ad93efdaf35d2",
+      "sourceDigest": "7a11da8ccba664dd968d49e657e0ccbc2731cbe2a9cab97e4b7789ef92b288ec",
+      "workingTreeClean": true,
+      "runtime": {
+        "node": "v24.21.0",
+        "platform": "linux",
+        "architecture": "x64"
+      },
+      "outcome": "PASS",
+      "nativeTests": {
+        "outcome": "PASS",
+        "exitCode": 0,
+        "counts": {
+          "tests": 3,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "failureCodes": [],
+        "tapSha256": "c1a8ca097a9646463d3aa24391d3d4936d8fb602e7a3735a57217090988298f4"
+      },
+      "limits": [
+        "Synthetic three-case smoke test only; no representative corpus qualification",
+        "Launcher hash does not attest its interpreter, engine libraries or host",
+        "tmpfs check does not prevent swap, dumps, parser compromise or mount changes",
+        "No readiness, grading or operational authorization is assigned"
+      ],
+      "isolationProfile": "BUBBLEWRAP_SELECTED",
+      "configurationSha256": "11ee4a1c32e06c82e0e6a29985f48f1480633fc7bdb807987f382fdef18af841",
+      "executableSha256": "e94f394a8b806522dd9cef27dfe2a6f7989334d1ca320f20a5af2b22507a0271",
+      "temporaryStorage": "PRIVATE_OWNER_0700_TMPFS_OBSERVED",
+      "engineVersion": "1.5.4",
+      "databases": [
+        {
+          "filename": "main.cvd",
+          "bytes": 89072577,
+          "sha256": "0b2182d229f46981ec8f535382222f7c9dfdd656b250ad47988b910a8d302365"
+        },
+        {
+          "filename": "daily.cvd",
+          "bytes": 23448729,
+          "sha256": "6ab32a3161368af4cd55ccb89cbc79c5b787289174667893e774e3ef6854dc01"
+        },
+        {
+          "filename": "bytecode.cvd",
+          "bytes": 281702,
+          "sha256": "6d4aa01f219e988060fc419f495d07f27e0cdf1a2cccc065971da922c76f7ffb"
+        },
+        {
+          "filename": "bytecode-339.cvd.sign",
+          "bytes": 9078,
+          "sha256": "94eb76eff8cf3ab90ec3a67992727e84f9be257f294d72504228e89fa566592f"
+        },
+        {
+          "filename": "daily-28177.cvd.sign",
+          "bytes": 9078,
+          "sha256": "23ead89e8ea171674dbac0fd8bf3107ecbc8bb81d24619add73ea8eefd905109"
+        },
+        {
+          "filename": "main-63.cvd.sign",
+          "bytes": 9078,
+          "sha256": "c030a2235e0ac8b53f95bc6f79563c2b3ddfdcf4fd1d722634578a79530898e2"
+        }
+      ],
+      "sourceUnchanged": true,
+      "finishedAt": "2026-11-08T12:47:53.159Z"
+    }
+  },
+  "token": {
+    "workflowRun": 42481838407,
+    "artifactId": 13617088852,
+    "artifactSha256": "d75cfcc74cbc1cdf710d59b8e027d327d9bedcbb4177ed0cbf036cf171d0b550",
+    "tests": {
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "sha256": "63befc1b1268c650b8ef5cfc705fb59519db86fbe7ec6ca9632c39872d5504da"
+    },
+    "inventory": {
+      "kind": "SOFTWARE_TOKEN_LAB_ONLY",
+      "gitCommit": "421863693183aac90a302cfb3f2ad93efdaf35d2",
+      "gitTree": "e47056cdcc0bcb45e3fe976da3814449dc8e6a98",
+      "softHsmSource": "13e6e86b83748fef74046dbf0c91f664b7acc1c3",
+      "sha256": {
+        "python": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+        "module": "0c67c296d432ff2b99eefc358964ad930b41699f6417ddfac7aba1f850287187",
+        "util": "82f6c779d0a8f78def93b5cab4799dba21844f2801cdb88aefd70468d1f914a8"
+      },
+      "hardwareQualified": false,
+      "sagGraded": false
+    },
+    "dependencyScan": {
+      "SchemaVersion": 2,
+      "Trivy": {
+        "Version": "0.69.3"
+      },
+      "ReportID": "01a1bb33-95c7-7e3e-b922-1c7fdc40c266",
+      "CreatedAt": "2026-11-08T12:48:02.503934451Z",
+      "ArtifactName": "integrations/pkcs11",
+      "ArtifactType": "filesystem",
+      "Results": [
+        {
+          "Target": "requirements.txt",
+          "Class": "lang-pkgs",
+          "Type": "pip",
+          "Packages": [
+            {
+              "Name": "asn1crypto",
+              "Identifier": {
+                "PURL": "pkg:pypi/asn1crypto@1.5.1",
+                "UID": "6e39852710f81b5e"
+              },
+              "Version": "1.5.1",
+              "Locations": [
+                {
+                  "StartLine": 3,
+                  "EndLine": 3
+                }
+              ],
+              "AnalyzedBy": "pip"
+            },
+            {
+              "Name": "python-pkcs11",
+              "Identifier": {
+                "PURL": "pkg:pypi/python-pkcs11@0.10.1",
+                "UID": "dba4ed0ac70981d2"
+              },
+              "Version": "0.10.1",
+              "Locations": [
+                {
+                  "StartLine": 2,
+                  "EndLine": 2
+                }
+              ],
+              "AnalyzedBy": "pip"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "hosted": {
+    "pushCI": {
+      "run": 42481838396,
+      "passedJobs": 9
+    },
+    "pullRequestCI": {
+      "run": 42481879771,
+      "passedJobs": 8,
+      "failedJob": "relevant-env",
+      "failedCase": "T8.1"
+    },
+    "securityRunsPassed": [42481838435, 42481879801],
+    "tokenRunsPassed": [42481838407, 42481879896],
+    "prMergeCommit": "eb4b70973ec715743a5df7c5cd498c55b49ceffc",
+    "prMergeTreeMatchesHead": true
+  },
+  "loadFailure": {
+    "artifactId": 13618365242,
+    "artifactSha256": "585dcad37aa8595a4f759600419c8e30a2f42bade1abace97c42419c83fed511",
+    "case": {
+      "id": "T8.1",
+      "requirement": "R11",
+      "criterion": "Sustained load 30 s: zero digest mismatches and zero failures",
+      "outcome": "FAIL",
+      "observed": {
+        "sent": 496,
+        "refused": 287,
+        "delivered": 496,
+        "mismatched": 0,
+        "failed": 0
+      },
+      "measurements": {
+        "senders": 4,
+        "workersPerSender": 2,
+        "payloadBytes": 4096,
+        "sendPhase": {
+          "seconds": 30.139,
+          "sent": 496,
+          "refused": 287,
+          "exchangesPerSecond": 16.46,
+          "latencyMs": {
+            "n": 496,
+            "p50": 426.1,
+            "p95": 486.3,
+            "p99": 499.02,
+            "max": 505.18
+          }
+        },
+        "receivePhase": {
+          "seconds": 34.663,
+          "delivered": 496,
+          "mismatched": 0,
+          "failed": 0,
+          "claimsPerSecond": 14.31,
+          "latencyMs": {
+            "n": 496,
+            "p50": 264.42,
+            "p95": 333.47,
+            "p99": 441.61,
+            "max": 1438
+          }
+        },
+        "hostB": {
+          "processes": {
+            "collector": {
+              "avgCpuPercent": 5.6,
+              "peakRssMiB": 104
+            },
+            "checkpoint": {
+              "avgCpuPercent": 28.4,
+              "peakRssMiB": 264
+            },
+            "relay": {
+              "avgCpuPercent": 3.9,
+              "peakRssMiB": 94
+            },
+            "control": {
+              "avgCpuPercent": 69,
+              "peakRssMiB": 300
+            },
+            "web": {
+              "avgCpuPercent": 19.9,
+              "peakRssMiB": 211
+            }
+          },
+          "linkAB": {
+            "rxBytes": 10425313,
+            "txBytes": 10145365
+          },
+          "databaseGrowthBytes": 23057008,
+          "databaseBytesPerExchange": 46486
+        }
+      }
+    },
+    "controlLogRefusals": {
+      "status": 429,
+      "reason": "RATE_LIMITED",
+      "count": 287
+    },
+    "cause": "Unpaced workers exceeded the existing fixed-minute per-session request ceiling; minute-boundary timing changed whether the test hit that ceiling.",
+    "followup": "Declare 650 ms per-session offered-load pacing in both send and receive phases, retain zero-refusal and digest criteria, retain unpaced investigation mode, record refusal codes, and test the unchanged authority request ceiling directly."
+  },
+  "limits": [
+    "Synthetic lab evidence only; no hardware qualification or IAF relevant-environment acceptance.",
+    "The initial PR relevant-env run failed; the passing push run does not erase that failure.",
+    "Follow-up source requires fresh exact-commit local and hosted validation."
+  ]
+}

@@ -1,5 +1,42 @@
 # Current engineering state (single authoritative handover file)
 
+## Continuity acceptance and load-profile follow-up (8 November 2026)
+
+Active draft PR #38: https://github.com/richardrich999888-rgb/SIEMPU/pull/38,
+branch `codex/siepmu-continuity-mechanisms`, stacked on unmerged PR #37.
+Last fully passing local source: `421863693183aac90a302cfb3f2ad93efdaf35d2`, tree
+`e47056cdcc0bcb45e3fe976da3814449dc8e6a98`: all ten gates, 455 tests, 3 E2E,
+247 adversarial cases across nine families, and five standalone offline tests.
+
+That source passed all nine push CI jobs and both Security and token workflows.
+Push CI: https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42481838396.
+The combined native run passed one real isolation probe, three ClamAV smoke cases and
+all eight managed-companion scenarios (nine TAP tests including the parent):
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42481838366.
+Downloaded native artifacts were SHA-256 checked; the hosted and local 27-file packages
+share manifest digest `7f8281bcb66655e1404c7cb8ca66a84b378ed31a745655bda91352855bb99ecb`.
+Exact reports and artifact identities: `docs/testing/continuity-acceptance-2026-11-08.json`.
+
+PR CI run https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42481879771
+passed eight jobs but failed relevant-env T8.1: all 496 accepted objects were delivered
+without mismatch; all 287 refused requests were HTTP 429 RATE_LIMITED in control.log.
+Unpaced workers exceeded the existing 500 protected requests/session/fixed-minute limit.
+The push run crossing a different minute boundary passed; it does not erase this failure.
+
+The follow-up declares one exchange start per 650 ms/session, shared by sender workers,
+and paces recipients too. It records refusal codes, retains explicit unpaced investigation
+mode and leaves the authority limit and zero-refusal acceptance criterion unchanged.
+A direct protected-route regression covers the 500-request ceiling, per-session isolation,
+window reset and revocation. This is an offered-load reliability measurement; sponsor scale
+and maximum-throughput requirements remain open. Runtime continuity mechanisms and native
+integrations are unchanged by this follow-up; the test/deployment source digest changes.
+
+Next: freeze this follow-up, run full validation/E2E/adversarial checks before updating the
+branch, then observe fresh hosted CI/Security/token results. Record the final SHA and run URLs
+in PR #38. Do not attribute the initial hosted result to the follow-up without its identity.
+All nineteen qualification gaps remain open; G09 is PARTIAL_LAB. Provisional TRL4 is unchanged.
+SAG grading is not established. Operational authorization is not established. No merge or deployment.
+
 ## Continuity mechanisms candidate (8 November 2026)
 
 Active branch: `codex/siepmu-continuity-mechanisms`, based on PR #37 head

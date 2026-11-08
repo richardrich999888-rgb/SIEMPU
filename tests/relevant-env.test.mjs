@@ -20,6 +20,7 @@ import {
   containsIndexedBlock,
 } from '../deployment/relevant-env/payload.mjs';
 import { createHash } from 'node:crypto';
+import { createLoadPacer } from '../deployment/relevant-env/load-pacing.mjs';
 import {
   percentile,
   summary,
@@ -27,6 +28,32 @@ import {
   PROFILES,
   LOSS_PROFILES,
 } from '../scripts/trl5-validation.mjs';
+
+test('offered-load pacing shares slots across workers and refuses starts after the deadline', async () => {
+  let now = 0;
+  const waits = [];
+  const pace = createLoadPacer(650, {
+    clock: () => now,
+    wait: (ms) => new Promise((resolve) => waits.push({ ms, resolve })),
+  });
+  assert.equal(await pace(1300), true);
+  const second = pace(1300);
+  assert.equal(await pace(1300), false);
+  assert.equal(waits[0].ms, 650);
+  now = 650;
+  waits.shift().resolve();
+  assert.equal(await second, true);
+  const delayed = pace(1400);
+  now = 1400;
+  waits.shift().resolve();
+  assert.equal(await delayed, false);
+  now = 2000;
+  assert.equal(await pace(3000), true);
+  const anotherSession = createLoadPacer(650, { clock: () => now });
+  assert.equal(await anotherSession(3000), true);
+  for (const value of [0, -1, 0.5, Infinity, 60001])
+    assert.throws(() => createLoadPacer(value), RangeError);
+});
 
 test('topology: three namespaces, two links, A and C only reach B', () => {
   const plan = topologyPlan();
