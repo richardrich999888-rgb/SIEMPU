@@ -1,5 +1,105 @@
 # Current engineering state (single authoritative handover file)
 
+## CI tool acquisition follow-up (8 November 2026)
+
+Draft PR #36 remains the active candidate. Evidence head
+`c65fa4ccffe72ae3b34d5e29b199ed51b35a6da4` passed all ten local gates (432 tests),
+3 E2E, 233 adversarial cases across nine families, both hosted Security/token workflows,
+and the browser, Rust, PQC, Nexora, relevant-environment and testbed jobs. The PR formal
+model check passed on its matching merge tree. Repeated push formal downloads returned
+HTTP 504; container jobs stopped in the upstream Trivy installer before its scanner ran.
+Run references: https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42464566040
+and https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42464568928.
+
+This follow-up changes CI tool acquisition only: bounded curl retries for the existing
+TLA+ pin and a direct, SHA-256-pinned Trivy 0.69.3 Linux x64 archive, installed once per
+job. The archive digest was verified against the upstream release API asset metadata.
+Both container scans and the optional Python scan use that binary; no mutable installer
+is fetched. Hash mismatches and vulnerability findings still fail the gates. Runtime,
+provider and scanner code are unchanged, but the validation source digest changes because
+it includes workflows. Freeze and validate this exact follow-up, run E2E and the adversarial
+suite, rebuild/verify the candidate bundle, then record final hosted outcomes in PR #36.
+
+The prior hosted 653-file candidate was downloaded and independently verified against
+manifest `109c0aada96b1ab51539376bad804c02749720751fd8a2eac149ed4c8eece81a` and artifact
+ZIP `e433359096ca3c3b2be5ee378ec5259fffb455df8011647a43a9f8e2c860c121`; it belongs only
+to `c65fa4c`. The final follow-up requires a new bundle. Native parser evidence remains
+bound to `f9eac4d` below; exact runtime-source equivalence must be retained when citing it.
+SAG grading is not established. Provisional TRL4; all nineteen qualification gaps remain open.
+
+## Native endpoint integrations accepted in the lab (8 November 2026)
+
+Active draft: https://github.com/richardrich999888-rgb/SIEMPU/pull/36,
+`codex/siepmu-evaluation-integrations`, stacked on unmerged PR #35. Executed native code
+commit `f9eac4d6b6a8726795e46660dcc15496da00eb48`, tree
+`e058810eb2562a000991a5b23a6f96e6c97bf1b2`, passed local all-ten-gate validation
+(432 tests) and 3 E2E tests on Node 24.22.1/Linux x64.
+
+Hosted native results on that exact code:
+
+- PKCS11: 9/9 tests plus a complete two-package high/critical dependency scan passed;
+  https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42463858775.
+- Isolated ClamAV: 1/1 real namespace probe plus 3/3 actual engine smoke tests passed;
+  https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42463858700.
+- Both native artifact ZIPs were downloaded and SHA-256 verified. Exact reports,
+  inventories, hashes, counts and dependency-scan data are preserved in
+  `docs/testing/endpoint-native-acceptance-2026-11-08.json`.
+
+The host exception is limited to one root-owned launcher. The recorded global Ubuntu
+userns restriction remained 1; the parser could not create further user namespaces.
+The probe correction tests creating a new file on a read-only mount instead of opening
+the running executable, which confounds the check with executable text protection.
+
+This evidence/documentation follow-up leaves executable source unchanged. Validate its
+final exact commit and E2E before publishing. Final push/PR CI, Security, token acceptance,
+adversarial result and final bundle identity are recorded in PR #36. Native scanner evidence
+belongs to the code commit above; preserve that identity and verify code equivalence.
+The candidate remains ungraded, provisional TRL4; all nineteen qualification gaps are open.
+Hardware custody, managed/browser enforcement, production failover, service-identity
+lifecycle, representative corpus and sponsor/evaluator acceptance are not established.
+
+## Native integration host follow-up (8 November 2026)
+
+Draft PR #36: https://github.com/richardrich999888-rgb/SIEMPU/pull/36. Initial head
+`a2eaeefcb68cc594b0fc369270915d334c577af4` passed all ten local gates / 432 tests,
+3 E2E, 9 token tests, 7 separate PQC tests and 233 adversarial cases. An ungraded
+source-bound evaluation bundle was built and independently verified offline. Its digest
+was `eca7804f1c5c8f5235c38d258c63f120fb2fa78bfd97425adb1710d75e950c43`.
+
+Head `2fb909e9ae3d785ebd9c320015368198bbe70650` also passed 432 local tests, 3 E2E
+and 9 token tests. Native PKCS11 CI passed after fixing the SoftHSM configuration/state
+install directories to stay within the private runner workspace:
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42462812497.
+The native scanner probe still refused isolation: Ubuntu blocked network-namespace
+setup capabilities (`RTM_NEWADDR`). The follow-up grants only the dedicated root-owned
+launcher an AppArmor userns exception and explicitly prevents nested user namespaces
+inside the parser. It does not disable the global host restriction or remove parser
+isolation. Final exact-head local/hosted results and bundle identity belong in PR #36;
+prior passes must not be attributed to the follow-up. No merge or deployment occurred.
+
+## Endpoint integration evaluation candidate (8 November 2026)
+
+Active branch: `codex/siepmu-evaluation-integrations`, based on PR #35 exact head
+`48ecd4bc2268fbe4e759782e7e685ba367946a9d`. New optional integrations: real PKCS11
+signing/ECDH through pinned python-pkcs11/asn1crypto and a SoftHSM 2.7.0 laboratory gate;
+Bubblewrap 0.13.1/prlimit scanner isolation with strict runtime inventory and a native
+boundary probe. Outbound ephemeral ECDH keys are no longer exported as private JWK.
+Details and limits: `docs/engineering/INTEGRATION_STATUS.md` and `integrations/*/README.md`.
+
+Development execution: nine native token tests passed, including managed endpoint device
+enrollment/proof and policy-authorized object release; eighteen targeted core/scanner
+regressions passed. These are development results, not the final candidate release gate.
+Freeze and validate the exact commit before publishing its branch ref. Record final local
+validation/E2E, both push/PR CI and Security, PKCS11 and isolated ClamAV workflow outcomes
+in the candidate PR. Never report native isolation PASS from contract doubles. The local
+container cannot create the required namespace; hosted real isolation must be observed.
+
+Root npm runtime dependencies remain zero. Optional Python/native tools stay outside
+application bundles. CodeQL includes Python. Hash-pinned wheels and upstream license
+notices accompany the optional package. The crypto inventory now has sixteen components.
+No merge/deployment, TRL increase or grading is performed; all nineteen gaps remain open.
+External sponsor, scope, module, issuer and relevant-environment inputs remain required.
+
 ## Native ClamAV smoke acceptance passed (8 November 2026)
 
 Active branch/PR: `codex/siepmu-clamav-acceptance`, draft

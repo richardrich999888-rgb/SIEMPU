@@ -1,5 +1,24 @@
 # Managed endpoint file inspection
 
+## Optional isolated managed-endpoint profile
+
+The optional `BubblewrapSandbox` profile is now wired into `ClamAvInspector`. Select it
+explicitly; the original direct-process mode remains unisolated. The selected profile
+checks private tmpfs and a pinned runtime inventory, constructs a dedicated read-only
+filesystem and network/PID/user namespaces, blocks nested user namespaces, drops capabilities
+and applies per-process limits. It refuses scans when host isolation cannot be established.
+Configuration and host requirements: `integrations/endpoint-inspection/README.md`.
+
+Native run 42463858700 on code commit `f9eac4d6b6a8726795e46660dcc15496da00eb48` passed
+one isolation probe and all three actual ClamAV smoke cases. The verified artifact receipt
+and inventory are preserved in `docs/testing/endpoint-native-acceptance-2026-11-08.json`.
+This is a synthetic laboratory result, not a representative corpus or managed-host
+qualification. Browser enforcement, safe viewers, aggregate cgroup/seccomp policy and
+operational host controls remain open.
+
+The following sections describe the original direct-process laboratory adapter and its
+historical smoke evidence; their lack-of-isolation statements apply to that original mode.
+
 This is an optional **laboratory adapter**, not a complete endpoint protection product.
 It is intended for a separately managed source/recipient host. The browser, old
 integration harnesses and default SDK instances remain `UNSCANNED`. Do not infer

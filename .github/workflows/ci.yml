@@ -262,7 +262,7 @@ jobs:
       - name: Fetch and verify pinned TLA+ tools
         run: |
           java -version
-          curl --fail --silent --show-error --location --output "$RUNNER_TEMP/tla2tools.jar" "$TLA2TOOLS_URL"
+          curl --fail --silent --show-error --location --retry 5 --retry-all-errors --retry-delay 2 --retry-max-time 180 --connect-timeout 15 --max-time 60 --output "$RUNNER_TEMP/tla2tools.jar" "$TLA2TOOLS_URL"
           echo "$TLA2TOOLS_SHA256  $RUNNER_TEMP/tla2tools.jar" | sha256sum --check --strict
       - name: Model-check faithful model and both mutants
         run: SIEPMU_TLA2TOOLS="$RUNNER_TEMP/tla2tools.jar" npm run formal:check
@@ -303,10 +303,13 @@ jobs:
           docker compose cp control:/var/lib/siepmu/control/demo-profiles.json "$RUNNER_TEMP/siepmu-container-profiles.json"
           chmod 600 "$RUNNER_TEMP/siepmu-container-profiles.json"
           SIEPMU_URL=http://localhost:8080 SIEPMU_CONTAINER_PROFILES="$RUNNER_TEMP/siepmu-container-profiles.json" node --dns-result-order=ipv4first scripts/container-acceptance.mjs
+      - name: Install hash-pinned scanner
+        uses: ./.github/actions/setup-trivy
       - name: Scan image vulnerabilities
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
         with:
           version: v0.69.3
+          skip-setup-trivy: true
           cache: false
           image-ref: syntriass-siepmu:local
           format: table
@@ -317,6 +320,7 @@ jobs:
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
         with:
           version: v0.69.3
+          skip-setup-trivy: true
           cache: false
           image-ref: syntriass-siepmu:local
           format: cyclonedx

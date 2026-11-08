@@ -174,7 +174,7 @@ test('reviewed crypto inventory includes application, laboratory and optional to
   const c = JSON.parse(readFileSync('assurance/sag/catalogue.json'));
   const source = new Map(Object.keys(c.sourceBindings).map((p) => [p, readFileSync(p)]));
   assert.equal(validateCatalogue(c, source), c);
-  assert.equal(c.components.length, 15);
+  assert.equal(c.components.length, 16);
   assert.ok(c.components.some((v) => v.mechanisms.some((m) => m.includes('TOTP HMAC-SHA1'))));
   assert.deepEqual(
     new Set(c.components.map((v) => v.deploymentScope)),

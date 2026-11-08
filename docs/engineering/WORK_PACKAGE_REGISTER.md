@@ -1,5 +1,11 @@
 # Verified work-package register (engineering axes only)
 
+Endpoint integration candidate (8 November 2026): optional PKCS11 provider with real
+SoftHSM signing/ECDH and SDK enrollment/release tests; optional Bubblewrap/prlimit scanner
+isolation and native acceptance workflow. These are laboratory implementation increments
+for WP14/15 and IAF-G04/G11, not completed hardware custody or operational qualification.
+See `INTEGRATION_STATUS.md` and final candidate PR for exact execution results.
+
 7 November 2026 follow-up, WP16 integration / CTE-08: source-sealed transport and protected
 outbox IMPLEMENTED_LAB candidate (ADR-015), 14 initial new tests passed. The initial
 preflight passed 46/46 integration/boundary/package tests. After the readiness correction,

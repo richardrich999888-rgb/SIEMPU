@@ -1,0 +1,7 @@
+# Administrator-provisioned Ubuntu 24.04 launcher exception, not a parser MAC policy.
+# Only this root-owned executable receives user-namespace setup permission.
+abi <abi/4.0>,
+include <tunables/global>
+profile siepmu-bwrap /usr/local/libexec/siepmu-bwrap flags=(unconfined) {
+  userns,
+}
