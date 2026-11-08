@@ -33,6 +33,24 @@ test('actual Linux namespace denies network, host files and writes and applies r
     .digest('hex');
   settings.sandbox.runtimeRoot = root;
   settings.sandbox.files['bin/clamscan'] = settings.executableSha256;
+  // Synthetic probe only: diagnose namespace/loader setup without processing user content.
+  const profile = new BubblewrapSandbox(settings.sandbox);
+  const command = await profile.prepare([], {
+    ...settings,
+    directory: settings.tempRoot,
+    timeoutMs: 10000,
+  });
+  const preflight = spawnSync(command.executable, command.args, {
+    input: Buffer.alloc(0),
+    env: { LANG: 'C', PATH: '/usr/bin:/bin' },
+    timeout: 10000,
+    encoding: 'utf8',
+  });
+  assert.equal(
+    preflight.status,
+    0,
+    `Synthetic isolation preflight: ${preflight.stderr?.slice(0, 2048) ?? 'no diagnostics'}`,
+  );
   const inspector = new ClamAvInspector({
     ...settings,
     sandbox: new BubblewrapSandbox(settings.sandbox),

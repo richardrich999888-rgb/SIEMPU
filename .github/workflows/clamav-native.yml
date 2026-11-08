@@ -2,7 +2,14 @@ name: Native ClamAV acceptance
 on:
   push:
     branches: [codex/siepmu-clamav-acceptance, codex/siepmu-evaluation-integrations]
-    paths: ['.github/workflows/clamav-native.yml']
+    paths:
+      [
+        '.github/workflows/clamav-native.yml',
+        'packages/file-inspection/**',
+        'tests/file-inspection/**',
+        'integrations/endpoint-inspection/**',
+        'scripts/clamav-acceptance.mjs',
+      ]
   workflow_dispatch:
 permissions:
   contents: read

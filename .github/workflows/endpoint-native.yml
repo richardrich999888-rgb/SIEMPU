@@ -36,7 +36,7 @@ jobs:
           git clone --quiet https://github.com/softhsm/SoftHSMv2.git "$lab/source"
           git -C "$lab/source" checkout --detach 13e6e86b83748fef74046dbf0c91f664b7acc1c3
           test "$(git -C "$lab/source" rev-parse HEAD)" = 13e6e86b83748fef74046dbf0c91f664b7acc1c3
-          cmake -S "$lab/source" -B "$lab/build" -DCMAKE_INSTALL_PREFIX="$lab/install" -DBUILD_TESTS=OFF -DWITH_MIGRATE=OFF
+          cmake -S "$lab/source" -B "$lab/build" -DCMAKE_INSTALL_PREFIX="$lab/install" -DCMAKE_INSTALL_SYSCONFDIR="$lab/install/etc" -DCMAKE_INSTALL_LOCALSTATEDIR="$lab/install/var" -DBUILD_TESTS=OFF -DWITH_MIGRATE=OFF
           cmake --build "$lab/build" -j2
           cmake --install "$lab/build"
           export SIEPMU_PKCS11_LAB="$lab"
