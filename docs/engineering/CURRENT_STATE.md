@@ -1,5 +1,34 @@
 # Current engineering state (single authoritative handover file)
 
+## Continuity mechanisms candidate (8 November 2026)
+
+Active branch: `codex/siepmu-continuity-mechanisms`, based on PR #37 head
+`fee0ffd52e15fa9a175944a3c599d05e8ec7e8a0`. Base passed 440 tests/all ten gates,
+3 E2E, 233 adversarial cases, all nine CI jobs and three Security jobs on both events.
+Base exact push CI: https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42472021719.
+Base combined native run attempt 2 passed the extracted companion (six scenarios/7 TAP tests),
+plus isolation and ClamAV smoke: https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42472021718.
+Those results resolve the download-only blockers in the historical entries below.
+
+This candidate implements ADR-016: live-session rotation, an optional encrypted managed
+outbox, checkpoint-aware restore CLI and signed durable monitoring cursors/pending batches.
+Fresh MFA and device proof are required for renewal; revoked/expired/ambiguous sessions
+never trigger automatic login. The v2 connector has no personnel credentials. Outbox
+submission still uses current authority admission; stale objects are held, never resealed.
+Monitoring never skips rejected, missing or expired source records to claim delivery.
+
+Development checks covered eight renewal cases, six storage/telemetry tests and the restore
+CLI. Complete exact-candidate validation and native acceptance still need to be recorded
+in the candidate PR. Freeze the source, refresh crypto inventory bindings, validate all gates,
+E2E and the adversarial suite, then rebuild and independently verify the companion and
+observe hosted CI/Security/token/combined native runs. No previous result proves this head.
+
+G09 advances to PARTIAL_LAB only. All nineteen qualification gaps remain open. Source retention,
+complete multi-service backup, failover/fencing, hardware/fleet identity, token lifecycle,
+legacy-store migration, browser enforcement and large-file transport remain follow-on work.
+G18's historical startup failure remains unresolved. Provisional TRL4; SAG grading and
+operational authorization are not established. No merge or deployment.
+
 ## Companion validation follow-up (8 November 2026)
 
 Draft PR #37: https://github.com/richardrich999888-rgb/SIEMPU/pull/37. Initial candidate

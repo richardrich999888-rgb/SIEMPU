@@ -11,6 +11,7 @@ import {
   hash,
   sign,
   verify,
+  totp,
 } from '../helpers/client.mjs';
 
 const document = JSON.parse(
@@ -24,6 +25,7 @@ const slice = new Set([
   'POST /api/auth/logout',
   'POST /api/auth/challenge',
   'POST /api/auth/bind',
+  'POST /api/auth/renew',
   'POST /api/devices/enroll',
   'GET /api/control',
   'POST /api/grants',
@@ -157,6 +159,21 @@ function receipt(packet, key, eventType, objectId) {
   assert.equal(packet.payload.eventType, eventType);
   assert.equal(packet.payload.objectId, objectId);
 }
+
+test('HTTP session renewal satisfies its contract and old session cannot be reused', async (t) => {
+  const f = await httpFixture(t),
+    c = f.clients.alice;
+  await c.authenticate();
+  const body = { otp: totp(c.profile.totpSecret, Date.now() + 30000) };
+  body.proof = await c.proof('renew-session', body);
+  validate(document.components.schemas.RenewSession, body);
+  const r = await c.request('POST', '/api/auth/renew', body);
+  assert.equal(r.status, 200);
+  responseContract('POST', '/api/auth/renew', r);
+  const denied = await c.request('POST', '/api/auth/renew', body);
+  assert.equal(denied.status, 401);
+  responseContract('POST', '/api/auth/renew', denied);
+});
 
 test('OpenAPI identifies the bounded HTTP contract slice and resolves every reference', () => {
   const walk = (value) => {
@@ -454,6 +471,10 @@ test(
       responseContract('POST', '/api/auth/login', result);
       errorCode(result, item.status, item.code);
     }
+    const renewal = { otp: totp(alice.profile.totpSecret, Date.now() + 30000) };
+    renewal.proof = await alice.proof('renew-session', renewal);
+    const rotated = await alice.ok('POST', '/api/auth/renew', renewal);
+    alice.token = rotated.token;
     assert.deepEqual(await alice.ok('POST', '/api/auth/logout', {}), { ok: true });
     errorCode(await alice.request('GET', '/api/auth/me'), 401, 'SESSION_INVALID');
     assert.deepEqual(

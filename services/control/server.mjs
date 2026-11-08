@@ -1,4 +1,4 @@
-import { createTelemetryExporter } from '../monitoring/exporter.mjs';
+import { DurableTelemetryExporter } from '../monitoring/durable-exporter.mjs';
 import {
   createRecoveryGuard,
   remoteAnchorQuery,
@@ -169,19 +169,30 @@ export function startControl() {
   const origin =
     process.env.SIEPMU_PUBLIC_ORIGIN ?? 'http://127.0.0.1:' + (process.env.SIEPMU_WEB_PORT ?? 8080);
   const telemetry = process.env.SIEPMU_COLLECTOR_URL
-    ? createTelemetryExporter({
+    ? new DurableTelemetryExporter({
+        database: resolve(dir, 'telemetry-export.sqlite'),
+        authority,
         url: process.env.SIEPMU_COLLECTOR_URL,
         tls: clientTLS('control'),
         collectorKey: JSON.parse(readFileSync(process.env.SIEPMU_COLLECTOR_PUBLIC_KEY, 'utf8')),
       })
     : undefined;
   const server = createControlServer({ authority, allowedOrigin: origin, telemetry });
+  const drain = telemetry
+    ? setInterval(() => {
+        void telemetry.deliver(authority);
+      }, 5000)
+    : null;
+  drain?.unref();
+  server.once('close', () => clearInterval(drain));
   server.listen(port, host, () =>
     console.log(JSON.stringify({ service: 'control', event: 'listening', host, port })),
   );
   for (const sig of ['SIGTERM', 'SIGINT'])
     process.on(sig, () =>
-      server.close(() => {
+      server.close(async () => {
+        clearInterval(drain);
+        await telemetry?.close();
         authority.close();
         process.exit(0);
       }),

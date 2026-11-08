@@ -9,6 +9,7 @@ import { backup, restore } from '../scripts/backup.mjs';
 import { createRelayServer } from '../services/relay/server.mjs';
 import { Authority } from '../services/control/core.mjs';
 import { packet } from '../services/control/primitives.mjs';
+import { spawnSync } from 'node:child_process';
 
 // Every checked-in migration must be applied; derive the count instead of pinning it.
 const MIGRATION_COUNT = readdirSync(new URL('../database/migrations/', import.meta.url)).filter(
@@ -42,6 +43,27 @@ test('encrypted backup restores schema, identity, revocation and evidence; tampe
     const archive = join(temp, 'backup.enc');
     const pass = 'Synthetic backup testing passphrase';
     backup(dir, archive, pass);
+    const checkpointFile = join(temp, 'checkpoint.json');
+    writeFileSync(checkpointFile, JSON.stringify(checkpoint));
+    const cli = (destination, anchor) =>
+      spawnSync(
+        process.execPath,
+        [
+          'scripts/backup.mjs',
+          'restore',
+          archive,
+          destination,
+          join(dir, 'public-key.json'),
+          ...(anchor === undefined ? [] : [anchor]),
+        ],
+        { encoding: 'utf8', env: { PATH: process.env.PATH, SIEPMU_BACKUP_PASSPHRASE: pass } },
+      );
+    assert.notEqual(cli(join(temp, 'missing-anchor')).status, 0);
+    const cliResult = cli(join(temp, 'cli-restored'), checkpointFile);
+    assert.equal(cliResult.status, 0, cliResult.stderr);
+    assert.equal(JSON.parse(cliResult.stdout).anchor, 'INDEPENDENT_CHECKPOINT_VERIFIED');
+    writeFileSync(checkpointFile, 'null');
+    assert.notEqual(cli(join(temp, 'null-anchor'), checkpointFile).status, 0);
     const destination = join(temp, 'restored');
     restore(archive, destination, pass, profile.serverPublicKey, { checkpoint });
     const db = new DatabaseSync(join(destination, 'control.sqlite'));
@@ -67,6 +89,20 @@ test('encrypted backup restores schema, identity, revocation and evidence; tampe
       headHash: 'a'.repeat(64),
       issuedAt: Date.now(),
     });
+    writeFileSync(checkpointFile, JSON.stringify(future));
+    assert.notEqual(cli(join(temp, 'cli-stale'), checkpointFile).status, 0);
+    for (const invalid of [
+      { sequence: -1, headHash: 'a'.repeat(64), issuedAt: Date.now() },
+      { sequence: '1', headHash: 'a'.repeat(64), issuedAt: Date.now() },
+    ]) {
+      assert.throws(
+        () =>
+          restore(archive, join(temp, 'invalid-anchor'), pass, profile.serverPublicKey, {
+            checkpoint: packet(key, invalid),
+          }),
+        /predates/,
+      );
+    }
     assert.throws(
       () =>
         restore(archive, join(temp, 'old'), pass, profile.serverPublicKey, { checkpoint: future }),

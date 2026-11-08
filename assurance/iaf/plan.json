@@ -14,7 +14,8 @@
       "tests": [
         "tests/auth-routing.test.mjs",
         "tests/initial-password.test.mjs",
-        "tests/additional-boundaries.test.mjs"
+        "tests/additional-boundaries.test.mjs",
+        "tests/session-renewal.test.mjs"
       ],
       "oracle": "No unauthorized session, route bypass or device-bound operation."
     },
@@ -104,7 +105,8 @@
       "tests": [
         "tests/monitoring.test.mjs",
         "tests/access-alerts.test.mjs",
-        "tests/threat-detections.test.mjs"
+        "tests/threat-detections.test.mjs",
+        "tests/durable-telemetry.test.mjs"
       ],
       "oracle": "Only authenticated unique signals contribute to bounded persistent detections; duplicates, forged events and partial failed transactions do not create detections. No payload/key canaries enter tested telemetry."
     }
@@ -208,7 +210,7 @@
       "requirements": ["R2", "R6", "R10"],
       "owner": "SYNTRIASS + operations owner",
       "title": "Backup, retention and disaster recovery",
-      "current": "Rollback controls and synthetic restore tests exist; retention/compaction and independent-host recovery remain incomplete.",
+      "current": "Rollback controls and synthetic restore tests exist; retention/compaction and independent-host recovery remain incomplete. Restore CLI now requires a separately retained signed checkpoint; module and CLI reject malformed/newer/conflicting anchors. Complete all-service recovery remains open.",
       "implementationNeeded": "Implement approved retention and deletion, encrypted backup custody, restore procedures and regular drills.",
       "sponsorInputs": "IAF-04, IAF-09",
       "exitEvidence": "Witnessed restore from damaged/missing media with retained checkpoints, measured RPO/RTO and no stale authorization.",
@@ -217,12 +219,12 @@
     {
       "id": "IAF-G09",
       "priority": "P0",
-      "status": "IMPLEMENTATION_PENDING",
+      "status": "PARTIAL_LAB",
       "requirements": ["R2", "R8"],
       "owner": "SYNTRIASS + identity owner",
       "title": "Long-running adapter authentication lifecycle",
-      "current": "Session expiration now withdraws readiness. Automatic renewal/recovery is not implemented and must not bypass user/device revocation.",
-      "implementationNeeded": "Implement bounded supervised reauthentication with the agreed service identity and recovery policy.",
+      "current": "Atomic live-session renewal with unused TOTP, bound device proof and transactional current-state checks is implemented. SDK proactively renews before expiry; legacy adapter checks periodically. Denied/expired/ambiguous sessions never trigger automatic login. The v2 ciphertext connector remains credential-free.",
+      "implementationNeeded": "Qualify the sponsor-selected personnel/service identity, credential lifecycle and long-duration renewal/recovery policy. Handle explicit reauthentication after expiry/failure under that policy.",
       "sponsorInputs": "IAF-02, IAF-06",
       "exitEvidence": "Soak spans multiple credential expiries; failed renewal stays unavailable and revoked credentials never regain access.",
       "source": "packages/integration/client.mjs"
@@ -247,7 +249,7 @@
       "requirements": ["R5", "R10"],
       "owner": "SYNTRIASS + endpoint/security owner",
       "title": "Content safety and endpoint data handling",
-      "current": "Optional ClamAV process adapter and source/recipient SDK hooks implemented with subprocess-double and in-process authority regressions. Real ClamAV 1.5.4 with official databases passed three synthetic benign/EICAR/expanded-limit smoke checks in hosted run 42458112330; exact report is docs/testing/clamav-native-acceptance-2026-11-08.json. Representative corpus and endpoint qualification remain pending. Browser/default SDK remain unscanned. Endpoint compromise and decrypted content remain outside server-side revocation. Optional Bubblewrap/prlimit parser isolation and a native boundary-probe workflow are implemented; one native isolation probe and all three isolated engine smoke tests passed on f9eac4d6b6a8726795e46660dcc15496da00eb48; exact reports are preserved in docs/testing/endpoint-native-acceptance-2026-11-08.json. Browser enforcement, representative corpus, cgroups/seccomp and managed host qualification remain open.",
+      "current": "Optional ClamAV process adapter and source/recipient SDK hooks implemented with subprocess-double and in-process authority regressions. Real ClamAV 1.5.4 with official databases passed three synthetic benign/EICAR/expanded-limit smoke checks in hosted run 42458112330; exact report is docs/testing/clamav-native-acceptance-2026-11-08.json. Representative corpus and endpoint qualification remain pending. Browser/default SDK remain unscanned. Endpoint compromise and decrypted content remain outside server-side revocation. Optional Bubblewrap/prlimit parser isolation and a native boundary-probe workflow are implemented; one native isolation probe and all three isolated engine smoke tests passed on f9eac4d6b6a8726795e46660dcc15496da00eb48; exact reports are preserved in docs/testing/endpoint-native-acceptance-2026-11-08.json. Browser enforcement, representative corpus, cgroups/seccomp and managed host qualification remain open. Separate managed companion now adds an encrypted bounded durable outbox with cached-grant sealing, restart resumption and normal authority submission; browser enforcement and host qualification remain open.",
       "implementationNeeded": "Qualify real engine and signatures with representative corpus; integrate required managed endpoint/browser deployment, safe viewers, storage/session-lock and leakage controls under the approved E2EE boundary.",
       "sponsorInputs": "Q09, IAF-10",
       "exitEvidence": "Malicious-file, unsafe-viewer, disk-cache, clipboard/print and lost-device procedures are tested for the approved scope.",
@@ -260,7 +262,7 @@
       "requirements": ["R6", "R12"],
       "owner": "SYNTRIASS + SOC owner",
       "title": "Operational monitoring and incident response",
-      "current": "Signed redacted collection and bounded persistent laboratory threat-signal rules, signed operator disposition and restart/replay handling are implemented. No production SOC connector, calibrated incident thresholds or guaranteed telemetry completeness.",
+      "current": "Signed redacted collection and bounded persistent laboratory threat-signal rules, signed operator disposition and restart/replay handling are implemented. No production SOC connector, calibrated incident thresholds or guaranteed telemetry completeness. Configured control now uses signed durable telemetry cursors/pending batches and bounded periodic backlog delivery; lost ACKs retry identical bytes. Retention/source gaps/capacity failures stay degraded without silently advancing. External SOC mapping and complete archival remain open.",
       "implementationNeeded": "Integrate agreed event schema/transport, alert escalation, monitoring availability and retention.",
       "sponsorInputs": "IAF-09",
       "exitEvidence": "Redaction and event completeness verified with SOC ingestion, outage replay and a witnessed response exercise.",

@@ -4,6 +4,7 @@ import { createPkcs11Provider } from '../pkcs11/provider.mjs';
 import { BubblewrapSandbox } from '../../packages/file-inspection/sandbox.mjs';
 import { ClamAvInspector } from '../../packages/file-inspection/clamav.mjs';
 import { IntegrationEndpoint } from '../../packages/integration/client.mjs';
+import { ManagedOutbox } from './outbox.mjs';
 
 const fail = (code) => Object.assign(new Error(code), { code });
 const record = (v, required, optional = []) => {
@@ -126,7 +127,14 @@ const safeError = (error) => {
 };
 
 /** Opens existing, enrolled token keys; does not enroll, approve or authenticate personnel. */
-export async function openManagedEndpoint({ config, tls, credentials, getPin }) {
+export async function openManagedEndpoint({
+  config,
+  tls,
+  credentials,
+  getPin,
+  outbox,
+  sessionRenewal = true,
+}) {
   const c = validateConfiguration(config),
     connection = transport(tls);
   record(credentials, ['password', 'totpSecret']);
@@ -146,7 +154,9 @@ export async function openManagedEndpoint({ config, tls, credentials, getPin }) 
     ...c.inspection,
     sandbox: new BubblewrapSandbox(c.inspection.sandbox),
   });
-  let signing, encryption, endpoint;
+  if (typeof sessionRenewal !== 'boolean') throw fail('MANAGED_ENDPOINT_CONFIG');
+  if (outbox !== undefined) record(outbox, ['database', 'key'], ['maxEntries', 'maxBytes']);
+  let signing, encryption, endpoint, queueStore;
   const invalidate = () => {
     for (const key of [signing, encryption]) if (key) provider.destroy(key.privateKey);
     signing = encryption = undefined;
@@ -155,6 +165,7 @@ export async function openManagedEndpoint({ config, tls, credentials, getPin }) 
       endpoint.profile.password = endpoint.profile.totpSecret = '';
     }
     secrets.password = secrets.totpSecret = '';
+    queueStore?.close();
   };
   try {
     // Fail before requesting a PIN or returning a usable client if isolation is unavailable.
@@ -176,7 +187,13 @@ export async function openManagedEndpoint({ config, tls, credentials, getPin }) 
       authorityKey: c.authorityKey,
       provider,
       fileInspector: inspector,
+      sessionRenewal,
     });
+    if (outbox !== undefined)
+      queueStore = new ManagedOutbox({
+        ...outbox,
+        binding: { schemaVersion: 1, url: c.url, authorityKey: c.authorityKey, profile: c.profile },
+      });
   } catch (error) {
     invalidate();
     throw safeError(error);
@@ -184,6 +201,53 @@ export async function openManagedEndpoint({ config, tls, credentials, getPin }) 
   let closed = false,
     busy = false,
     authenticated = false;
+  const queue = () => {
+    if (!queueStore) throw fail('OUTBOX_NOT_CONFIGURED');
+    return queueStore;
+  };
+  const dispatch = async (name, args) => {
+    if (name === 'send') return endpoint.submit(await endpoint.seal(...args));
+    if (name === 'refreshCreationGrant') {
+      const store = queue();
+      const grant = await endpoint.call('POST', '/api/grants', {
+        proof: await endpoint.proof('grant'),
+      });
+      if (!(await endpoint.crypto.verifyPacket(c.authorityKey, grant)))
+        throw fail('GRANT_SIGNATURE');
+      store.saveGrant(grant);
+      return { expiresAt: grant.payload.expiresAt };
+    }
+    if (name === 'queue') {
+      const store = queue(),
+        grant = store.grant();
+      if (!grant) throw fail('OUTBOX_GRANT_REQUIRED');
+      const sealed = await endpoint.sealUsingGrant(args[0], args[1], grant, args[2]);
+      return { objectId: store.enqueue(sealed), state: 'PENDING' };
+    }
+    if (name === 'listQueue') return queue().list();
+    if (name === 'removeQueued') return queue().remove(args[0]);
+    if (name === 'flushQueue') {
+      const store = queue(),
+        limit = args[0] ?? 32;
+      if (!Number.isSafeInteger(limit) || limit < 1 || limit > 32) throw fail('OUTBOX_FLUSH_LIMIT');
+      const results = [];
+      for (const item of store
+        .list()
+        .filter((r) => r.state === 'PENDING')
+        .slice(0, limit)) {
+        if (item.expiresAt <= Date.now()) {
+          store.update(item.id, 'HELD', 'EXPIRED_OBJECT');
+          results.push({ objectId: item.id, state: 'HELD' });
+        } else {
+          await endpoint.submit(store.get(item.id).sealed);
+          store.update(item.id, 'SUBMITTED');
+          results.push({ objectId: item.id, state: 'SUBMITTED' });
+        }
+      }
+      return results;
+    }
+    return endpoint[name](...args);
+  };
   const invoke = async (name, args) => {
     if (closed) throw fail('MANAGED_ENDPOINT_CLOSED');
     if (busy) throw fail('MANAGED_ENDPOINT_BUSY');
@@ -191,13 +255,11 @@ export async function openManagedEndpoint({ config, tls, credentials, getPin }) 
     if (name === 'authenticate') authenticated = false;
     try {
       const snapshot = structuredClone(args);
-      const result =
-        name === 'send'
-          ? await endpoint.submit(await endpoint.seal(...snapshot))
-          : await endpoint[name](...snapshot);
+      const result = await dispatch(name, snapshot);
       if (name === 'authenticate') authenticated = true;
       return result;
     } catch (error) {
+      if (!endpoint.token) authenticated = false;
       throw safeError(error);
     } finally {
       busy = false;
@@ -211,6 +273,12 @@ export async function openManagedEndpoint({ config, tls, credentials, getPin }) 
     'receiveWithRelease',
     'listObjects',
     'acknowledge',
+    'renewSession',
+    'refreshCreationGrant',
+    'queue',
+    'flushQueue',
+    'listQueue',
+    'removeQueued',
   ])
     api[name] = (...args) => invoke(name, args);
   for (const name of ['createTextPayload', 'createFilePayload', 'unpackPayload'])
@@ -222,7 +290,8 @@ export async function openManagedEndpoint({ config, tls, credentials, getPin }) 
     Object.freeze({
       schemaVersion: 1,
       closed,
-      authenticated: !closed && authenticated,
+      authenticated: !closed && authenticated && endpoint.expiresAt > Date.now(),
+      durableOutbox: Boolean(queueStore),
       fileInspection: 'REQUIRED_ISOLATED',
       keyProvider: 'PKCS11_P256',
       hardwareQualified: false,

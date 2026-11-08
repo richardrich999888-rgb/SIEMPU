@@ -6,6 +6,7 @@ on:
         codex/siepmu-clamav-acceptance,
         codex/siepmu-evaluation-integrations,
         codex/siepmu-managed-endpoint-pack,
+        codex/siepmu-continuity-mechanisms,
       ]
     paths:
       [

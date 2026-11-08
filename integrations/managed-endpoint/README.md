@@ -96,7 +96,33 @@ returning them. No raw client/provider, arbitrary request or uninspected-submit 
 exposed. Operations are serialized by refusal, not an unbounded queue. Startup runs a benign
 isolated scan before requesting the token PIN. An unavailable dependency blocks startup.
 Authentication remains the platform's existing personnel/device flow; token possession alone
-does not grant authority. The compact facade does not implement a persistent offline outbox.
+does not grant authority. The optional persistent outbox is described below.
+
+## Continuity options
+
+`openManagedEndpoint` accepts `sessionRenewal` (boolean, default true) and an optional
+`outbox: {database, key, maxEntries?, maxBytes?}`. `database` is an absolute path in an
+existing private directory; `key` is a separately provisioned 32-byte Buffer. Keep this key
+out of public configuration, Git and the database directory. Lost keys make queued work
+unrecoverable. The default limits are 1,000 entries and 64 MiB of serialized encrypted rows;
+the filesystem/WAL also needs an operational quota.
+
+After authenticating, call `refreshCreationGrant()` to cache a signed creation grant.
+`queue(recipient,payload,options)` scans and seals into durable encrypted storage without
+network access; it needs a still-valid cached grant. Restart with the same storage key,
+configuration and enrolled token. `listQueue()` shows IDs/state/expiry; `flushQueue(limit=32)`
+submits pending work through current authority checks. Expired objects become HELD; errors
+leave pending work for an explicit retry. `removeQueued(id)` discards local work, including
+submitted records, without recalling content or guaranteeing physical erasure.
+
+Renewal is attempted before protected operations within two minutes of session expiry.
+`renewSession()` can also be requested explicitly while the session remains valid. Fresh TOTP,
+device proof and current session/user/device checks are required. Denial or an ambiguous
+renewal response clears the local session; the package never falls back to password login.
+Call `authenticate()` explicitly after expiry or failure. This is the existing synthetic
+TOTP model, not an approved unattended personnel/service identity. A timed idle session may
+expire because this compact package does not run an autonomous background login loop.
+See `docs/decisions/ADR-016-continuity-mechanisms.md` in the source repository for limits.
 
 ## Evidence and limits
 

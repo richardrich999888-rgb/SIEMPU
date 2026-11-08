@@ -21,6 +21,7 @@ export async function startAdapter(env = process.env) {
       tls: clientTLS('adapter', env),
       profile: read(env.SIEPMU_ADAPTER_PROFILE),
       authorityKey: read(env.SIEPMU_AUTHORITY_PUBLIC_KEY),
+      sessionRenewal: true,
     });
     stage = 'AUTHENTICATE';
     await endpoint.authenticate();
@@ -46,6 +47,22 @@ export async function startAdapter(env = process.env) {
         },
       );
     });
+    // Proactive only. Expiry, revocation or an ambiguous renewal requires explicit
+    // operator authentication; this loop never falls back to password login.
+    let renewing = false;
+    const renewal = setInterval(async () => {
+      if (renewing) return;
+      renewing = true;
+      try {
+        await endpoint.ensureSession();
+      } catch {
+        /* readiness remains withdrawn */
+      } finally {
+        renewing = false;
+      }
+    }, 60000);
+    renewal.unref();
+    server.once('close', () => clearInterval(renewal));
     process.once('SIGTERM', () => {
       const timer = setTimeout(() => process.exit(1), 5000);
       timer.unref();

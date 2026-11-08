@@ -79,7 +79,8 @@
       "mechanisms": [
         "32-byte random bearer token; SHA-256 lookup",
         "32-byte random challenge nonce",
-        "ECDSA P-256 SHA-256"
+        "ECDSA P-256 SHA-256",
+        "Atomic live-session rotation with fresh TOTP, device operation proof and current-state recheck"
       ],
       "boundary": "Authority and enrolled device",
       "deploymentScope": "APPLICATION",
@@ -95,13 +96,18 @@
       "tests": [
         "tests/authority.test.mjs",
         "tests/auth-routing.test.mjs",
-        "tests/adapter-adversarial.test.mjs"
+        "tests/adapter-adversarial.test.mjs",
+        "tests/session-renewal.test.mjs"
       ]
     },
     {
       "id": "CR-06",
       "purpose": "Decision evidence, checkpoint custody and monitoring signatures",
-      "mechanisms": ["ECDSA P-256 SHA-256", "SHA-256 hash chain"],
+      "mechanisms": [
+        "ECDSA P-256 SHA-256",
+        "SHA-256 hash chain",
+        "Signed source-bound telemetry cursor/pending batch; collector-acknowledged progress"
+      ],
       "boundary": "Authority, verifier, custodian and independent security collector",
       "deploymentScope": "APPLICATION",
       "custody": "Software signing key; separately trusted public key and retained checkpoint",
@@ -113,12 +119,15 @@
         "services/monitoring/collector.mjs",
         "services/monitoring/detections.mjs",
         "services/monitoring/exporter.mjs",
-        "services/monitoring/server.mjs"
+        "services/monitoring/server.mjs",
+        "services/monitoring/durable-exporter.mjs",
+        "packages/storage/private-sqlite.mjs"
       ],
       "tests": [
         "tests/verifier-replay.test.mjs",
         "tests/checkpoint-custody.test.mjs",
-        "tests/threat-detections.test.mjs"
+        "tests/threat-detections.test.mjs",
+        "tests/durable-telemetry.test.mjs"
       ]
     },
     {
@@ -312,6 +321,24 @@
         "integrations/pkcs11/requirements.txt"
       ],
       "tests": ["tests/pkcs11/provider.check.mjs"]
+    },
+    {
+      "id": "CR-17",
+      "purpose": "Optional managed endpoint durable queue",
+      "mechanisms": [
+        "AES-256-GCM; random 96-bit row nonce; configuration and row ID as authenticated data",
+        "HMAC-SHA256 binding of public endpoint configuration using separate 32-byte storage key"
+      ],
+      "boundary": "Managed endpoint only",
+      "deploymentScope": "LAB_ONLY",
+      "custody": "Separately supplied software storage key; original sealed objects and cached signed grants encrypted at rest. No plaintext file or personnel credential persistence.",
+      "limitations": "Not hardware custody, guaranteed erasure, deletion detection or whole-store rollback protection; SQLite/WAL overhead needs host quotas. Expired grants/objects do not silently renew.",
+      "sources": [
+        "integrations/managed-endpoint/index.mjs",
+        "integrations/managed-endpoint/outbox.mjs",
+        "packages/storage/private-sqlite.mjs"
+      ],
+      "tests": ["tests/managed-outbox.test.mjs", "tests/managed-endpoint/native.check.mjs"]
     }
   ],
   "sourceBindings": {
@@ -335,6 +362,12 @@
     },
     "deployment/secure/sealed-adapter-process.mjs": {
       "sha256": "12032af7b6ceb4dd3a29b1413b1f708eb4942b107cfe31066385cc8d7cd7b3ab"
+    },
+    "integrations/managed-endpoint/index.mjs": {
+      "sha256": "8df1ff08f3d3f7acda5ead0a896950e3980d0ca1638d83ecb7c63492b6360203"
+    },
+    "integrations/managed-endpoint/outbox.mjs": {
+      "sha256": "eedaaa404ed63b0ba200351e9920b811ef45d85cab7d3e6fdc27010ee5a44715"
     },
     "integrations/nexora/Cargo.lock": {
       "sha256": "090879aa233f15090354b462cacf14079a9bfc86999dd97bc00e9b954e9c7fa9"
@@ -391,7 +424,7 @@
       "sha256": "771c761410437fa2b73172e66c78e28ed852c44b92e130a24d95f3247c8f87e4"
     },
     "packages/integration/client.mjs": {
-      "sha256": "bc79b0246736a63f738d75b2c69bbf6ec8ef1267204767d7d2cd9001d9814f09"
+      "sha256": "978424723fd2227e1250dc186fc72cdf218746c900bc0964dab8a99b039073f2"
     },
     "packages/integration/sealed-transfer.mjs": {
       "sha256": "31092c4b9059d41e704ff1e885019293c590b5dcfc20420dab6c30afa7fd1f16"
@@ -417,6 +450,9 @@
     "packages/release/offline.mjs": {
       "sha256": "9fd53ebc96dfa3f3230dff5e2d1a16c5521a43dfa2efe3c77525cf60daf7ef74"
     },
+    "packages/storage/private-sqlite.mjs": {
+      "sha256": "27f4c063229409f66196d858c3f82d82efba98dba3cf332b06ff22776ae7e3e2"
+    },
     "packages/transport/tls.mjs": {
       "sha256": "ad0d932a1646e8c15f5f3a324b65980104ac2682b7d9e03ea945aa9c792ede9f"
     },
@@ -424,7 +460,7 @@
       "sha256": "603611fa0424086d9ec784f464ccb1410c041b5d718176e7fb20c301f777ac70"
     },
     "services/control/core.mjs": {
-      "sha256": "8aa89ce666e7239f6550a64e4e59dc82a0067c9209d8a8bba22c4309c4d79c31"
+      "sha256": "96acf1333d74d866b772e8ab8e604f768e15579311448151f170e1aa4b1b975e"
     },
     "services/control/primitives.mjs": {
       "sha256": "973f9252bb45b4550d00d32e9a4805b46dfc9f37bfd4bf4e7b7b88106401725a"
@@ -448,13 +484,16 @@
       "sha256": "4956b289dde865faf9c1b46b678d1ddfe39cbae5d7d67d07c8840539907b67d2"
     },
     "services/integration/server.mjs": {
-      "sha256": "4a5b638d5a0342b4922ce2a4a0da36ae0d8aeedfea2a5980265ccd737f845ea4"
+      "sha256": "791ab3044c7727e7c9d2368fbe51017e9fa284e18ceb8f9156eccc8cc057b75b"
     },
     "services/monitoring/collector.mjs": {
-      "sha256": "c0ddc1fdb8946b6b9d51849af38d87877bca8d7a6a54efd15835ba68f47357e0"
+      "sha256": "80a0e1c61dd46d18b2fdb152a673ebabd2a667ce75c6b12bdcac7d13337d6316"
     },
     "services/monitoring/detections.mjs": {
       "sha256": "99f5ecbd70f498a3994703e420e7cdd1e5fb33278b079e8d8457cc2b1342f0f0"
+    },
+    "services/monitoring/durable-exporter.mjs": {
+      "sha256": "c5e515f5a14d07dffe5d43f75bf5e56f2f6c495b78f134c813b63f9171a467ca"
     },
     "services/monitoring/exporter.mjs": {
       "sha256": "38593f5b51ac77e4780905137773dbdffffa2305821fdd1f398fe31e970cdabd"
@@ -501,11 +540,20 @@
     "tests/crypto.test.mjs": {
       "sha256": "75f826b11b487b2b6ac3e33fc409e5f0d66bd2fbbae7d37b2bc6fcc1f022e01d"
     },
+    "tests/durable-telemetry.test.mjs": {
+      "sha256": "3bca8c1136d2197fdbd04eaebaa17401db337a88fc7113dfd603d368ce0e00db"
+    },
     "tests/file-inspection.test.mjs": {
       "sha256": "699a4681119a725429bb3fe649842a6ddabbac3d23e5b46ed99115825051e377"
     },
     "tests/inspection-sandbox.test.mjs": {
       "sha256": "9e0a455711d79c65c1ca3d53d9d549cdb993e2aa033b51b0159d44efc1f6fa51"
+    },
+    "tests/managed-endpoint/native.check.mjs": {
+      "sha256": "01bd7e9ac9bd8db7bf67fa67a6420162fc17f065b00cfcfb2b6467f793dcca4f"
+    },
+    "tests/managed-outbox.test.mjs": {
+      "sha256": "1f72d87a1238c1ff4d1a411075510a5cf0b0a099a52e56a4e4585b74a66ded79"
     },
     "tests/native/evidence-differential.check.mjs": {
       "sha256": "5d208c2fb8eb15fd2d6535a91f123f1cb0316d4f87523bb794e7f862a1890241"
@@ -524,6 +572,9 @@
     },
     "tests/sealed-integration.test.mjs": {
       "sha256": "cdbe6e19aba039e7a0e8bdbf72275a39a92569535e1ded825bbb90c4270a8663"
+    },
+    "tests/session-renewal.test.mjs": {
+      "sha256": "2bd63d016219a1e038de2504ca7025f7f0cf9e3d7052440c26a1128e641639ee"
     },
     "tests/threat-detections.test.mjs": {
       "sha256": "3ecc73a8288972f3d17c246f52ecc221f515b3899802f48f001632fd5fe2321a"

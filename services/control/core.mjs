@@ -407,6 +407,49 @@ export class Authority {
     );
     return { challengeId, challenge };
   }
+  renewSession(s, b) {
+    assert(
+      b &&
+        Object.keys(b).sort().join() === 'otp,proof' &&
+        typeof b.otp === 'string' &&
+        /^\d{6}$/.test(b.otp),
+    );
+    this.rate('renew-user:' + s.user_id, 8);
+    s = this.operation(s, b, 'renew-session');
+    try {
+      return this.tx(() => {
+        // Re-read under the writer lock: revocation committed first always wins.
+        s = this.bound(s);
+        const user = this.get('SELECT * FROM users WHERE id=?', s.user_id);
+        const counter = totpCounter(unseal(user.totp, this.masterKey), b.otp, user.totp_floor);
+        assert(counter >= 0, 'MFA_REPLAY', 401);
+        const token = randomBytes(32).toString('base64url');
+        const id = randomUUID(),
+          expiresAt = Date.now() + 900000;
+        this.run('UPDATE users SET totp_floor=? WHERE id=?', counter, s.user_id);
+        this.run('UPDATE sessions SET revoked=1 WHERE id=?', s.id);
+        this.run(
+          'INSERT INTO sessions(id,token_hash,user_id,device_id,expires_at) VALUES(?,?,?,?,?)',
+          id,
+          hash(token),
+          s.user_id,
+          s.device_id,
+          expiresAt,
+        );
+        this.event('SESSION_RENEWED', s.user_id, {
+          details: { priorSessionId: s.id, sessionId: id, deviceId: s.device_id },
+        });
+        return { token, user: s.user, device: s.device, expiresAt };
+      });
+    } catch (error) {
+      if (error.code === 'MFA_REPLAY')
+        this.tx(() => {
+          this.alert('AUTH_FAILURE', s.user_id, 'MFA_REPLAY');
+          this.event('AUTH_FAILURE', s.user_id, { reason: 'MFA_REPLAY' });
+        });
+      throw error;
+    }
+  }
   proof(s, p, purpose, operation, key, deviceId) {
     assert(p && uuid(p.challengeId) && str(p.signature, 150), 'PROOF_REQUIRED', 403);
     const c = this.get('SELECT * FROM challenges WHERE id=?', p.challengeId);
@@ -1140,7 +1183,8 @@ export class Authority {
         this.event('LOGOUT', s.user_id);
         return { ok: true };
       });
-    } else if (method === 'POST' && path === '/api/auth/challenge') value = this.challenge(s, b);
+    } else if (method === 'POST' && path === '/api/auth/renew') value = this.renewSession(s, b);
+    else if (method === 'POST' && path === '/api/auth/challenge') value = this.challenge(s, b);
     else if (method === 'POST' && path === '/api/devices/enroll') {
       assert(str(b.label, 80));
       validateKey(b.signingPublicKey);

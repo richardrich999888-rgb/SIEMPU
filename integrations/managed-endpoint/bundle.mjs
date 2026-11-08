@@ -7,6 +7,8 @@ import { verifyCompanion } from './verify.mjs';
 
 export const sourceFiles = Object.freeze([
   'integrations/managed-endpoint/index.mjs',
+  'integrations/managed-endpoint/outbox.mjs',
+  'packages/storage/private-sqlite.mjs',
   'integrations/pkcs11/provider.mjs',
   'integrations/pkcs11/worker.py',
   'integrations/pkcs11/requirements.txt',
