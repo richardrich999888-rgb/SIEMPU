@@ -1,5 +1,48 @@
 # Current engineering state (single authoritative handover file)
 
+## PR #39 public-interface assurance iteration (8 November 2026)
+
+Active draft PR: https://github.com/richardrich999888-rgb/SIEMPU/pull/39,
+branch `codex/india-dpi-iudx-contract-tests`, stacked on unmerged PR #38.
+Inspected starting SHA: `8ba056e4b00eea5696c2b5880dd8e2ba26c7782c`.
+Its eight IUDX tests passed; formatting of its three new files was the reproducible blocker.
+Push/PR CI 42483937839 / 42483941780 failed native formatting and skipped dependent jobs;
+both Security workflows and both relevant-env jobs passed. No latest-head claims failure found.
+
+The predecessor entry below predates the completed T8.1 correction. Final continuity base
+`5f8c6848f6ba0bcf7ba81eb4be90c3e9c9dcc92a` passed 457 local tests/all ten gates,
+3 E2E and 248 adversarial cases. Final push/PR CI 42483369153 / 42483374555 passed
+all nine jobs; both 35-case matrices passed, with 188 sent/delivered and zero refusals in T8.1.
+The 650 ms offered-load profile retains the 500-request/session limiter and zero-refusal oracle.
+This resolves that specific load-profile failure, not maximum capacity or sponsor scale.
+
+This iteration fixes formatting, bounds/validates the DX proxy response, removes the text fallback,
+adds deadlines/cancellation and an opt-in TLS 1.3 literal-loopback reader. External claims remain
+untrusted and cannot grant local identity/authority. No production import route or live government
+transaction exists. New adversarial cases and a synthetic policy-release comparison feed a
+clean-tree evidence runner, CI artifact, reviewed crypto inventory and updated requirements mapping.
+No runtime dependencies added. Open PR metadata/ancestry inventory covers 31 PRs; no merge.
+
+Current candidate identity must be read from Git and the generated report, not inferred from this
+pre-freeze prose: `node scripts/interop-assurance.mjs artifacts/NEW_DIRECTORY` binds the commit,
+tree, whole-source index, test output and raw measurements, and rejects source drift. Full
+`npm run validate` and `npm run test:e2e` are required on the clean commit before ref publication.
+Final observed run URLs, exact source identity, counts and any unresolved CI failures are recorded
+in PR #39's body; hosted PR merge checkouts must be matched by tree as well as head SHA.
+
+Report and reproduction: `docs/interop/GOVERNMENT_INTEROPERABILITY_AND_DEFENCE_ASSURANCE.md`
+and `docs/interop/INDIA_DPI_TESTBED.md`. Both current and earlier failures retain their revision.
+All nineteen qualification gaps remain open, including G18's historical undiagnosed adapter exit.
+System self-assessment stays provisional TRL 4. No SAG grading is established.
+Operational authorization is not established. Public interfaces need owner-permitted test credentials/contracts and a relevant
+use case; military identity, crypto module, representative environment and grading need sponsor input.
+
+Next executable handover: verify the exact PR #39 head and latest CI/Security results, retrieve
+`government-interop-assurance` and the separate evaluation/native/network artifacts for that head,
+then independently reproduce. Remaining design work includes single-writer failover/fencing,
+complete DR, managed fleet/browser controls and agreed communication/scale requirements. Do not
+merge, deploy, infer government access, or mark TRL advancement from software tests.
+
 ## Continuity acceptance and load-profile follow-up (8 November 2026)
 
 Active draft PR #38: https://github.com/richardrich999888-rgb/SIEMPU/pull/38,
