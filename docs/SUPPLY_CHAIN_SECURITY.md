@@ -7,6 +7,11 @@ uses an externally installed ClamAV process. It is not bundled in the applicatio
 or npm lockfile. Enabling it adds native engine, library, signature-update and licence
 obligations; the operator must supply the exact deployment inventory. The repository's
 application SBOM does not inventory that separately provisioned endpoint installation.
+The explicit `npm run test:clamav -- <config> <new-output-directory>` gate records its
+selected laboratory engine and database hashes. It does not produce a complete native
+SBOM or approve a deployment. The 1.5.3 historical probe must not be reused: upstream
+security fixes motivated the 1.5.4 laboratory selection. Official signature acquisition
+uses FreshClam or CVDUpdate on a permitted update host; no updater is bundled here.
 
 All application source is newly authored. No private portfolio repository source, uploaded proposal, secret or restricted external document belongs in this public repository. `third_party/migration-ledger.csv` records reuse decisions. Apache-2.0 is the repository license, not a permission to incorporate unrelated source without license review.
 

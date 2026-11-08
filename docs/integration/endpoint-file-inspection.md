@@ -78,23 +78,60 @@ Apache-2.0 licence. Redistribution/licence review remains an operator release ga
 cases and real application cryptography/authority with an in-process transport for SDK
 checks. These tests do not demonstrate malware-detection quality or actual engine success.
 
-Run the separate external-engine gate with the provisioned configuration:
+Run the separate Linux external-engine evidence gate with the provisioned configuration
+and a new output directory (the parent directory must already exist):
 
 ```sh
-SIEPMU_CLAMAV_CONFIG=/absolute/operator/scanner.json node --test --test-concurrency=1 tests/file-inspection/clamav.check.mjs
+npm run test:clamav -- /absolute/operator/scanner.json artifacts/clamav-run-001
 ```
 
-It requires a benign-file success, EICAR refusal and expanded-size-limit refusal, without
-silently skipping when configuration is absent. Extend qualification with encrypted and
+The gate checks the pinned executable hash, the exact reviewed laboratory version 1.5.4,
+a current-user-owned 0700 tmpfs temporary root, a clean source checkout, and a dedicated
+database snapshot. That snapshot must contain one `main.cvd` or `main.cld`, one
+`daily.cvd` or `daily.cld`, and optionally one bytecode database plus matching `.sign`
+sidecars. Other files, symlinks, empty databases and duplicate formats are refused. Copy
+completed updates from the supported updater into this dedicated snapshot; do not point
+the gate at its live working directory. Inventory checks do not authenticate signatures.
+The unchanged native adapter still enforces official databases and its freshness bound.
+
+The gate runs `tests/file-inspection/clamav.check.mjs`, requiring benign-file success,
+EICAR refusal and expanded-size-limit refusal. All three must pass with zero skips,
+cancellations or TODOs; a zero exit alone is insufficient. `report.json` binds the result
+to the commit/source digest, executable/configuration and database hashes. It refuses
+changed inputs/source and never overwrites an earlier run. Missing prerequisites produce
+`BLOCKED`, `NOT_EXECUTED` and a nonzero command exit; executed test failures produce
+`FAIL`. Reports retain counts and a TAP digest, without raw diagnostics or operator paths.
+The regression suite tests this evidence gate, not antivirus detection quality.
+
+This preflight is an explicit laboratory command, not enforcement added to every SDK scan.
+Its exact-version allowlist is a reviewed selection, not a vulnerability-free claim;
+review upstream advisories before any new run or deployment. Linked libraries, shell
+launchers/interpreters, system time, swap, dumps, mount races and parser isolation still
+need an independently reviewed endpoint configuration. Extend qualification with encrypted and
 malformed formats, archive depth, stale/future databases, tampered updates, endpoint
 resource pressure, and the sponsor-approved representative file corpus. Browser/managed
 helper integration, safe viewers and host isolation remain open under IAF-G11.
 
-On 8 November 2026 the locally extracted Ubuntu package `1.5.3+dfsg-0ubuntu0.24.04.1`
-reported ClamAV `1.5.3`. The real adapter refused a missing official database with
-`FILE_INSPECTION_INCOMPLETE`. A fresh official database download returned HTTP 403;
-the positive external-engine gate has **not** been completed. No production engine
-version is selected or declared vulnerability-cleared by this experiment.
+The first 8 November 2026 probe used ClamAV 1.5.3 only to observe missing-database
+refusal. Subsequent upstream advisory review identified security fixes in 1.5.4; do not
+reuse 1.5.3 for acceptance or deployment. The replacement official 1.5.4 Linux package
+matched its release-metadata SHA-256 and started successfully. Its real missing-database
+scan also returned `FILE_INSPECTION_INCOMPLETE`. The separate acceptance command reports
+`BLOCKED` because official databases are absent. Benign/EICAR/expanded-file acceptance
+is still **not executed**, and no production engine version has been qualified.
+
+Correction to the earlier download investigation: upstream explicitly disallows scripted
+curl/wget signature downloads. The supported CVDUpdate 1.2.0 updater was installed in an
+isolated laboratory Python environment but failed its system-resolver DNS TXT query for
+`current.cvd.clamav.net` before downloading. FreshClam previously failed initialization
+under this container's user/group restrictions. No DNS-policy bypass, unofficial mirror,
+freshness relaxation or fabricated signature database was used. Provide permitted DNS
+and HTTPS access on a separate managed test host, use FreshClam/CVDUpdate, then repeat
+the command above. Observe updater retry/cooldown instructions.
+
+See `docs/testing/endpoint-inspection-engine-probe-1.5.4.json` for the exact observed
+package/binary/library hashes and negative-only execution. The package digest comparison
+is not detached-signature verification or a complete native-library/OS SBOM.
 
 Primary references retrieved 8 November 2026:
 
@@ -104,6 +141,12 @@ Primary references retrieved 8 November 2026:
   Specifies FreshClam database updates; availability is not an offline update procedure.
 - [Upstream clamscan manual](https://github.com/Cisco-Talos/clamav/blob/main/docs/man/clamscan.1.in).
   Documents the database-age failure flag; main is a moving reference, not a release pin.
+- [ClamAV 1.5.4 release](https://github.com/Cisco-Talos/clamav/releases/tag/clamav-1.5.4)
+  and [security patch notice](https://blog.clamav.net/2026/08/clamav-154-and-146-security-patch.html).
+  Upstream reports fixes affecting 1.5.3; this establishes patch rationale, not independent evaluation.
+- [FreshClam FAQ](https://docs.clamav.net/faq/faq-freshclam.html) and
+  [CVDUpdate](https://github.com/Cisco-Talos/cvdupdate). Specify supported updater methods.
+  CVDUpdate 1.2.0 was installed for the local experiment only, not as an application dependency.
 - Installed Ubuntu package copyright file and `clamscan --help`, inspected locally for
   the exact test build. Package digest and execution limitations are in the local
   experiment record; production dependency review remains pending.

@@ -1,0 +1,72 @@
+{
+  "date": "2026-11-08",
+  "scope": "Synthetic missing-database refusal and updater investigation only; native positive/detection acceptance remains unexecuted",
+  "gitBase": "560eb080eac3125533034efaa9d23caf3c827a1f",
+  "runtime": {
+    "node": "24.22.1",
+    "os": "Linux x86_64"
+  },
+  "engine": {
+    "reportedVersion": "1.5.4",
+    "asset": "clamav-1.5.4.linux.x86_64.deb",
+    "assetId": 505242399,
+    "source": "https://github.com/Cisco-Talos/clamav/releases/tag/clamav-1.5.4",
+    "packageSha256": "28d6efc5b4423e7830c3559339552eb53870a9eac51ac4efb37d60530d329886",
+    "packageDigestCheck": "MATCHED_UPSTREAM_RELEASE_METADATA",
+    "detachedSignatureCheck": "NOT_EXECUTED",
+    "clamscanSha256": "e94f394a8b806522dd9cef27dfe2a6f7989334d1ca320f20a5af2b22507a0271",
+    "libclamavSo12_1_0Sha256": "f178ae341c72c5ec875f94a617e3b18482a96034586eadca26335fda676aca40",
+    "launcherSha256": "68a4ab1a61aec47a28f0660e66d50cf1b42ff019c3f8c9f75c25e299611dce85",
+    "inventoryScope": "Selected laboratory files only; not a complete linked-library/interpreter/OS inventory",
+    "deploymentSelected": false
+  },
+  "advisoryReview": {
+    "source": "https://blog.clamav.net/2026/08/clamav-154-and-146-security-patch.html",
+    "retrieved": "2026-11-08",
+    "claimType": "UPSTREAM_ADVISORY",
+    "result": "1.5.4 fixes published issues affecting 1.5.3; historical 1.5.3 probe must not be reused for acceptance",
+    "independentVulnerabilityClearance": false
+  },
+  "execution": {
+    "invocation": "ClamAvInspector.inspect(Buffer.from(synthetic text)), pinned local launcher loading extracted 1.5.4 engine/libraries",
+    "officialDatabase": "ABSENT",
+    "expected": "REFUSED",
+    "actualCode": "FILE_INSPECTION_INCOMPLETE",
+    "positiveAcceptance": "NOT_EXECUTED",
+    "temporaryStorage": "Current-user-owned 0700 Linux tmpfs observed by evidence gate; swap/dumps and host sandbox not verified"
+  },
+  "updater": {
+    "name": "CVDUpdate",
+    "version": "1.2.0",
+    "source": "https://github.com/Cisco-Talos/cvdupdate",
+    "environment": "Isolated laboratory Python 3.12 virtual environment, outside application repository",
+    "outcome": "BLOCKED_DNS_BEFORE_DOWNLOAD",
+    "diagnostic": "Failed to determine available version via DNS TXT query; failed to update: DNS query failed",
+    "dnsName": "current.cvd.clamav.net",
+    "resolver": "System configured nameservers",
+    "logSha256": "7a8c9bc569b0f2db315c2b5ced6137ef8fa794ef077ac37a3ac27f917608c966",
+    "dependencyInventory": [
+      "certifi==2026.10.23",
+      "charset-normalizer==3.5.2",
+      "click==8.5.1",
+      "colorama==0.4.6",
+      "colorlog==6.12.0",
+      "cvdupdate==1.2.0",
+      "dnspython==2.9.2",
+      "idna==3.20",
+      "packaging==26.3",
+      "rangehttpserver==1.4.0",
+      "requests==2.34.2",
+      "urllib3==2.8.0"
+    ],
+    "applicationDependency": false
+  },
+  "earlierDownloadCorrection": {
+    "source": "https://docs.clamav.net/faq/faq-freshclam.html",
+    "retrieved": "2026-11-08",
+    "finding": "Scripted curl/wget signature downloads are unsupported. Prior curl HTTP 403 is not evidence that a supported updater request was rejected; FreshClam had failed local initialization before network access."
+  },
+  "sourceHashes": {
+    "packages/file-inspection/clamav.mjs": "e12e948908b075a21bf2f2fff0608b9d6ac0deed9ebd9089b4a3e339e8fe7a93"
+  }
+}

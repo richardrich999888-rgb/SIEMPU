@@ -1,5 +1,40 @@
 # Current engineering state (single authoritative handover file)
 
+## Native scanner acceptance continuation (8 November 2026)
+
+Active branch: `codex/siepmu-clamav-acceptance`, based on PR #34 head
+`560eb080eac3125533034efaa9d23caf3c827a1f` (tree `9dd352564a3267d798aa096219938a415912e520`).
+PR #34 remains open/draft and unmerged. Its final local result was 423 native tests plus
+3 E2E tests; its 233 adversarial cases overlap that native suite. Its push CI
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42454008250 and Security
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42454008218 passed, as did
+PR CI 42454012784 and Security 42454012724. PR checkout `aa4d057be02d4053716b6d526c3fee069d9e0f7f`
+had the same tree as the head. These results belong to the base, not this continuation.
+
+The new explicit `npm run test:clamav -- <config> <new-output-directory>` command binds
+native acceptance to a source commit/digest and pinned engine/database inputs, checks a
+private Linux tmpfs root, rejects unreviewed versions and incomplete test summaries,
+and distinguishes blocked prerequisites from executed failures. Five focused regressions
+passed during development; they exercise the evidence gate, not native malware detection.
+The runtime SDK adapter and its scan/freshness flags are unchanged. No npm runtime or
+production scanner dependency is added. This is a stacked draft candidate; exact final
+validation identity, local/hosted outcomes and run links belong in this branch's PR.
+
+ClamAV 1.5.3 has upstream security fixes in 1.5.4. The official 1.5.4 Linux package digest
+matched release metadata; its actual process started and refused the missing database
+with `FILE_INSPECTION_INCOMPLETE`. CVDUpdate 1.2.0 failed its system DNS TXT lookup before
+signature download. The new gate therefore reports `BLOCKED` / `ACCEPTANCE_DATABASE_MISSING`;
+all three native positive/detection cases remain unexecuted. The earlier curl HTTP 403
+was an unsupported download method, not proof that a supported updater was refused.
+See `docs/testing/endpoint-inspection-engine-probe-1.5.4.json` and the endpoint guide.
+
+Next executable task: provision official signatures through FreshClam/CVDUpdate on a
+managed host with permitted DNS/HTTPS; freeze a database snapshot and run the explicit
+gate on a clean checkout. Do not disable official-database or freshness controls. Then
+extend real-engine coverage to the representative corpus and endpoint isolation before
+browser/helper integration. All nineteen qualification gaps remain open, including
+IAF-G11 (PARTIAL_LAB); provisional TRL4 and external authorization axes are unchanged.
+
 ## Managed endpoint inspection continuation (8 November 2026)
 
 Active branch: `codex/siepmu-endpoint-file-inspection`, based on PR #33 head
