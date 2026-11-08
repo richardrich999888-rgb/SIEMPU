@@ -29,19 +29,34 @@ official signatures returned HTTP 403. `tests/file-inspection/clamav.check.mjs` 
 but its benign/EICAR/expanded-file cases remain unexecuted. Do not remove freshness,
 official-signature or scan-completeness gates to make the laboratory run pass.
 
-A preliminary 233-test adversarial execution passed every family but correctly failed
-its source-immutability check because this handover document was edited while it ran.
-That run is not qualifying evidence. Re-execute all local gates and the adversarial
-campaign on the final committed, clean candidate, using a new artifact directory.
+The preliminary adversarial run invalidated by a simultaneous documentation edit was
+superseded by a clean run at `ebd46bb9e3a82ec6093b44e604ae5fee2ee9cff0`: all ten
+native gates / 423 tests, 3 E2E tests, and 233 adversarial tests across nine families
+passed. The campaign's sourceUnchanged check passed; its tests overlap the native suite.
+The reviewed tree is `f33761f6c42cdec76713747269f5d72dde761d84`.
 
-Publication is blocked: automatic approval review rejected the attempted GitHub push
-because explicit authorization to publish this payload/destination was not established
-and repository trust/sensitivity was considered unresolved. A subsequent read-only
-check found no remote branch with this name. No draft PR or hosted CI/Security run
-exists for this continuation. No workaround or second publication attempt was made.
-Complete local validation and provide a reviewable patch; obtain explicit authorization
-before publishing this branch to `richardrich999888-rgb/SIEMPU` and opening a draft PR
-against `codex/siepmu-sealed-integration-trl5`. Do not merge any branch.
+The user authorized publication of the reviewed patch to the public repository and a
+draft PR on 8 November 2026, resolving the earlier automatic-approval block. Command-line
+Git had no write credentials; the connected GitHub API published initial commit
+`72386146b006b6ca57850b9e77bdd1dee320d145` with exactly the reviewed tree above.
+Draft PR #34 is open: https://github.com/richardrich999888-rgb/SIEMPU/pull/34,
+targeting `codex/siepmu-sealed-integration-trl5` (PR #33, unchanged at the inspected
+base). No branch is merged or deployed. The local publication checkout is
+`codex/siepmu-endpoint-file-inspection-publication`; the remote branch remains
+`codex/siepmu-endpoint-file-inspection`.
+
+Initial published-head runs, observed queued/in progress at this documentation edit:
+
+- Push CI: https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42453597596
+- Push Security: https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42453597974
+- PR CI: https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42453648372
+- PR Security: https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42453648323
+
+This handover follow-up changes documentation only. Validate its exact published commit,
+run E2E locally, then observe every hosted CI/Security job for that same commit. The
+final commit, run outcomes and artifact links are recorded in PR #34; initial run results
+must not be attributed to a later candidate. Next engineering work is the outstanding
+real-engine acceptance and managed endpoint/browser boundary described below.
 
 IAF-G11 is PARTIAL_LAB; all nineteen gaps remain open. Native-engine acceptance, a
 representative corpus, browser/helper integration, endpoint sandboxing and memory-backed
