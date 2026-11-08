@@ -1,5 +1,11 @@
 # Endpoint cryptography
 
+Optional managed endpoint PKCS11 provider: see `integrations/pkcs11/README.md`.
+This uses sensitive/non-extractable token keys for P-256 signing/ECDH and retains
+software HKDF/AES-GCM. SoftHSM is the laboratory emulator; hardware custody and
+SAG qualification remain unproven. It uses the classical object port only.
+Outbound ephemeral private keys are non-extractable and no longer serialized.
+
 Actual implementation: [WebCrypto module](../packages/crypto/crypto.mjs), [canonical encoding](../packages/protocol/canonical.mjs), [server primitives](../services/control/primitives.mjs). Module [usage and boundary notes](../packages/crypto/README.md) specify the API.
 
 A fresh AES-256-GCM key/nonce encrypts each text/file payload. Ephemeral P-256 ECDH plus HKDF-SHA256 derives an AES-GCM wrapping key for the recipient's static encryption key. Separate P-256 ECDSA keys sign the whole envelope, using SHA-256 and 64-byte P1363 signatures. Signed context includes identities, units, mission, destination key ID, grant, times, suite, action, hash and nonce. Canonical context is authenticated associated data.

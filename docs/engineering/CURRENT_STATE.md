@@ -1,5 +1,28 @@
 # Current engineering state (single authoritative handover file)
 
+## Endpoint integration evaluation candidate (8 November 2026)
+
+Active branch: `codex/siepmu-evaluation-integrations`, based on PR #35 exact head
+`48ecd4bc2268fbe4e759782e7e685ba367946a9d`. New optional integrations: real PKCS11
+signing/ECDH through pinned python-pkcs11/asn1crypto and a SoftHSM 2.7.0 laboratory gate;
+Bubblewrap 0.13.1/prlimit scanner isolation with strict runtime inventory and a native
+boundary probe. Outbound ephemeral ECDH keys are no longer exported as private JWK.
+Details and limits: `docs/engineering/INTEGRATION_STATUS.md` and `integrations/*/README.md`.
+
+Development execution: nine native token tests passed, including managed endpoint device
+enrollment/proof and policy-authorized object release; eighteen targeted core/scanner
+regressions passed. These are development results, not the final candidate release gate.
+Freeze and validate the exact commit before publishing its branch ref. Record final local
+validation/E2E, both push/PR CI and Security, PKCS11 and isolated ClamAV workflow outcomes
+in the candidate PR. Never report native isolation PASS from contract doubles. The local
+container cannot create the required namespace; hosted real isolation must be observed.
+
+Root npm runtime dependencies remain zero. Optional Python/native tools stay outside
+application bundles. CodeQL includes Python. Hash-pinned wheels and upstream license
+notices accompany the optional package. The crypto inventory now has sixteen components.
+No merge/deployment, TRL increase or grading is performed; all nineteen gaps remain open.
+External sponsor, scope, module, issuer and relevant-environment inputs remain required.
+
 ## Native ClamAV smoke acceptance passed (8 November 2026)
 
 Active branch/PR: `codex/siepmu-clamav-acceptance`, draft

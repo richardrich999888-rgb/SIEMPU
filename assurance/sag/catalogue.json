@@ -16,20 +16,22 @@
       "boundary": "Sender and recipient endpoints",
       "deploymentScope": "APPLICATION",
       "custody": "Software endpoint keys; plaintext and recipient private key at endpoints",
-      "limitations": "No forward secrecy for static recipient keys, hardware custody or agency qualification. Legacy v1 DMS integration remains a managed plaintext endpoint requiring explicit enablement. The v2 connector excludes plaintext, endpoint credentials and the wrapped content key; source encryption uses the existing provider. IAF-G05 deployment/migration qualification remains pending. Optional managed endpoint inspection uses SHA-256 byte binding, not scanner attestation or cryptographic grading; actual engine positive-path qualification and browser enforcement remain pending.",
+      "limitations": "No agency qualification or static-recipient forward secrecy. Optional managed endpoint scanning binds bytes to results; original native smoke evidence exists. A selected Bubblewrap profile fails closed; isolated native acceptance and representative corpus qualification are separate gates. Browser enforcement and managed deployment remain open.",
       "sources": [
         "packages/crypto/crypto.mjs",
         "packages/protocol/canonical.mjs",
         "packages/integration/client.mjs",
         "services/integration/adapter.mjs",
         "services/integration/server.mjs",
-        "packages/file-inspection/clamav.mjs"
+        "packages/file-inspection/clamav.mjs",
+        "packages/file-inspection/sandbox.mjs"
       ],
       "tests": [
         "tests/crypto.test.mjs",
         "tests/crypto-provider.test.mjs",
         "tests/adapter-adversarial.test.mjs",
-        "tests/file-inspection.test.mjs"
+        "tests/file-inspection.test.mjs",
+        "tests/inspection-sandbox.test.mjs"
       ]
     },
     {
@@ -292,6 +294,24 @@
         "deployment/secure/sealed-adapter-process.mjs"
       ],
       "tests": ["tests/sealed-integration.test.mjs"]
+    },
+    {
+      "id": "CR-16",
+      "purpose": "Optional managed endpoint PKCS11 provider",
+      "mechanisms": [
+        "P-256 ECDSA over SHA-256 digest; P1363",
+        "P-256 ECDH; derived session secret exported to endpoint HKDF/AES-GCM"
+      ],
+      "boundary": "Managed endpoint and selected PKCS11 module",
+      "deploymentScope": "LAB_ONLY",
+      "custody": "Sensitive, non-extractable token objects; SoftHSM software emulator only tested",
+      "limitations": "Not hardware custody, a SAG-selected crypto module, browser integration or v3 provider-engine support. PIN memory, native dependency trust, vendor lifecycle and physical controls require separate review. Content encryption remains in endpoint software.",
+      "sources": [
+        "integrations/pkcs11/provider.mjs",
+        "integrations/pkcs11/worker.py",
+        "integrations/pkcs11/requirements.txt"
+      ],
+      "tests": ["tests/pkcs11/provider.check.mjs"]
     }
   ],
   "sourceBindings": {
@@ -331,6 +351,15 @@
     "integrations/nexora/tests/snapshot.rs": {
       "sha256": "518a7761af6a81c9b6649437095b00870c215099df9f109a5911b18e9fd56f1e"
     },
+    "integrations/pkcs11/provider.mjs": {
+      "sha256": "3b1a8a8cfca924b64fb7367a43ba265d15e6ed1f316783d8a8278ec70f51bb3c"
+    },
+    "integrations/pkcs11/requirements.txt": {
+      "sha256": "fc68ce4c2d8cca399d9e18b81dfdbfa8f3c7507c995f5bac49b61c482271b67f"
+    },
+    "integrations/pkcs11/worker.py": {
+      "sha256": "7848f75ad2c325e0bb8b4a5c17f47aff269da552d02c5628e473ba67ba4630cc"
+    },
     "native/Cargo.lock": {
       "sha256": "7d074ae83c9bed990330fc644720553bffcd6ca4efbb903abf91f09232100f7b"
     },
@@ -353,10 +382,13 @@
       "sha256": "a30638c17bb4d3e1ecbe3bfe89008d3eeac0828a3dcbb3730327f2881d19449c"
     },
     "packages/crypto/crypto.mjs": {
-      "sha256": "07d80d9bc68a63571133ab93d482a99dab64571defffdee998c1ba1e0283a31a"
+      "sha256": "686184ca1c0f6975715b1ca2827b8aaf95d8414e3de54f972fdfcd89a0a37d6e"
     },
     "packages/file-inspection/clamav.mjs": {
-      "sha256": "e12e948908b075a21bf2f2fff0608b9d6ac0deed9ebd9089b4a3e339e8fe7a93"
+      "sha256": "3d5da6d0f7e007039b8217928e80d69e66302f799a8d6a7eca6bf0f4726e24fb"
+    },
+    "packages/file-inspection/sandbox.mjs": {
+      "sha256": "ec4bb47455155b4dded7633a795bd8acf9908648c3293d0f254ac150e884865a"
     },
     "packages/integration/client.mjs": {
       "sha256": "bc79b0246736a63f738d75b2c69bbf6ec8ef1267204767d7d2cd9001d9814f09"
@@ -472,6 +504,9 @@
     "tests/file-inspection.test.mjs": {
       "sha256": "699a4681119a725429bb3fe649842a6ddabbac3d23e5b46ed99115825051e377"
     },
+    "tests/inspection-sandbox.test.mjs": {
+      "sha256": "934ffd89d512b06924e8185e1a7b929cb54e02eb405b400f585921d7078a8c28"
+    },
     "tests/native/evidence-differential.check.mjs": {
       "sha256": "5d208c2fb8eb15fd2d6535a91f123f1cb0316d4f87523bb794e7f862a1890241"
     },
@@ -480,6 +515,9 @@
     },
     "tests/offline-release.test.mjs": {
       "sha256": "d917c43d989a0a651778ed0cc43ef79f8e63b9c4b4a08ee6d6319dd9a57e934a"
+    },
+    "tests/pkcs11/provider.check.mjs": {
+      "sha256": "524650da5112eb91b8ea63d966c6df9d86feae492e76bb22049065c915e2c397"
     },
     "tests/pqc/end-to-end.test.mjs": {
       "sha256": "a073d80a3fd539bf61eeb26aa81d4afbb3d11fcc3279fd8b610e40072f482f92"

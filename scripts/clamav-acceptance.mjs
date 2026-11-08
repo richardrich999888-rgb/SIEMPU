@@ -6,6 +6,7 @@ import { lstat, mkdir, open, readFile, readdir, statfs, writeFile } from 'node:f
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { ClamAvInspector } from '../packages/file-inspection/clamav.mjs';
+import { BubblewrapSandbox } from '../packages/file-inspection/sandbox.mjs';
 import { sourceDigest } from './audit-claims.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -133,6 +134,8 @@ export async function runAcceptance(configuration, destination) {
   };
   try {
     const settings = JSON.parse(await readFile(configuration, 'utf8'));
+    if (settings.sandbox) settings.sandbox = new BubblewrapSandbox(settings.sandbox);
+    report.isolationProfile = settings.sandbox ? 'BUBBLEWRAP_SELECTED' : 'UNISOLATED_LAB';
     new ClamAvInspector(settings); // Reuse the runtime configuration constraints.
     report.configurationSha256 = await fileHash(configuration);
     report.executableSha256 = await fileHash(settings.executable);
@@ -140,8 +143,15 @@ export async function runAcceptance(configuration, destination) {
       throw failure('ACCEPTANCE_ENGINE_HASH');
     await requirePrivateTmpfs(settings.tempRoot);
     report.temporaryStorage = 'PRIVATE_OWNER_0700_TMPFS_OBSERVED';
+    const versionCommand = settings.sandbox
+      ? await settings.sandbox.prepare(['--version'], {
+          ...settings,
+          directory: settings.tempRoot,
+          timeoutMs: 10000,
+        })
+      : { executable: settings.executable, args: ['--version'] };
     report.engineVersion = requireReviewedVersion(
-      execFileSync(settings.executable, ['--version'], {
+      execFileSync(versionCommand.executable, versionCommand.args, {
         env: cleanEnvironment,
         encoding: 'utf8',
         timeout: 10000,

@@ -4,11 +4,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
+import { BubblewrapSandbox } from '../../packages/file-inspection/sandbox.mjs';
 import { ClamAvInspector } from '../../packages/file-inspection/clamav.mjs';
 
 if (!process.env.SIEPMU_CLAMAV_CONFIG)
   throw new Error('SIEPMU_CLAMAV_CONFIG is required; real-engine acceptance was not executed');
 const settings = JSON.parse(readFileSync(process.env.SIEPMU_CLAMAV_CONFIG, 'utf8'));
+if (settings.sandbox) settings.sandbox = new BubblewrapSandbox(settings.sandbox);
 const inspector = new ClamAvInspector(settings);
 
 test('actual configured engine accepts synthetic benign content', async () => {

@@ -427,6 +427,10 @@ export function createObjectCryptography(provider = createWebCryptoProvider()) {
   /** @param {JsonWebKey} privateKey @param {JsonWebKey} publicKey @param {Uint8Array<ArrayBuffer>} salt @returns {Promise<CryptoKey>} */
   async function wrappingKey(privateKey, publicKey, salt) {
     const privateCrypto = await importJwk(privateKey, 'deriveBits');
+    return deriveWrappingKey(privateCrypto, publicKey, salt);
+  }
+  /** @param {CryptoKey} privateCrypto @param {JsonWebKey} publicKey @param {Uint8Array<ArrayBuffer>} salt @returns {Promise<CryptoKey>} */
+  async function deriveWrappingKey(privateCrypto, publicKey, salt) {
     const publicCrypto = await importJwk(publicKey, 'ecdhPublic');
     const secret = new Uint8Array(
       await subtle.deriveBits({ name: 'ECDH', public: publicCrypto }, privateCrypto, 256),
@@ -522,12 +526,11 @@ export function createObjectCryptography(provider = createWebCryptoProvider()) {
           utf8.encode(canonical(payload)),
         ),
       );
-      const ephemeral = await subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, [
+      const ephemeral = await subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, false, [
         'deriveBits',
       ]);
-      const ephemeralPrivate = await subtle.exportKey('jwk', ephemeral.privateKey);
       const ephemeralPublic = publicJwk(await subtle.exportKey('jwk', ephemeral.publicKey));
-      const wrapKey = await wrappingKey(ephemeralPrivate, recipientPublicJwk, salt);
+      const wrapKey = await deriveWrappingKey(ephemeral.privateKey, recipientPublicJwk, salt);
       const wrapped = await subtle.encrypt(
         { name: 'AES-GCM', iv, additionalData: aad, tagLength: 128 },
         wrapKey,

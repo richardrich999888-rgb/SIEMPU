@@ -1,7 +1,7 @@
 name: Native ClamAV acceptance
 on:
   push:
-    branches: [codex/siepmu-clamav-acceptance]
+    branches: [codex/siepmu-clamav-acceptance, codex/siepmu-evaluation-integrations]
     paths: ['.github/workflows/clamav-native.yml']
   workflow_dispatch:
 permissions:
@@ -52,6 +52,22 @@ jobs:
           inventory = {'version':'1.5.4','packageSha256':sha(lab/'engine.deb'),'files':{p:sha(native/p) for p in files}, 'scope':'Selected extracted package files only; not a complete native/OS SBOM or detached-signature verification'}
           Path('artifacts/clamav-host/inventory.json').write_text(json.dumps(inventory,indent=2)+'\n')
           PY
+      - name: Build pinned unprivileged Bubblewrap and isolated runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          lab="$RUNNER_TEMP/clamav-native"
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends bubblewrap libcap-dev meson ninja-build pkg-config
+          curl --fail --location --max-time 180 --output "$lab/bubblewrap.tar.xz" https://github.com/containers/bubblewrap/releases/download/v0.13.1/bubblewrap-0.13.1.tar.xz
+          printf '%s  %s\n' 0e85c8702248b8dd64144f594147553650cdd0e4c951690345faace79c217c4d "$lab/bubblewrap.tar.xz" | sha256sum --check
+          tar -xJf "$lab/bubblewrap.tar.xz" -C "$lab"
+          meson setup "$lab/bwrap-build" "$lab/bubblewrap-0.13.1" -Dman=disabled -Dselinux=disabled -Dtests=false -Dbash_completion=disabled -Dzsh_completion=disabled
+          ninja -C "$lab/bwrap-build"
+          # Ephemeral runner only. Retain Ubuntu's path-scoped AppArmor profile; no global relaxation.
+          sudo install -o root -g root -m 0755 "$lab/bwrap-build/bwrap" /usr/bin/bwrap
+          test "$(/usr/bin/bwrap --version)" = 'bubblewrap 0.13.1'
+          python3 integrations/endpoint-inspection/prepare-runtime.py "$lab"
       - name: Obtain official signatures once with supported FreshClam
         id: update
         shell: bash
@@ -76,7 +92,9 @@ jobs:
             files=("$lab"/update/*.cvd "$lab"/update/*.cld "$lab"/update/*.cvd.sign "$lab"/update/*.cld.sign)
             if [ "${#files[@]}" -gt 0 ]; then cp -- "${files[@]}" "$lab/snapshot/"; fi
           fi
-          node scripts/clamav-acceptance.mjs "$lab/config.json" artifacts/clamav-host/run
+          export SIEPMU_CLAMAV_CONFIG="$lab/isolated-config.json"
+          node --test --test-reporter=tap tests/file-inspection/isolation.check.mjs > artifacts/clamav-host/isolation.tap
+          node scripts/clamav-acceptance.mjs "$lab/isolated-config.json" artifacts/clamav-host/run
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         if: always()
         with:

@@ -1,5 +1,11 @@
 # Cryptographic provider boundary
 
+Optional managed endpoint PKCS11 provider: see `integrations/pkcs11/README.md`.
+This uses sensitive/non-extractable token keys for P-256 signing/ECDH and retains
+software HKDF/AES-GCM. SoftHSM is the laboratory emulator; hardware custody and
+SAG qualification remain unproven. It uses the classical object port only.
+Outbound ephemeral private keys are non-extractable and no longer serialized.
+
 `packages/crypto/crypto.mjs` is a protocol layer. `createObjectCryptography(provider)` selects one provider explicitly and does not retry another provider when the selected provider fails.
 
 The version-1 provider contract exposes:

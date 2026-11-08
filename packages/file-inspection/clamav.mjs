@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { isAbsolute, join } from 'node:path';
+import { BubblewrapSandbox } from './sandbox.mjs';
 
 const digest = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const reject = (code) => Object.assign(new Error(code), { code });
@@ -24,6 +25,7 @@ export class ClamAvInspector {
     maxBytes = 512 * 1024,
     timeoutMs = 30000,
     maxDatabaseAgeDays = 2,
+    sandbox,
   }) {
     if (
       ![executable, database, tempRoot].every(
@@ -32,7 +34,8 @@ export class ClamAvInspector {
       !/^[a-f0-9]{64}$/.test(executableSha256 ?? '') ||
       !bounded(maxBytes, 1, 512 * 1024) ||
       !bounded(timeoutMs, 100, 120000) ||
-      !bounded(maxDatabaseAgeDays, 1, 7)
+      !bounded(maxDatabaseAgeDays, 1, 7) ||
+      (sandbox !== undefined && !(sandbox instanceof BubblewrapSandbox))
     )
       throw reject('FILE_INSPECTION_CONFIG');
     this.#options = Object.freeze({
@@ -43,6 +46,7 @@ export class ClamAvInspector {
       maxBytes,
       timeoutMs,
       maxDatabaseAgeDays,
+      sandbox,
     });
   }
 
@@ -82,9 +86,18 @@ export class ClamAvInspector {
         '--disable-cache',
         '-',
       ];
+      const command = o.sandbox
+        ? await o.sandbox.prepare(args, {
+            executable: o.executable,
+            database: o.database,
+            directory,
+            timeoutMs: o.timeoutMs,
+          })
+        : { executable: o.executable, args };
       await new Promise((resolve, fail) => {
-        const child = spawn(o.executable, args, {
+        const child = spawn(command.executable, command.args, {
           shell: false,
+          detached: !!o.sandbox,
           cwd: directory,
           stdio: ['pipe', 'pipe', 'pipe'],
           // No inherited loader overrides, credentials, proxy or content-bearing environment.
@@ -95,7 +108,13 @@ export class ClamAvInspector {
           failure;
         const stop = (code) => {
           failure ??= code;
-          child.kill('SIGKILL');
+          if (o.sandbox && child.pid) {
+            try {
+              process.kill(-child.pid, 'SIGKILL');
+            } catch {
+              child.kill('SIGKILL');
+            }
+          } else child.kill('SIGKILL');
         };
         const timer = setTimeout(() => stop('FILE_INSPECTION_TIMEOUT'), o.timeoutMs);
         child.on('error', () => stop('FILE_INSPECTION_UNAVAILABLE'));
