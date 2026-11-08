@@ -42,6 +42,7 @@ Recipient claim requires session bound to recipient device + proof challenge, ex
 
 - GET /api/meta -> {version,serverPublicKey,serverKeyId,limits,securityProfile}
 - POST /api/auth/login {username,password,otp} -> {token,user,expiresAt}; GET /api/auth/me -> {user,device,expiresAt}; POST /api/auth/logout {}
+- POST /api/auth/renew {otp,proof} -> {token,user,device,expiresAt}: valid bound session, unused TOTP and `renew-session` proof over `{otp}`. Current session/user/device are rechecked in the replacement transaction. Old session is revoked atomically with replacement and signed evidence. Expired or revoked sessions cannot renew. See ADR-016.
 - POST /api/auth/challenge {purpose:'enroll'|'bind'|'operation',deviceId?,operation?,requestHash?} -> {challengeId,challenge}; operation is e.g. 'submit', 'prepare:'+objectId, 'claim:'+objectId, 'ack:'+objectId, 'grant'. For operation challenges, requestHash is the SHA256 of canonical request body excluding proof. Signature signs canonical(challenge), including this body digest. The server checks the exact body digest before consuming proof.
 - POST /api/devices/enroll {label,signingPublicKey,encryptionPublicKey,challengeId,signature} -> {device}; POST /api/auth/bind {deviceId,challengeId,signature} -> {device}
 - GET /api/control -> signed packet {payload:{epoch,revocationVersion,policyDigest,issuedAt,expiresAt},signature,keyId}

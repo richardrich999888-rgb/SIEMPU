@@ -55,6 +55,9 @@ import { sourceRevision } from './lib/demo-report.mjs';
 const OUT = resolve(process.env.SIEPMU_TRL5_OUT || 'artifacts/trl5');
 const RUST_VERIFIER = resolve('native/target/release/siepmu-evidence-verify');
 const LOAD_SECONDS = Number(process.env.SIEPMU_TRL5_LOAD_SECONDS ?? 30);
+// Four requests/send and five/receive+ACK; 650 ms/session leaves headroom below
+// the unchanged 500 protected requests per minute, including setup/list requests.
+const LOAD_INTERVAL_MS = 650;
 // Debug aid: run only the listed test-ID prefixes. A filtered run is reported as PARTIAL, never PASS.
 const ONLY = process.env.SIEPMU_TRL5_ONLY ? process.env.SIEPMU_TRL5_ONLY.split(',') : null;
 const RACE_TRIALS = 20;
@@ -1074,7 +1077,7 @@ export async function runTrl5Validation() {
     await check(
       'T8.1',
       'R11',
-      `Sustained load ${LOAD_SECONDS} s: zero digest mismatches and zero failures`,
+      `Sustained load ${LOAD_SECONDS} s at one start/650 ms/session: zero digest mismatches and zero failures`,
       async () => {
         const pids = platform.pids();
         const dbBefore = databaseBytes(f.dir);
@@ -1099,6 +1102,7 @@ export async function runTrl5Validation() {
             seconds: LOAD_SECONDS,
             bytes: 4096,
             workers: 2,
+            intervalMs: LOAD_INTERVAL_MS,
           },
           (LOAD_SECONDS + 120) * 1000,
         );
@@ -1112,6 +1116,7 @@ export async function runTrl5Validation() {
             users: ['lrx1', 'lrx2', 'lrx3', 'lrx4'],
             from: { ...from, _: 'snd1' },
             manifest: 'load-sent.json',
+            intervalMs: LOAD_INTERVAL_MS,
           },
           600000,
         );
@@ -1135,10 +1140,13 @@ export async function runTrl5Validation() {
           senders: 4,
           workersPerSender: 2,
           payloadBytes: 4096,
+          minimumStartIntervalPerSessionMs: LOAD_INTERVAL_MS,
+          protectedRequestsPerMinuteLimit: 500,
           sendPhase: {
             seconds: sendSeconds,
             sent: sent.sent,
             refused: sent.refused,
+            refusalCodes: sent.refusalCodes,
             exchangesPerSecond: Math.round((sent.sent / sendSeconds) * 100) / 100,
             latencyMs: summary(sent.latencies ?? []),
           },
@@ -1173,6 +1181,7 @@ export async function runTrl5Validation() {
           observed: {
             sent: sent.sent,
             refused: sent.refused,
+            refusalCodes: sent.refusalCodes,
             delivered: received.delivered,
             mismatched: received.mismatched,
             failed: received.failed,

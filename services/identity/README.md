@@ -8,15 +8,16 @@ separate server, datastore or importable implementation.
 
 All protected routes use `Authorization: Bearer <token>`. Mutation bodies are JSON.
 
-| HTTP route                            | Request                                                 | Response / authority                                                  |
-| ------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------------------- |
-| `POST /api/auth/login`                | `{username,password,otp}`                               | `{token,user,expiresAt}`; password and unused six-digit TOTP required |
-| `GET /api/auth/me`                    | None                                                    | `{user,device,expiresAt}`; authenticated session, device may be null  |
-| `POST /api/auth/logout`               | `{}`                                                    | `{ok:true}`; revokes the caller's session                             |
-| `POST /api/admin/units`               | `{name,proof}`                                          | `{unit:{id,name}}`; bound administrator                               |
-| `POST /api/admin/users`               | `{username,password,unitId,role,missionIds,proof}`      | `{user,totpSecret,otpauthUri}`; bound administrator                   |
-| `PATCH /api/admin/users/:id`          | One or more of `{active,role,missionIds}`, plus `proof` | `{user}`; bound administrator                                         |
-| `POST /api/admin/sessions/:id/revoke` | `{proof}`                                               | `{ok:true}`; bound administrator                                      |
+| HTTP route                            | Request                                                 | Response / authority                                                                  |
+| ------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `POST /api/auth/login`                | `{username,password,otp}`                               | `{token,user,expiresAt}`; password and unused six-digit TOTP required                 |
+| `GET /api/auth/me`                    | None                                                    | `{user,device,expiresAt}`; authenticated session, device may be null                  |
+| `POST /api/auth/logout`               | `{}`                                                    | `{ok:true}`; revokes the caller's session                                             |
+| `POST /api/auth/renew`                | `{otp,proof}`                                           | `{token,user,device,expiresAt}`; fresh MFA and device-bound renewal of a live session |
+| `POST /api/admin/units`               | `{name,proof}`                                          | `{unit:{id,name}}`; bound administrator                                               |
+| `POST /api/admin/users`               | `{username,password,unitId,role,missionIds,proof}`      | `{user,totpSecret,otpauthUri}`; bound administrator                                   |
+| `PATCH /api/admin/users/:id`          | One or more of `{active,role,missionIds}`, plus `proof` | `{user}`; bound administrator                                                         |
+| `POST /api/admin/sessions/:id/revoke` | `{proof}`                                               | `{ok:true}`; bound administrator                                                      |
 
 `user` is `{id,username,unitId,role,missionIds,active}`. Roles are `admin`,
 `operator`, `viewer`, and `auditor`. Provisioning accepts a 3–80 character username
@@ -48,6 +49,12 @@ epoch/revocation-version increment and evidence commit together. Current user
 activity, role and missions are rechecked by exchange authorization; deactivation
 does not require deletion of prior sessions. An administrator cannot deactivate or
 demote their own account through the patch endpoint.
+
+Renewal requires a `renew-session` operation proof over `{otp}`. Its transaction re-reads
+current session/user/device state, consumes fresh MFA, revokes the old session, inserts a
+replacement bound to the same device and records SESSION_RENEWED. It cannot renew an expired
+or revoked session. SDK automation is proactive only; a failed renewal requires explicit
+authentication. See `docs/decisions/ADR-016-continuity-mechanisms.md`.
 
 Offline administrator recovery is implemented in
 [`scripts/recover-identity.mjs`](../../scripts/recover-identity.mjs). See

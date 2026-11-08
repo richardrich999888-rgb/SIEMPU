@@ -106,6 +106,7 @@ test('separate package: token + isolated scanner + TLS + authority exchange', as
   const pki = generateLabPKI(join(dir, 'pki')),
     material = pki.issue('web');
   let submissions = 0;
+  let loseSubmissionResponse = false;
   const protocols = new Set();
   const server = createTransportServer(async (req, res) => {
     protocols.add(req.socket.getProtocol());
@@ -119,6 +120,11 @@ test('separate package: token + isolated scanner + TLS + authority exchange', as
       data ? JSON.parse(data) : undefined,
       req.headers.authorization?.replace(/^Bearer /, ''),
     );
+    if (loseSubmissionResponse && req.method === 'POST' && req.url === '/api/objects') {
+      loseSubmissionResponse = false;
+      req.socket.destroy();
+      return;
+    }
     res.writeHead(reply.status, { 'content-type': 'application/json' });
     res.end(JSON.stringify(reply.body));
   }, material);
@@ -155,12 +161,16 @@ test('separate package: token + isolated scanner + TLS + authority exchange', as
   });
   // Both the authority and client share this synthetic clock. TLS still verifies a real lab CA.
   t.mock.timers.enable({ apis: ['Date'], now: Date.now() + 30000 });
-  const left = await openManagedEndpoint({
-    config: config('alice'),
-    tls: { ca: material.ca },
-    credentials: credentials('alice'),
-    getPin: async () => pin,
-  });
+  const outbox = { database: join(dir, 'alice-outbox.sqlite'), key: randomBytes(32) };
+  const openLeft = () =>
+    openManagedEndpoint({
+      config: config('alice'),
+      tls: { ca: material.ca },
+      credentials: credentials('alice'),
+      getPin: async () => pin,
+      outbox,
+    });
+  let left = await openLeft();
   const right = await openManagedEndpoint({
     config: config('bob'),
     tls: { ca: material.ca },
@@ -220,7 +230,49 @@ test('separate package: token + isolated scanner + TLS + authority exchange', as
       { code: 'FILE_INSPECTION_DETECTED' },
     );
     assert.equal(submissions, before);
+    await left.refreshCreationGrant();
+    await assert.rejects(
+      left.queue(destination, left.createFilePayload('synthetic.txt', 'text/plain', eicar)),
+      { code: 'FILE_INSPECTION_DETECTED' },
+    );
+    assert.equal((await left.listQueue()).length, 0);
   });
+  await t.test(
+    'encrypted offline queue survives closing/reopening and resumes through current authority',
+    async () => {
+      const queued = await left.queue(
+        destination,
+        left.createFilePayload('queued.txt', 'text/plain', Buffer.from('SYNTHETIC OFFLINE CANARY')),
+      );
+      left.close();
+      assert.equal(
+        readFileSync(outbox.database).includes(Buffer.from('SYNTHETIC OFFLINE CANARY')),
+        false,
+      );
+      left = await openLeft();
+      assert.equal((await left.listQueue())[0].id, queued.objectId);
+      await assert.rejects(left.flushQueue());
+      t.mock.timers.tick(30000);
+      await left.authenticate();
+      loseSubmissionResponse = true;
+      await assert.rejects(left.flushQueue());
+      assert.equal((await left.listQueue())[0].state, 'PENDING');
+      left.close();
+      left = await openLeft();
+      t.mock.timers.tick(30000);
+      await left.authenticate();
+      assert.deepEqual(await left.flushQueue(), [
+        { objectId: queued.objectId, state: 'SUBMITTED' },
+      ]);
+      assert.equal(
+        f.authority.get('SELECT count(*) n FROM objects WHERE id=?', queued.objectId).n,
+        1,
+      );
+      const payload = await right.receive(queued.objectId, keys.alice.signing.publicKey);
+      assert.equal(Buffer.from(payload.data, 'base64url').toString(), 'SYNTHETIC OFFLINE CANARY');
+      assert.deepEqual(await left.flushQueue(), []);
+    },
+  );
   await t.test(
     'a valid encrypted EICAR object from another client is denied after decryption',
     async () => {
@@ -262,4 +314,42 @@ test('separate package: token + isolated scanner + TLS + authority exchange', as
     await assert.rejects(right.authenticate(), { code: 'MANAGED_ENDPOINT_CLOSED' });
     assert.equal(right.status().authenticated, false);
   });
+  await t.test(
+    'native token renews a live session and queued work cannot bypass later sender revocation',
+    async () => {
+      t.mock.timers.tick(30000);
+      await left.renewSession();
+      assert.equal(left.status().authenticated, true);
+      await left.refreshCreationGrant();
+      const expired = await left.queue(
+        destination,
+        left.createFilePayload('expired.txt', 'text/plain', Buffer.from('SYNTHETIC EXPIRED')),
+      );
+      t.mock.timers.tick(600001);
+      const before = submissions;
+      assert.deepEqual(await left.flushQueue(), [{ objectId: expired.objectId, state: 'HELD' }]);
+      assert.equal(submissions, before);
+      const queued = await left.queue(
+        destination,
+        left.createFilePayload('held.txt', 'text/plain', Buffer.from('SYNTHETIC HELD')),
+      );
+      assert.equal(
+        (
+          await f.clients.admin.admin(
+            'POST',
+            `/api/admin/devices/${profiles.alice.deviceId}/revoke`,
+          )
+        ).status,
+        200,
+      );
+      await assert.rejects(left.flushQueue());
+      assert.equal(
+        f.authority.get('SELECT count(*) n FROM objects WHERE id=?', queued.objectId).n,
+        0,
+      );
+      assert.equal((await left.listQueue()).find((r) => r.id === queued.objectId).state, 'PENDING');
+      await assert.rejects(left.renewSession());
+      assert.equal(left.status().authenticated, false);
+    },
+  );
 });

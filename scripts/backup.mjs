@@ -120,9 +120,16 @@ export function restore(archive, destination, passphrase, trustedPublicKey, { ch
     Buffer.concat([d.update(Buffer.from(p.ciphertext, 'base64')), d.final()]),
   );
   if (!verifyPacket(trustedPublicKey, content.manifest)) throw new Error('Backup signature');
-  if (checkpoint) {
+  if (checkpoint !== undefined) {
     if (
       !verifyPacket(trustedPublicKey, checkpoint) ||
+      Object.keys(checkpoint.payload).sort().join() !== 'headHash,issuedAt,sequence' ||
+      !Number.isSafeInteger(checkpoint.payload.sequence) ||
+      checkpoint.payload.sequence < 0 ||
+      !Number.isSafeInteger(checkpoint.payload.issuedAt) ||
+      checkpoint.payload.issuedAt < 0 ||
+      typeof checkpoint.payload.headHash !== 'string' ||
+      !/^[a-f0-9]{64}$/.test(checkpoint.payload.headHash) ||
       checkpoint.payload.sequence > content.manifest.payload.checkpoint.sequence ||
       (checkpoint.payload.sequence === content.manifest.payload.checkpoint.sequence &&
         checkpoint.payload.headHash !== content.manifest.payload.checkpoint.headHash)
@@ -147,7 +154,8 @@ export function restore(archive, destination, passphrase, trustedPublicKey, { ch
   return content.manifest;
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  const [command, a, b, c] = process.argv.slice(2);
+  const [command, a, b, c, checkpointPath, ...extra] = process.argv.slice(2);
+  if (extra.length) throw new Error('Unexpected backup arguments');
   const pass = process.env.SIEPMU_BACKUP_PASSPHRASE;
   if (command === 'create') {
     if (process.env.SIEPMU_MAINTENANCE_CONFIRMED !== '1')
@@ -159,18 +167,21 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
       JSON.stringify({ status: 'backup-created', checkpoint: r.manifest.payload.checkpoint }),
     );
   } else if (command === 'restore') {
-    if (!c) throw new Error('Provide independently retained public-key.json');
-    const r = restore(a, b, pass, JSON.parse(readFileSync(c)));
+    if (!c || !checkpointPath)
+      throw new Error('Provide independently retained public-key.json and checkpoint.json');
+    const r = restore(a, b, pass, JSON.parse(readFileSync(c)), {
+      checkpoint: JSON.parse(readFileSync(checkpointPath)),
+    });
     console.log(
       JSON.stringify({
         status: 'restored',
         checkpoint: r.payload.checkpoint,
-        warning:
-          'Database rollback protection requires an external checkpoint; revalidate authority before service restart',
+        anchor: 'INDEPENDENT_CHECKPOINT_VERIFIED',
+        warning: 'Revalidate current personnel/device policy and custody before service restart',
       }),
     );
   } else
     throw new Error(
-      'Usage: backup.mjs create DATA_DIR ARCHIVE | restore ARCHIVE EMPTY_DIR TRUSTED_PUBLIC_KEY',
+      'Usage: backup.mjs create DATA_DIR ARCHIVE | restore ARCHIVE EMPTY_DIR TRUSTED_PUBLIC_KEY TRUSTED_CHECKPOINT',
     );
 }

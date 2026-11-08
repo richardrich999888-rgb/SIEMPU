@@ -11,7 +11,16 @@ import {
 // by the operator; neither TOFU nor a directory response replaces those pins.
 export class IntegrationEndpoint {
   #fileInspector;
-  constructor({ url, tls, profile, authorityKey, provider, fileInspector = null }) {
+  #renewing = null;
+  constructor({
+    url,
+    tls,
+    profile,
+    authorityKey,
+    provider,
+    fileInspector = null,
+    sessionRenewal = false,
+  }) {
     if (new URL(url).protocol !== 'https:' || !tls) throw new Error('SDK_TLS_REQUIRED');
     Object.assign(this, { url, tls, profile, authorityKey });
     if (fileInspector !== null && typeof fileInspector?.inspect !== 'function')
@@ -19,6 +28,9 @@ export class IntegrationEndpoint {
     this.#fileInspector = fileInspector;
     this.crypto = createObjectCryptography(provider);
     this.token = null;
+    if (typeof sessionRenewal !== 'boolean') throw new Error('SESSION_RENEWAL_CONFIG');
+    this.sessionRenewal = sessionRenewal;
+    this.expiresAt = 0;
   }
   get fileInspectionMode() {
     return this.#fileInspector ? 'ENDPOINT_REQUIRED' : 'UNSCANNED';
@@ -49,6 +61,7 @@ export class IntegrationEndpoint {
     return JSON.parse(r.body);
   }
   async signed(path) {
+    await this.ensureSession();
     const result = await this.call('GET', path);
     if (!(await this.crypto.verifyPacket(this.authorityKey, result)))
       throw new Error('AUTHORITY_SIGNATURE');
@@ -56,6 +69,7 @@ export class IntegrationEndpoint {
   }
   async authenticate() {
     this.token = null;
+    this.expiresAt = 0;
     try {
       const login = await this.call('POST', '/api/auth/login', {
         username: this.profile.username,
@@ -73,13 +87,74 @@ export class IntegrationEndpoint {
           validateDeviceChallenge(reply, expected),
         ),
       });
+      this.expiresAt = login.expiresAt;
     } catch (error) {
       // Neither an old session nor a partially bound new session survives failure locally.
       this.token = null;
+      this.expiresAt = 0;
       throw error;
     }
   }
+  async ensureSession() {
+    if (!this.sessionRenewal || !this.token) return;
+    if (this.expiresAt <= Date.now()) {
+      this.token = null;
+      this.expiresAt = 0;
+      throw Object.assign(new Error('SESSION_INVALID'), { code: 'SESSION_INVALID' });
+    }
+    if (this.expiresAt - Date.now() <= 120000) await this.renewSession();
+  }
+  async renewSession() {
+    if (this.#renewing) return this.#renewing;
+    const pending = (async () => {
+      try {
+        const body = { otp: totp(this.profile.totpSecret) };
+        const expected = {
+          purpose: 'operation',
+          deviceId: this.profile.deviceId,
+          operation: 'renew-session',
+          requestHash: await this.crypto.sha256(canonical(body)),
+        };
+        const challenge = await this.call('POST', '/api/auth/challenge', expected);
+        const reply = await this.call('POST', '/api/auth/renew', {
+          ...body,
+          proof: {
+            challengeId: challenge.challengeId,
+            signature: await this.crypto.sign(
+              this.profile.keys.signing.privateKey,
+              validateDeviceChallenge(challenge, expected),
+            ),
+          },
+        });
+        if (
+          typeof reply.token !== 'string' ||
+          !/^[A-Za-z0-9_-]{43}$/.test(reply.token) ||
+          reply.user?.id !== this.profile.userId ||
+          reply.device?.id !== this.profile.deviceId ||
+          !Number.isSafeInteger(reply.expiresAt) ||
+          reply.expiresAt <= Date.now() ||
+          reply.expiresAt > Date.now() + 900000
+        )
+          throw new Error('SESSION_RENEWAL_RESPONSE');
+        this.token = reply.token;
+        this.expiresAt = reply.expiresAt;
+      } catch (error) {
+        // An ambiguous response can leave a new server session; never try password login
+        // automatically or revive the superseded session after a denial/network failure.
+        this.token = null;
+        this.expiresAt = 0;
+        throw error;
+      }
+    })();
+    this.#renewing = pending;
+    try {
+      return await pending;
+    } finally {
+      this.#renewing = null;
+    }
+  }
   async proof(operation, body = {}) {
+    await this.ensureSession();
     const expected = {
       purpose: 'operation',
       deviceId: this.profile.deviceId,
@@ -232,6 +307,7 @@ export class IntegrationEndpoint {
   }
   /** Objects visible to this user (as sender or recipient), as reported by the authority. */
   async listObjects() {
+    await this.ensureSession();
     return (await this.call('GET', '/api/objects')).objects;
   }
   /**

@@ -2147,6 +2147,72 @@
         "x-device-binding-required": true,
         "description": "Bound admin/auditor only. Read-only configuration observations and pending qualification gates. Unsigned operator snapshot; no operational approval or TRL assignment."
       }
+    },
+    "/api/auth/renew": {
+      "post": {
+        "summary": "Rotate a still-valid bound session using fresh TOTP and device proof",
+        "operationId": "post_api_auth_renew",
+        "security": [
+          {
+            "BearerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful JSON response.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RenewSessionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenewSession"
+              }
+            }
+          }
+        },
+        "x-contract-coverage": "http-request-response-tested"
+      }
     }
   },
   "components": {
@@ -3639,6 +3705,44 @@
           },
           "messageDomain": {
             "enum": ["GENERAL", "INTEL"]
+          }
+        },
+        "additionalProperties": false
+      },
+      "RenewSession": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["otp", "proof"],
+        "properties": {
+          "otp": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "writeOnly": true
+          },
+          "proof": {
+            "$ref": "#/components/schemas/Proof"
+          }
+        }
+      },
+      "RenewSessionResponse": {
+        "type": "object",
+        "required": ["token", "user", "expiresAt", "device"],
+        "properties": {
+          "token": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "minLength": 43,
+            "maxLength": 43,
+            "description": "Opaque bearer session; never persist in browser storage."
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "device": {
+            "$ref": "#/components/schemas/Device"
           }
         },
         "additionalProperties": false

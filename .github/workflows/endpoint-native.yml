@@ -1,7 +1,12 @@
 name: Endpoint PKCS11 acceptance
 on:
   push:
-    branches: ['codex/siepmu-evaluation-integrations', 'codex/siepmu-managed-endpoint-pack']
+    branches:
+      [
+        'codex/siepmu-evaluation-integrations',
+        'codex/siepmu-managed-endpoint-pack',
+        'codex/siepmu-continuity-mechanisms',
+      ]
   pull_request:
     paths:
       [

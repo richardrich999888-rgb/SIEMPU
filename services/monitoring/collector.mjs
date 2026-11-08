@@ -6,28 +6,29 @@ import { ThreatDetections } from './detections.mjs';
 
 const fields = ['eventId', 'eventType', 'timestamp', 'epoch', 'correlationId', 'reason'];
 const token = /^[A-Z][A-Z0-9_]{0,63}$/;
+export const redactEvidence = (r) => ({
+  eventId: hash(canonical(r)),
+  eventType: r.payload.eventType,
+  timestamp: r.payload.timestamp,
+  epoch: r.payload.epoch,
+  correlationId: hash(String(r.payload.objectId ?? r.payload.eventId)),
+  reason: token.test(r.payload.reason ?? '') ? r.payload.reason : 'RECORDED',
+});
+export const redactAlert = (a) => ({
+  eventId: hash(a.id),
+  eventType: token.test(a.kind) ? a.kind : 'SECURITY_EVENT',
+  timestamp: a.timestamp,
+  epoch: a.epoch,
+  correlationId: hash(a.id),
+  reason: token.test(a.reason) ? a.reason : 'REQUEST_DENIED',
+});
 export function redactSecurityEvents(authority) {
   const evidence = authority
     .all('SELECT record FROM evidence ORDER BY sequence DESC LIMIT 1000')
     .map((r) => JSON.parse(r.record));
-  const events = evidence.map((r) => ({
-    eventId: hash(canonical(r)),
-    eventType: r.payload.eventType,
-    timestamp: r.payload.timestamp,
-    epoch: r.payload.epoch,
-    correlationId: hash(String(r.payload.objectId ?? r.payload.eventId)),
-    reason: token.test(r.payload.reason ?? '') ? r.payload.reason : 'RECORDED',
-  }));
+  const events = evidence.map(redactEvidence);
   for (const a of authority.all('SELECT * FROM alerts ORDER BY timestamp DESC LIMIT 1000'))
-    events.push({
-      eventId: hash(a.id),
-      eventType: token.test(a.kind) ? a.kind : 'SECURITY_EVENT',
-      timestamp: a.timestamp,
-      // Epoch at the time the alert was raised (migration 006), never the export-time epoch.
-      epoch: a.epoch,
-      correlationId: hash(a.id),
-      reason: token.test(a.reason) ? a.reason : 'REQUEST_DENIED',
-    });
+    events.push(redactAlert(a));
   return { version: 1, events };
 }
 export class SecurityCollector {

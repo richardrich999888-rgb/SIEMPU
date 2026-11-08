@@ -1,5 +1,74 @@
 # Current engineering state (single authoritative handover file)
 
+## Continuity acceptance and load-profile follow-up (8 November 2026)
+
+Active draft PR #38: https://github.com/richardrich999888-rgb/SIEMPU/pull/38,
+branch `codex/siepmu-continuity-mechanisms`, stacked on unmerged PR #37.
+Last fully passing local source: `421863693183aac90a302cfb3f2ad93efdaf35d2`, tree
+`e47056cdcc0bcb45e3fe976da3814449dc8e6a98`: all ten gates, 455 tests, 3 E2E,
+247 adversarial cases across nine families, and five standalone offline tests.
+
+That source passed all nine push CI jobs and both Security and token workflows.
+Push CI: https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42481838396.
+The combined native run passed one real isolation probe, three ClamAV smoke cases and
+all eight managed-companion scenarios (nine TAP tests including the parent):
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42481838366.
+Downloaded native artifacts were SHA-256 checked; the hosted and local 27-file packages
+share manifest digest `7f8281bcb66655e1404c7cb8ca66a84b378ed31a745655bda91352855bb99ecb`.
+Exact reports and artifact identities: `docs/testing/continuity-acceptance-2026-11-08.json`.
+
+PR CI run https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42481879771
+passed eight jobs but failed relevant-env T8.1: all 496 accepted objects were delivered
+without mismatch; all 287 refused requests were HTTP 429 RATE_LIMITED in control.log.
+Unpaced workers exceeded the existing 500 protected requests/session/fixed-minute limit.
+The push run crossing a different minute boundary passed; it does not erase this failure.
+
+The follow-up declares one exchange start per 650 ms/session, shared by sender workers,
+and paces recipients too. It records refusal codes, retains explicit unpaced investigation
+mode and leaves the authority limit and zero-refusal acceptance criterion unchanged.
+A direct protected-route regression covers the 500-request ceiling, per-session isolation,
+window reset and revocation. This is an offered-load reliability measurement; sponsor scale
+and maximum-throughput requirements remain open. Runtime continuity mechanisms and native
+integrations are unchanged by this follow-up; the test/deployment source digest changes.
+
+Next: freeze this follow-up, run full validation/E2E/adversarial checks before updating the
+branch, then observe fresh hosted CI/Security/token results. Record the final SHA and run URLs
+in PR #38. Do not attribute the initial hosted result to the follow-up without its identity.
+All nineteen qualification gaps remain open; G09 is PARTIAL_LAB. Provisional TRL4 is unchanged.
+SAG grading is not established. Operational authorization is not established. No merge or deployment.
+
+## Continuity mechanisms candidate (8 November 2026)
+
+Active branch: `codex/siepmu-continuity-mechanisms`, based on PR #37 head
+`fee0ffd52e15fa9a175944a3c599d05e8ec7e8a0`. Base passed 440 tests/all ten gates,
+3 E2E, 233 adversarial cases, all nine CI jobs and three Security jobs on both events.
+Base exact push CI: https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42472021719.
+Base combined native run attempt 2 passed the extracted companion (six scenarios/7 TAP tests),
+plus isolation and ClamAV smoke: https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42472021718.
+Those results resolve the download-only blockers in the historical entries below.
+
+This candidate implements ADR-016: live-session rotation, an optional encrypted managed
+outbox, checkpoint-aware restore CLI and signed durable monitoring cursors/pending batches.
+Fresh MFA and device proof are required for renewal; revoked/expired/ambiguous sessions
+never trigger automatic login. The v2 connector has no personnel credentials. Outbox
+submission still uses current authority admission; stale objects are held, never resealed.
+Monitoring never skips rejected, missing or expired source records to claim delivery.
+
+The initial frozen candidate `6c941d56783fdd4e6054e2b6ccbbdf331b146a70` ran 455 tests;
+one claims-wording guard failed, and the separate formatting gate also failed. Behavioral
+tests and the remaining eight gates passed. Follow-up changes clarify the status wording,
+correct formatting and document the new exporter; no test or gate is weakened.
+Complete exact-candidate validation and native acceptance still need to be recorded
+in the candidate PR. Freeze the source, refresh crypto inventory bindings, validate all gates,
+E2E and the adversarial suite, then rebuild and independently verify the companion and
+observe hosted CI/Security/token/combined native runs. No previous result proves this head.
+
+G09 advances to PARTIAL_LAB only. All nineteen qualification gaps remain open. Source retention,
+complete multi-service backup, failover/fencing, hardware/fleet identity, token lifecycle,
+legacy-store migration, browser enforcement and large-file transport remain follow-on work.
+G18's historical startup failure remains unresolved. Provisional TRL4 is unchanged.
+SAG grading is not established. Operational authorization is not established. No merge or deployment.
+
 ## Companion validation follow-up (8 November 2026)
 
 Draft PR #37: https://github.com/richardrich999888-rgb/SIEMPU/pull/37. Initial candidate

@@ -23,6 +23,7 @@ import { DocumentOutbox, adapterTransport } from '../../apps/document-system/out
 import { DocumentInbox } from '../../apps/document-system/inbox.mjs';
 import { createObjectCryptography } from '../../packages/crypto/crypto.mjs';
 import { syntheticBytes } from './payload.mjs';
+import { createLoadPacer } from './load-pacing.mjs';
 import { execFileSync } from 'node:child_process';
 import { verifyEvidence } from '../../apps/verifier/verify.mjs';
 
@@ -250,19 +251,23 @@ const commands = {
 
   /**
    * Concurrent load: each listed user runs `workers` sequential send loops for `seconds`.
+   * Optional interval is shared across each user's workers, never per worker.
    * Returns per-operation latencies (ms) and counts; refusals are counted, never hidden.
    */
-  async loadSend({ users, to, seconds, bytes, workers = 1 }) {
+  async loadSend({ users, to, seconds, bytes, workers = 1, intervalMs = 0 }) {
     const endpoints = await Promise.all(users.map((u) => unit(u)));
-    const deadline = Date.now() + seconds * 1000;
+    const pacers = endpoints.map(() => (intervalMs === 0 ? null : createLoadPacer(intervalMs)));
+    const deadline = performance.now() + seconds * 1000;
     const latencies = [];
     const sent = [];
+    const refusalCodes = {};
     let refused = 0;
     let seed = 1000;
     await Promise.all(
       endpoints.flatMap((endpoint, i) =>
         Array.from({ length: workers }, async () => {
-          while (Date.now() < deadline) {
+          while (performance.now() < deadline) {
+            if (pacers[i] && !(await pacers[i](deadline))) break;
             const s = seed++;
             const data = syntheticBytes(bytes, s);
             const payload = endpoint.crypto.createFilePayload(
@@ -280,19 +285,23 @@ const commands = {
                 to: to[i % to.length],
                 sha256: sha256(data),
               });
-            } catch {
+            } catch (error) {
               refused++;
+              const code = /^[A-Z][A-Z0-9_]{1,79}$/.test(error.code ?? '')
+                ? error.code
+                : 'REQUEST_FAILED';
+              refusalCodes[code] = (refusalCodes[code] ?? 0) + 1;
             }
           }
         }),
       ),
     );
     writeJson(sent, 'load-sent.json');
-    return { ok: true, sent: sent.length, refused, latencies };
+    return { ok: true, sent: sent.length, refused, refusalCodes, intervalMs, latencies };
   },
 
   /** Drains every pending object for the listed local users; verifies digests against a manifest. */
-  async loadReceive({ users, from, manifest }) {
+  async loadReceive({ users, from, manifest, intervalMs = 0 }) {
     const expected = new Map(readJson(manifest).map((m) => [m.objectId, m]));
     const endpoints = new Map(await Promise.all(users.map(async (u) => [u, await unit(u)])));
     const latencies = [];
@@ -301,11 +310,13 @@ const commands = {
     let failed = 0;
     await Promise.all(
       [...endpoints.entries()].map(async ([user, endpoint]) => {
+        const pace = intervalMs === 0 ? null : createLoadPacer(intervalMs);
         const pending = (await endpoint.listObjects()).filter(
           (o) =>
             o.recipientUserId === endpoint.profile.userId && ['PENDING', 'READY'].includes(o.state),
         );
         for (const object of pending) {
+          if (pace) await pace();
           const t0 = performance.now();
           try {
             const d = await endpoint.receiveWithRelease(
