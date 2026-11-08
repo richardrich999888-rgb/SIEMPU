@@ -8,8 +8,8 @@ endpoint SDK accepts this provider through its existing `provider` constructor a
 Services receive public enrollment keys and ciphertext, never token credentials or private keys.
 
 The tested token is **SoftHSM 2.7.0, a software emulator**. Hardware custody, a vendor module,
-physical tamper resistance, protected authentication paths, IAF approval and SAG grading
-are not established. `hardwareBacked` and `sagGraded` deliberately remain false.
+physical tamper resistance, protected authentication paths and IAF approval are not established.
+SAG grading is not established. `hardwareBacked` and `sagGraded` deliberately remain false.
 
 ## Install and select explicitly
 
@@ -52,7 +52,7 @@ actor racing a file replacement. Review/install the complete environment as an i
 The token performs ECDSA over SHA-256 digests and P-256 ECDH. ECDH outputs a **derived
 session secret**, which reaches endpoint software for HKDF and AES-GCM. Content encryption,
 wrapping, hashing and outbound ephemeral ECDH remain in WebCrypto. This is not an all-HSM
-crypto boundary or a SAG-selected algorithm implementation. The shared classical object
+crypto boundary. It is not a SAG-selected algorithm implementation. The shared classical object
 format is unchanged; outbound ephemeral private keys now stay non-extractable and are
 never serialized into JWK. Importing software EC private keys through this provider is refused.
 The browser and the separate v3/PQC provider engine are not wired to this optional provider.

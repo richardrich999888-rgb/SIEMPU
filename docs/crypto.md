@@ -3,7 +3,7 @@
 Optional managed endpoint PKCS11 provider: see `integrations/pkcs11/README.md`.
 This uses sensitive/non-extractable token keys for P-256 signing/ECDH and retains
 software HKDF/AES-GCM. SoftHSM is the laboratory emulator; hardware custody and
-SAG qualification remain unproven. It uses the classical object port only.
+SAG qualification remain pending. It uses the classical object port only.
 Outbound ephemeral private keys are non-extractable and no longer serialized.
 
 Actual implementation: [WebCrypto module](../packages/crypto/crypto.mjs), [canonical encoding](../packages/protocol/canonical.mjs), [server primitives](../services/control/primitives.mjs). Module [usage and boundary notes](../packages/crypto/README.md) specify the API.

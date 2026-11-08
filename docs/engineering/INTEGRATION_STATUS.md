@@ -1,4 +1,4 @@
-# Integration and SAG evaluation preparation — 8 November 2026
+# Integration and SAG evaluation candidate — 8 November 2026
 
 Candidate branch: `codex/siepmu-evaluation-integrations`, based on PR #35 head
 `48ecd4bc2268fbe4e759782e7e685ba367946a9d`. Final exact-commit execution results and artifact
@@ -25,13 +25,13 @@ reviewed inventory, gap register and validation evidence without assigning appro
 
 The existing `assurance/sag/requests.json` records the outstanding requests. The immediate
 items are: IAF sponsor and evaluation authority; authorized data classifications and handling
-channel; agreed deployment/relevant environment; permitted algorithms and selected SAG
-module/SDK/token; IAF personnel issuer/enrollment rules; acceptance tests and independent
-assessment arrangements. No classified inputs should be placed in this public repository.
+channel and deployment/relevant environment. SAG module/SDK/token selection remains pending.
+IAF personnel issuer/enrollment rules, acceptance tests and independent assessment
+arrangements are also outstanding. No classified inputs should be placed in this public repository.
 
 DRDO's public [industry support document](https://www.drdo.gov.in/drdo/sites/default/files/inline-files/Support-to-Indian-Industry_1.pdf)
-describes SAG support for industry IT/crypto products on a request from the Services. The
-applicant can prepare evidence and interfaces, but cannot confer SAG grading. Contacting
+describes SAG support on a Services request; no evaluation request is submitted here.
+The applicant can prepare evidence and interfaces, but cannot confer SAG grading. Contacting
 or submitting to an agency is not performed by this engineering change.
 
 Provisional TRL4 and all nineteen qualification gaps remain open. A relevant-environment
