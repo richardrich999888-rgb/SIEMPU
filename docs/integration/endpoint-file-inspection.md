@@ -65,6 +65,25 @@ ClamAV can create temporary plaintext; cleanup is not secure erasure on disk. Th
 executable hash detects a changed entry point but is not protection against a privileged
 attacker replacing it between checking and execution, or changing linked libraries.
 
+## Executed native smoke result (8 November 2026)
+
+Hosted [run 42458112330](https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42458112330)
+passed all three native checks on commit `db782b64d66b5cb0af2533c27f5ac839d79b5d66`,
+Node 24.21.0 / Ubuntu x64: benign file accepted, EICAR rejected and expanded-size limit
+rejected. There were zero failures, skips, cancellations or TODOs. FreshClam obtained
+and tested official daily 28177, main 63 and bytecode 339. The preflight observed a
+private tmpfs, and source/configuration/executable/database stability checks passed.
+
+The downloaded artifact digest matched GitHub's reported SHA-256
+`55b39480e960277db355e28f1df238129087e76325f4074aef20587b2381bbf9`.
+Its exact report and selected inventory are retained as
+`docs/testing/clamav-native-acceptance-2026-11-08.json` and
+`docs/testing/clamav-native-inventory-2026-11-08.json`. Executable-source digest:
+`69dfdf62ca5bff8f6322276a55dbeab931add359bdf80f75dd60189b3ede0f2e`.
+The earlier local missing-database results below remain historical/local observations.
+This result closes the initial three-case native smoke-test gap only; IAF-G11 remains
+PARTIAL_LAB and representative corpus, host isolation and browser integration remain open.
+
 ## Dependencies and acceptance
 
 There are no new npm packages. ClamAV is an **external optional dependency**, absent
@@ -120,7 +139,8 @@ reuse 1.5.3 for acceptance or deployment. The replacement official 1.5.4 Linux p
 matched its release-metadata SHA-256 and started successfully. Its real missing-database
 scan also returned `FILE_INSPECTION_INCOMPLETE`. The separate acceptance command reports
 `BLOCKED` because official databases are absent. Benign/EICAR/expanded-file acceptance
-is still **not executed**, and no production engine version has been qualified.
+was **not executed in that local environment**; the later hosted result above passed.
+No production engine version has been qualified.
 
 Correction to the earlier download investigation: upstream explicitly disallows scripted
 curl/wget signature downloads. The supported CVDUpdate 1.2.0 updater was installed in an

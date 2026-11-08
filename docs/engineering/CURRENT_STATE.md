@@ -1,5 +1,35 @@
 # Current engineering state (single authoritative handover file)
 
+## Native ClamAV smoke acceptance passed (8 November 2026)
+
+Active branch/PR: `codex/siepmu-clamav-acceptance`, draft
+https://github.com/richardrich999888-rgb/SIEMPU/pull/35, stacked on PR #34. The executed
+code commit is `db782b64d66b5cb0af2533c27f5ac839d79b5d66`, tree
+`1050dcff7c594d39e6052b8bfe40525c29dc3e3d`. It passed all ten local validation gates,
+429 tests and 3/3 E2E on a clean Linux x64 checkout / Node 24.22.1. Six added regressions
+cover evidence completeness, version selection, database snapshots/sidecars, temporary
+storage and blocked-report behavior.
+
+Real native [run 42458112330](https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42458112330)
+passed all three benign/EICAR/expanded-limit cases using ClamAV 1.5.4 and official daily
+28177/main 63/bytecode 339 on Node 24.21.0. Source and inputs remained unchanged. The
+exact report and selected inventory are preserved under `docs/testing/clamav-native-*2026-11-08.json`;
+the downloaded artifact matched its published SHA-256. The initial versioned-sidecar
+preflight defect was fixed without relaxing official-database, freshness or scan limits.
+
+This evidence-only follow-up retains the same executable-source digest
+`69dfdf62ca5bff8f6322276a55dbeab931add359bdf80f75dd60189b3ede0f2e`. It updates the gap
+and dependency descriptions without changing executable code or the native workflow.
+Fresh native signature downloads are not triggered by this documentation change. Validate
+its final exact commit and E2E, then record all hosted CI/Security outcomes and artifact
+links in PR #35. Do not attribute a result from a different commit without its identity
+and source-equivalence qualification. No branch is merged or deployed.
+
+Next engineering work: representative file corpus and native parser/resource isolation,
+then managed endpoint/browser enforcement. The initial native smoke gate is now passed;
+all nineteen broader qualification gaps remain open, IAF-G11 is PARTIAL_LAB, and the
+provisional TRL4 assessment and external authorization/grading status are unchanged.
+
 ## Native scanner acceptance continuation (8 November 2026)
 
 Draft PR #35 is open at https://github.com/richardrich999888-rgb/SIEMPU/pull/35.

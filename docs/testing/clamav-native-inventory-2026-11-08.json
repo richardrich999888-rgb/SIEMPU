@@ -1,0 +1,11 @@
+{
+  "version": "1.5.4",
+  "packageSha256": "28d6efc5b4423e7830c3559339552eb53870a9eac51ac4efb37d60530d329886",
+  "files": {
+    "bin/clamscan": "e94f394a8b806522dd9cef27dfe2a6f7989334d1ca320f20a5af2b22507a0271",
+    "bin/freshclam": "b0cc1d185271767f0651e2d26f9bc32e3c4169d44466187388d9d2493bf53d51",
+    "lib/libclamav.so.12.1.0": "f178ae341c72c5ec875f94a617e3b18482a96034586eadca26335fda676aca40",
+    "etc/certs/clamav.crt": "60200e4b4b1b1b7257bb4550487aeb142034341f3300a8526e77a3134a940e9d"
+  },
+  "scope": "Selected extracted package files only; not a complete native/OS SBOM or detached-signature verification"
+}

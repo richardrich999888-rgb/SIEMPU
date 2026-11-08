@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "kind": "clamav-native-acceptance",
+  "startedAt": "2026-11-08T07:16:48.909Z",
+  "gitCommit": "db782b64d66b5cb0af2533c27f5ac839d79b5d66",
+  "sourceDigest": "69dfdf62ca5bff8f6322276a55dbeab931add359bdf80f75dd60189b3ede0f2e",
+  "workingTreeClean": true,
+  "runtime": {
+    "node": "v24.21.0",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "outcome": "PASS",
+  "nativeTests": {
+    "outcome": "PASS",
+    "exitCode": 0,
+    "counts": {
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failureCodes": [],
+    "tapSha256": "6b29d9ba12f5e9f28f42fe580ee11fe973b1747b525bc2516822b164c2f07072"
+  },
+  "limits": [
+    "Synthetic three-case smoke test only; no representative corpus qualification",
+    "Launcher hash does not attest its interpreter, engine libraries or host",
+    "tmpfs check does not prevent swap, dumps, parser compromise or mount changes",
+    "No readiness, grading or operational authorization is assigned"
+  ],
+  "configurationSha256": "fe539ce8d89cf086f9eb877666fc982803d3eb24f89f568572852543f6a8f9c4",
+  "executableSha256": "babffb4913dce47a54119cfb718e67eeaa3e4c8314171acd509fc75b46b516f5",
+  "temporaryStorage": "PRIVATE_OWNER_0700_TMPFS_OBSERVED",
+  "engineVersion": "1.5.4",
+  "databases": [
+    {
+      "filename": "main.cvd",
+      "bytes": 89072577,
+      "sha256": "0b2182d229f46981ec8f535382222f7c9dfdd656b250ad47988b910a8d302365"
+    },
+    {
+      "filename": "daily.cvd",
+      "bytes": 23448729,
+      "sha256": "6ab32a3161368af4cd55ccb89cbc79c5b787289174667893e774e3ef6854dc01"
+    },
+    {
+      "filename": "bytecode.cvd",
+      "bytes": 281702,
+      "sha256": "6d4aa01f219e988060fc419f495d07f27e0cdf1a2cccc065971da922c76f7ffb"
+    },
+    {
+      "filename": "bytecode-339.cvd.sign",
+      "bytes": 9078,
+      "sha256": "94eb76eff8cf3ab90ec3a67992727e84f9be257f294d72504228e89fa566592f"
+    },
+    {
+      "filename": "daily-28177.cvd.sign",
+      "bytes": 9078,
+      "sha256": "23ead89e8ea171674dbac0fd8bf3107ecbc8bb81d24619add73ea8eefd905109"
+    },
+    {
+      "filename": "main-63.cvd.sign",
+      "bytes": 9078,
+      "sha256": "c030a2235e0ac8b53f95bc6f79563c2b3ddfdcf4fd1d722634578a79530898e2"
+    }
+  ],
+  "sourceUnchanged": true,
+  "finishedAt": "2026-11-08T07:17:15.722Z"
+}
