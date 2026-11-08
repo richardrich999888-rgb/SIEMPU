@@ -1,7 +1,12 @@
 name: Native ClamAV acceptance
 on:
   push:
-    branches: [codex/siepmu-clamav-acceptance, codex/siepmu-evaluation-integrations]
+    branches:
+      [
+        codex/siepmu-clamav-acceptance,
+        codex/siepmu-evaluation-integrations,
+        codex/siepmu-managed-endpoint-pack,
+      ]
     paths:
       [
         '.github/workflows/clamav-native.yml',
@@ -9,6 +14,9 @@ on:
         'tests/file-inspection/**',
         'integrations/endpoint-inspection/**',
         'scripts/clamav-acceptance.mjs',
+        'integrations/managed-endpoint/**',
+        'tests/managed-endpoint/**',
+        '.github/actions/setup-pkcs11-lab/**',
       ]
   workflow_dispatch:
 permissions:
@@ -19,7 +27,7 @@ concurrency:
 jobs:
   native-clamav:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
@@ -36,7 +44,7 @@ jobs:
           lab="$RUNNER_TEMP/clamav-native"
           export SIEPMU_CLAMAV_LAB="$lab"
           mkdir -p "$lab/engine" "$lab/update" "$lab/snapshot" artifacts/clamav-host
-          curl --fail --location --max-time 180 --output "$lab/engine.deb" https://github.com/Cisco-Talos/clamav/releases/download/clamav-1.5.4/clamav-1.5.4.linux.x86_64.deb
+          curl --fail --location --connect-timeout 15 --max-time 180 --retry 3 --retry-all-errors --retry-delay 2 --retry-max-time 240 --output "$lab/engine.deb" https://github.com/Cisco-Talos/clamav/releases/download/clamav-1.5.4/clamav-1.5.4.linux.x86_64.deb
           printf '%s  %s\n' 28d6efc5b4423e7830c3559339552eb53870a9eac51ac4efb37d60530d329886 "$lab/engine.deb" | sha256sum --check
           dpkg-deb --extract "$lab/engine.deb" "$lab/engine"
           python3 - <<'PY'
@@ -66,7 +74,7 @@ jobs:
           lab="$RUNNER_TEMP/clamav-native"
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends apparmor libcap-dev meson ninja-build pkg-config
-          curl --fail --location --max-time 180 --output "$lab/bubblewrap.tar.xz" https://github.com/containers/bubblewrap/releases/download/v0.13.1/bubblewrap-0.13.1.tar.xz
+          curl --fail --location --connect-timeout 15 --max-time 180 --retry 3 --retry-all-errors --retry-delay 2 --retry-max-time 240 --output "$lab/bubblewrap.tar.xz" https://github.com/containers/bubblewrap/releases/download/v0.13.1/bubblewrap-0.13.1.tar.xz
           printf '%s  %s\n' 0e85c8702248b8dd64144f594147553650cdd0e4c951690345faace79c217c4d "$lab/bubblewrap.tar.xz" | sha256sum --check
           tar -xJf "$lab/bubblewrap.tar.xz" -C "$lab"
           meson setup "$lab/bwrap-build" "$lab/bubblewrap-0.13.1" -Dman=disabled -Dselinux=disabled -Dtests=false -Dbash_completion=disabled -Dzsh_completion=disabled
@@ -105,6 +113,17 @@ jobs:
           export SIEPMU_CLAMAV_CONFIG="$lab/isolated-config.json"
           node --test --test-reporter=tap tests/file-inspection/isolation.check.mjs > artifacts/clamav-host/isolation.tap
           node scripts/clamav-acceptance.mjs "$lab/isolated-config.json" artifacts/clamav-host/run
+      - name: Prepare pinned PKCS11 laboratory
+        uses: ./.github/actions/setup-pkcs11-lab
+      - name: Test the separate endpoint with both native integrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          export SIEPMU_PKCS11_LAB_CONFIG="$RUNNER_TEMP/pkcs11-lab/config.json"
+          export SIEPMU_CLAMAV_CONFIG="$RUNNER_TEMP/clamav-native/isolated-config.json"
+          node integrations/managed-endpoint/bundle.mjs artifacts/native-managed-pack > artifacts/clamav-host/managed-package.json
+          export SIEPMU_MANAGED_PACK_ENTRY="$GITHUB_WORKSPACE/artifacts/native-managed-pack/index.mjs"
+          node --test --test-reporter=tap tests/managed-endpoint/native.check.mjs > artifacts/clamav-host/managed-endpoint.tap
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         if: always()
         with:
