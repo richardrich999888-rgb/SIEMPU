@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "kind": "APPLICANT_CRYPTO_INVENTORY",
-  "reviewDate": "2026-11-08",
+  "reviewDate": "2026-11-09",
   "coverage": "Reviewed application mechanisms and separately scoped laboratory/optional tools; not exhaustive discovery, cryptanalysis, an SBOM substitute or an agency decision.",
   "components": [
     {
@@ -353,6 +353,22 @@
       "limitations": "No live provider token validation was exercised. Hashes identify received bytes, not truth or authority. Public-network transport and automatic SIEPMU imports are absent. This module is excluded from the application bundle.",
       "sources": ["integrations/india-dpi/iudx-resource-reader.mjs", "packages/transport/tls.mjs"],
       "tests": ["tests/india-dpi-iudx.test.mjs"]
+    },
+    {
+      "id": "CR-19",
+      "purpose": "Encrypted maintenance backup and independently anchored restore",
+      "mechanisms": [
+        "scrypt N=32768 r=8 p=1; 32-byte salt; 256-bit derived key",
+        "AES-256-GCM with 96-bit IV, 128-bit tag and SIEPMU_BACKUP_V1 AAD",
+        "ECDSA P-256 SHA-256 signed manifest and evidence chain",
+        "SHA-256 file, record and retained-checkpoint comparison"
+      ],
+      "boundary": "Offline operator, six-file co-located control/relay archive, private staging and retained checkpoint",
+      "deploymentScope": "OPTIONAL_OFFLINE_TOOL",
+      "custody": "Passphrase, archive and independently retained public key/checkpoint require separate operator custody; software signing/master/relay keys are included inside encrypted archive.",
+      "limitations": "Maintenance-only sequential snapshots; no complete all-service DR, hardware key protection, power-loss durability qualification or current-policy approval. Evidence authenticity cannot prove arbitrary policy table contents.",
+      "sources": ["scripts/backup.mjs", "apps/verifier/verify.mjs"],
+      "tests": ["tests/recovery.test.mjs"]
     }
   ],
   "sourceBindings": {
@@ -363,7 +379,7 @@
       "sha256": "aabcd7bfb47db105678c8640602d3669f544ec9f3c78395167a470e7689648fe"
     },
     "apps/verifier/verify.mjs": {
-      "sha256": "987205eb481fda99215142f5f1f14c9067ac1f1d19620416c5f0048d66cd35d8"
+      "sha256": "cf19b99f1d297659f77ed144f1ee22c72bfaaf25a153db5c1b0ad535d83a3575"
     },
     "assurance/kat/core/catalog.mjs": {
       "sha256": "55bd7186b6b0dd5fb566ccbe305bda56b5adf4950719d1ee35a3edfe8007572b"
@@ -607,6 +623,12 @@
     },
     "tests/verifier-replay.test.mjs": {
       "sha256": "0b0538ec7b9a62d6a6c9e5a2f084438c3cdee45d320f9004f56011f07e974b01"
+    },
+    "scripts/backup.mjs": {
+      "sha256": "278b6f25e38447f6744e05d0b17fcbecd925c2ad552d77612751809ba3c60c05"
+    },
+    "tests/recovery.test.mjs": {
+      "sha256": "7ecc3e6431038c7b5b64d66ed7f744f00c04d57185718e5d328e89ea16572a3b"
     }
   }
 }

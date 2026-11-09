@@ -48,11 +48,12 @@ retain their existing time limits. Browser vaults and document outboxes are sepa
 
 ## Checkpoint-aware restore CLI
 
-The restore CLI requires both an independently retained authority public key and signed
-checkpoint. It rejects malformed, newer or same-sequence/conflicting anchors before writing
-restored files. Null is not an anchor. The module API retains its explicitly optional anchor
-for existing laboratory callers. This is a minimum checkpoint comparison, not a proof of
-every post-anchor record or a substitute for current custody/policy checks on restart.
+The original restore CLI required an independently retained public key/checkpoint but only
+compared checkpoint positions and equal-position hashes. REC-01 demonstrated that this accepted
+a divergent earlier anchor. The follow-up in [disaster-recovery.md](../disaster-recovery.md)
+supersedes that behavior: both CLI and module require a checkpoint, verify all signed links and
+its exact ancestor hash, and stage before publication. The module's former optional-anchor
+mode is removed. This remains no substitute for current custody/policy checks on restart.
 Coordinated all-service backup, geographic recovery and endpoint backup custody remain open.
 
 ## Durable monitoring delivery

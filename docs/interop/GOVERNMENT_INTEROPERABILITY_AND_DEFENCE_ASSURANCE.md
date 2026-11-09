@@ -1,22 +1,26 @@
 # AIRON–SIEPMU Government Interoperability and Defence Assurance Report
 
-Review date: **8 November 2026**. Organisation: SYNTRIASS Labs Pvt. Ltd.
-Scope: DISC-14 PS-69; PR #39, `codex/india-dpi-iudx-contract-tests`, stacked on PR #38.
+Review date: **9 November 2026**. Organisation: SYNTRIASS Labs Pvt. Ltd.
+Scope: DISC-14 PS-69; `codex/defence-assurance-recovery-anchors`, based on PR #39
+at `09e33daf96b4732fd92babac6cce3d842b7c7118` (itself stacked on PR #38).
 This applicant engineering record establishes no SAG grading or operational authorization.
 Independent assessment and a system-level TRL 5 decision are **not established**.
 
-The current iteration fixes the reproducible formatting failure and hardens the isolated DX
-reader. It adds a real loopback TLS transport, authority-separation regressions, a measured
-policy-release comparison and a source-bound observer package. No government API transaction,
-production deployment, restricted-system access or new runtime dependency is introduced.
+PR #39 already contains the DX reader hardening, local TLS tests and source-bound observer
+package. Its latest four hosted CI/Security runs pass, and the current session reproduced all
+ten local validation gates and 14 contract/comparison tests on that unchanged baseline.
+The new iteration fixes REC-01: a decryptable, correctly signed backup from a different history
+could pass the restore checkpoint check when its sequence was higher. Restore now verifies
+the exact retained ancestor and all signed links before publishing staged files. No government
+API transaction, production deployment, restricted-system access or new runtime dependency is introduced.
 
 Execution results belong to `artifacts/interop-assurance/report.json` and its manifest, which
 record the exact commit/tree. They are produced **after** source freeze. This document does not
-predict a CI outcome. Final hosted run links and outstanding gates are recorded in PR #39.
+predict a CI outcome. Final hosted run links and outstanding gates belong to the delivery PR.
 
 ## 1. Government technologies: verified facts and selection
 
-Primary sources below were reviewed on 8 November. Availability of documentation or source is
+Primary sources below were reviewed on 8 November and rechecked on 9 November. Availability of documentation or source is
 not compatibility with an operational government deployment. Proposed uses are our engineering
 inferences, not requirements or endorsements from those projects. We reviewed the named public
 projects, not every community or all non-public government interfaces.
@@ -36,6 +40,11 @@ It needs only existing Node built-ins and the repository TLS component. Deployin
 server would add Vert.x/PostgreSQL/RabbitMQ and supporting infrastructure described by its
 README; that stack is neither required nor imported for a read-only endpoint adapter.
 Maintenance timestamps are activity observations, not proof of security or supported versions.
+On 9 November the pinned DX OpenAPI bytes were fetched again and matched SHA-256
+`8e11d6138029dd94d3915472aa8bc46934fcc89f0a1b85a8a91b51315acf74c4` exactly. Repository
+metadata still showed DX proxy, eSignet and Digit-Core as unarchived with the licences and
+activity dates above. NIC, C-DOT, OpenForge, MOSIP and DIGIT public descriptions were re-read.
+These checks do not supply a live token, permitted military identity mapping or interface approval.
 
 ## 2. Implemented integrations and trust boundaries
 
@@ -60,6 +69,32 @@ runtime imports. Classified content, all-file-type safety, a military gateway an
 PKI compatibility are not established by this work.
 
 ## 3. Adversarial evidence and remediation
+
+### Current finding: REC-01, divergent recovery history
+
+At baseline `09e33daf96b4732fd92babac6cce3d842b7c7118`, two synthetic histories shared the
+same original authority signing identity. The independently retained checkpoint was at
+sequence 2; the alternate backup reached sequence 3. Restore accepted it even though the
+stored hash at sequence 2 differed. The reproducer exited 1 with `accepted: true` and
+`anchorMatchesRestoredHistory: false`. This demonstrates an operator-facing recovery-integrity
+and false-assurance defect, not remote exploitation or a demonstrated secure-profile key-release
+bypass. The independent custody guard remains a separate protection at service restart.
+
+| Boundary             | Change and regression oracle                                                                                                                                                                                                                                     |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Independent anchor   | Both restore APIs require a non-null signed checkpoint. Earlier divergent, newer, malformed and inconsistent-genesis anchors fail; legitimate same-history ancestors succeed.                                                                                    |
+| Complete history     | The existing verifier's signature/link rules are shared through a synchronous iterable helper. SQLite sequence/hash columns, exact checkpoint position and signed manifest head must agree. The asynchronous verifier API and its export limit remain unchanged. |
+| Archive and identity | Exact file sets replace delimiter-joined comparisons; noncanonical Base64, malformed heads, extra digests and restored key substitution fail. Archive authentication and wrong-passphrase tests still exercise valid anchors.                                    |
+| Publication          | Private sibling staging precedes read-only history checks and final rename. Injected disk-write failure leaves no populated destination; retry succeeds. Symlink/nonempty destinations are refused.                                                              |
+
+Reproduce with `node --test tests/recovery.test.mjs`; the adversarial campaign's recovery family
+and Security regression job already include that file. The original standalone fork trigger
+changes from acceptance to `Chain conflicts with externally saved checkpoint`. Source-bound
+final validation/campaign logs record the executed counts. See [recovery semantics](../disaster-recovery.md).
+No complete DR, protected hardware custody, power-loss durability, arbitrary policy-table
+authentication or current-personnel authorization is inferred. IAF-G08 remains open.
+
+### Historical PR #39 remediation
 
 Starting commit: `8ba056e4b00eea5696c2b5880dd8e2ba26c7782c`.
 [Push CI 42483937839](https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42483937839)
@@ -131,22 +166,22 @@ military interfaces and an encryption algorithm with SAG grading, which remains 
 is set by the certifying/QA agencies. It does not supply personnel PKI, classification permission,
 message modes, load/SLA targets or authority to use a government sandbox. Those are still missing.
 
-| Requirement                                    | This iteration's evidence                                                            | Remaining boundary                                                  |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
-| R1/R5/R7 identity, E2EE and local authority    | External-token/role denial; synthetic endpoint sealing and correct-recipient release | Nominated issuer, managed devices, approved operating scope         |
-| R2/R6 integrity, secure protocols and evidence | Response limits/deadlines/TLS checks; source-bound report and policy experiment      | Live owner contract, independent observers and deployment controls  |
-| R3/R11 latency and scale                       | Raw local release measurements; fresh CI load/impairment evidence required           | Agreed communication modes, workload and SLA                        |
-| R4 service boundaries                          | Isolated endpoint reader; no production route or extra service stack                 | Representative hosting and operational isolation                    |
-| R8 military interoperability                   | Public DX contract plus separate synthetic adapter tests                             | Public DPI compatibility does not satisfy a real military interface |
-| R9 cryptographic assurance                     | Updated reviewed crypto inventory and exact-source evaluation package                | Pending SAG scope, permitted module and formal decision             |
-| R10 storage/recovery                           | Existing adversarial custody, corruption and restore tests rerun                     | Independent backup custody, full DR and accepted retention          |
-| R12 qualification                              | Traceable sources/tests, reproducible observer package                               | Agency-directed testing and documentary decisions                   |
+| Requirement                                    | This iteration's evidence                                                                  | Remaining boundary                                                  |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| R1/R5/R7 identity, E2EE and local authority    | External-token/role denial; synthetic endpoint sealing and correct-recipient release       | Nominated issuer, managed devices, approved operating scope         |
+| R2/R6 integrity, secure protocols and evidence | Response limits/deadlines/TLS checks; source-bound report and policy experiment            | Live owner contract, independent observers and deployment controls  |
+| R3/R11 latency and scale                       | Raw local release measurements; fresh CI load/impairment evidence required                 | Agreed communication modes, workload and SLA                        |
+| R4 service boundaries                          | Isolated endpoint reader; no production route or extra service stack                       | Representative hosting and operational isolation                    |
+| R8 military interoperability                   | Public DX contract plus separate synthetic adapter tests                                   | Public DPI compatibility does not satisfy a real military interface |
+| R9 cryptographic assurance                     | Updated reviewed crypto inventory and exact-source evaluation package                      | Pending SAG scope, permitted module and formal decision             |
+| R10 storage/recovery                           | REC-01 exact ancestor/full-history verification, private staging and injected disk failure | Independent backup custody, full DR and accepted retention          |
+| R12 qualification                              | Traceable sources/tests, reproducible observer package                                     | Agency-directed testing and documentary decisions                   |
 
 ## 6. Pending SAG evaluation requirements
 
-[DRDO's industry-support document](https://drdo.gov.in/drdo/sites/default/files/inline-files/Support-to-Indian-Industry_1.pdf)
+[DRDO's industry-support document](https://www.drdo.gov.in/drdo/sites/default/files/schemes_services/Support-to-Indian-Industry_1_0.pdf)
 describes SAG testing support on a Service request; no such request for AIRON is established. The official
-search-index excerpt was retrieved; the full PDF timed out in this session. This is a route to
+indexed excerpt was rechecked on 9 November. This is a route to
 seek direction, not evidence of sponsorship, fees, acceptance or a scheduled evaluation.
 The source-specific public PS-69 grading requirement was verified directly in the compendium.
 
@@ -179,6 +214,8 @@ The existing evaluation package includes reviewed algorithms, key locations, pro
 software/lab limitations, source bindings and SBOM. This iteration adds the optional reader's
 TLS/hash inventory. Software PKCS#11 emulation is not physical key protection; generic primitives,
 NEXORA evidence, known-answer tests and standards references are not agency-qualified modules.
+The follow-up adds CR-19 for backup scrypt/AES-GCM, manifest signatures, history checks and
+the software-key/archive custody boundary, and refreshes reviewed source bindings after the fix.
 SAG-01–06 in `assurance/sag/requests.json` remain pending. A public government API token or
 another product's grading cannot satisfy them.
 
@@ -213,6 +250,11 @@ GitHub execution, staff time or formal evaluation is universally free.
 | Independent audit, lab access and witness     | Agree scope and request sponsorship or applicable support                                             | Fees/waivers unknown; no zero-cost grading claim                                  |
 | HA, DR, fleet controls and remaining modes    | Engineering effort depends on accepted architecture and workload                                      | No defensible fixed total before requirements; itemized estimate remains required |
 
+The [MoD announcement of 7 October 2026](https://www.pib.gov.in/PressReleseDetailm.aspx?PRID=2320195&lang=1&reg=3)
+states a proof/testing-charge waiver for iDEX, TDF, Make and other MoD development projects.
+Obtain written applicability to this project, facility and evaluation scope. The announcement
+does not establish a free SAG assessment for AIRON or pay for hardware, engineering or travel.
+
 Use the existing [quote-required BOM](../../research/trl56/13-bill-of-materials-and-budget.md).
 Do not advertise a full readiness cost from free dependency licences. Dependency PRs were not
 blindly adopted: Node 26 conflicts with the declared Node 24 profile, and dev-tool updates need
@@ -221,6 +263,18 @@ separate compatibility/security evidence. Root runtime dependencies remain zero.
 Upstream licence observations above do not import those full dependency graphs into this build.
 
 ## 9. Source, PRs, delivery gates and blockers
+
+The 9 November continuation began at the latest PR #39 head
+`09e33daf96b4732fd92babac6cce3d842b7c7118`, tree `f100aa98ba6571a2054b8a0ce8951f223537bf7b`.
+All 31 open PR heads/bases were inspected and recorded in the refreshed
+[9 November inventory](open-pr-inventory-2026-11-09.json); PR #39 had advanced from the
+original 8 November inventory. The review stack and divergent dependency PRs remain unmerged. Historical exact-head CI
+[42491872298](https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42491872298) and
+[42491875644](https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42491875644), and Security
+[42491872304](https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42491872304) and
+[42491875637](https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42491875637), all passed.
+The PR relevant-env job log confirms 35/35 including T8.1 at that baseline. These are not results
+for the new recovery fix; its clean source identity and outcomes are generated separately.
 
 - Starting PR: [#39](https://github.com/richardrich999888-rgb/SIEMPU/pull/39), head
   `8ba056e4b00eea5696c2b5880dd8e2ba26c7782c`.
