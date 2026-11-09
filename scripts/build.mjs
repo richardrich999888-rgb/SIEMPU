@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 // Native JavaScript has no transpilation step. This packages only an explicit source allowlist.
 const roots = ['apps', 'services', 'packages', 'scripts', 'database'];
 const excludedScripts = new Set([
+  'scripts/legacy-migration.mjs',
   'scripts/demo.mjs',
   'scripts/trust-before-release.mjs',
   'scripts/demo-document-exchange.mjs',

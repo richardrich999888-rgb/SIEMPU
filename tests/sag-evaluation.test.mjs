@@ -180,8 +180,17 @@ test('reviewed crypto inventory includes application, laboratory and optional to
   assert.ok(reader.sources.includes('integrations/india-dpi/iudx-resource-reader.mjs'));
   const recovery = c.components.find((v) => v.id === 'CR-19');
   assert.equal(recovery.deploymentScope, 'OPTIONAL_OFFLINE_TOOL');
-  assert.deepEqual(recovery.sources, ['scripts/backup.mjs', 'apps/verifier/verify.mjs']);
-  assert.deepEqual(recovery.tests, ['tests/recovery.test.mjs']);
+  assert.deepEqual(recovery.sources, [
+    'scripts/backup.mjs',
+    'apps/verifier/verify.mjs',
+    'scripts/legacy-migration.mjs',
+  ]);
+  assert.deepEqual(recovery.tests, [
+    'tests/recovery.test.mjs',
+    'tests/legacy-migration.test.mjs',
+    'tests/helpers/legacy-migration-fixture.mjs',
+    'tests/helpers/migration-worker.mjs',
+  ]);
   const fencing = c.components.find((v) => v.id === 'CR-20');
   assert.equal(fencing.deploymentScope, 'APPLICATION');
   assert.ok(fencing.sources.includes('services/evidence/fencing.mjs'));

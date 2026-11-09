@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "kind": "APPLICANT_CRYPTO_INVENTORY",
-  "reviewDate": "2026-11-09",
+  "reviewDate": "2026-11-10",
   "coverage": "Reviewed application mechanisms and separately scoped laboratory/optional tools; not exhaustive discovery, cryptanalysis, an SBOM substitute or an agency decision.",
   "components": [
     {
@@ -356,19 +356,25 @@
     },
     {
       "id": "CR-19",
-      "purpose": "Encrypted maintenance backup and independently anchored restore",
+      "purpose": "Encrypted maintenance backup, independently anchored restore and explicit synthetic legacy migration",
       "mechanisms": [
         "scrypt N=32768 r=8 p=1; 32-byte salt; 256-bit derived key",
         "AES-256-GCM with 96-bit IV, 128-bit tag and SIEPMU_BACKUP_V1 AAD",
         "ECDSA P-256 SHA-256 signed manifest and evidence chain",
-        "SHA-256 file, record and retained-checkpoint comparison"
+        "SHA-256 file, record and retained-checkpoint comparison",
+        "Independent full-snapshot manifest pin and exact legacy custody anchor; separate P-256 reviewer approval bound to the complete migration plan"
       ],
-      "boundary": "Offline operator, six-file co-located control/relay archive, private staging and retained checkpoint",
+      "boundary": "Offline operator, six-file co-located control/relay archive, private staging and retained checkpoint; separate reviewer and synthetic-only candidate builder",
       "deploymentScope": "OPTIONAL_OFFLINE_TOOL",
       "custody": "Passphrase, archive and independently retained public key/checkpoint require separate operator custody; software signing/master/relay keys are included inside encrypted archive.",
-      "limitations": "Maintenance-only sequential snapshots; no complete all-service DR, hardware key protection, power-loss durability qualification or current-policy approval. Evidence authenticity cannot prove arbitrary policy table contents.",
-      "sources": ["scripts/backup.mjs", "apps/verifier/verify.mjs"],
-      "tests": ["tests/recovery.test.mjs"]
+      "limitations": "Maintenance-only sequential snapshots; no complete all-service DR, hardware key protection, power-loss durability qualification or current-policy approval. Evidence authenticity cannot prove arbitrary policy table contents. Synthetic migration requires a trusted historical full-snapshot witness; old custody digest alone is insufficient. It builds a separate quarantined database candidate, never advances custody or activates services, and is excluded from deployed application/offline packages.",
+      "sources": ["scripts/backup.mjs", "apps/verifier/verify.mjs", "scripts/legacy-migration.mjs"],
+      "tests": [
+        "tests/recovery.test.mjs",
+        "tests/legacy-migration.test.mjs",
+        "tests/helpers/legacy-migration-fixture.mjs",
+        "tests/helpers/migration-worker.mjs"
+      ]
     },
     {
       "id": "CR-20",
@@ -523,7 +529,7 @@
       "sha256": "2ff141c1e05f59a19d2f110838a6e60a2f380a8517493b0ec69e50fb5700d462"
     },
     "packages/release/offline.mjs": {
-      "sha256": "9fd53ebc96dfa3f3230dff5e2d1a16c5521a43dfa2efe3c77525cf60daf7ef74"
+      "sha256": "f9d07df8a7bb8d4cbd3049393b5b6514d2f2d3d772fe202d72c602e0ff069d64"
     },
     "packages/storage/private-sqlite.mjs": {
       "sha256": "27f4c063229409f66196d858c3f82d82efba98dba3cf332b06ff22776ae7e3e2"
@@ -538,10 +544,13 @@
       "sha256": "b9c864bc3acd676ce57285f9b4d11da1bad9e41575eb7a9a5da87be61de464e6"
     },
     "scripts/backup.mjs": {
-      "sha256": "0e25e57ae024cc05efce53c4d89c3b843718e495990e372c2d53b7ae39568452"
+      "sha256": "e8711a1b42a02f4acf3d71e1fdc861d30387c15a67c6fad6619cd62c1c3b6b3c"
     },
     "scripts/bootstrap.mjs": {
       "sha256": "9fb57c9556c93bfc3caf90403621e21e70f679ed52605a225169a1d0c0fc350e"
+    },
+    "scripts/legacy-migration.mjs": {
+      "sha256": "2f7109d3b6ed4e71796c7abf02cd18ddc2e7b9a7c896ed092588ca3cbeea2757"
     },
     "services/control/core.mjs": {
       "sha256": "a4d7b86760923efa9fa8b8ca41a17099d977aa33c7b4759f0cc491229c98bbfe"
@@ -645,11 +654,20 @@
     "tests/file-inspection.test.mjs": {
       "sha256": "699a4681119a725429bb3fe649842a6ddabbac3d23e5b46ed99115825051e377"
     },
+    "tests/helpers/legacy-migration-fixture.mjs": {
+      "sha256": "eaa03b4a78cb7391376f634f15a9223350bc8259cd2648d65328569908835e85"
+    },
+    "tests/helpers/migration-worker.mjs": {
+      "sha256": "0c8768215a4320a54d3d4576c89aaadff35b46190d160a197545d720008a460f"
+    },
     "tests/india-dpi-iudx.test.mjs": {
       "sha256": "e66d3fa0223d154b077a6127673141925cd4a7b595f443ba31be380ea5ac1c9c"
     },
     "tests/inspection-sandbox.test.mjs": {
       "sha256": "9e0a455711d79c65c1ca3d53d9d549cdb993e2aa033b51b0159d44efc1f6fa51"
+    },
+    "tests/legacy-migration.test.mjs": {
+      "sha256": "dcae58a7d4248cf6c4e4628b12a60f3cb35082ad0cb7296a55e33600015f82bb"
     },
     "tests/managed-endpoint/native.check.mjs": {
       "sha256": "01bd7e9ac9bd8db7bf67fa67a6420162fc17f065b00cfcfb2b6467f793dcca4f"
@@ -664,7 +682,7 @@
       "sha256": "dbd0d6eef9de284de7be7d3e30e97aab55fe2429d4c81afc6cb41eba1b29a3d5"
     },
     "tests/offline-release.test.mjs": {
-      "sha256": "d917c43d989a0a651778ed0cc43ef79f8e63b9c4b4a08ee6d6319dd9a57e934a"
+      "sha256": "203a72412e06997a946b60d9cf6ebfeae4a378a6efb5bbb4b24c9093715ecea0"
     },
     "tests/pkcs11/provider.check.mjs": {
       "sha256": "524650da5112eb91b8ea63d966c6df9d86feae492e76bb22049065c915e2c397"

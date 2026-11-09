@@ -54,7 +54,8 @@
         "tests/recovery.test.mjs",
         "tests/incremental-custody.test.mjs",
         "tests/authority-state-custody.test.mjs",
-        "tests/writer-fencing.test.mjs"
+        "tests/writer-fencing.test.mjs",
+        "tests/legacy-migration.test.mjs"
       ],
       "oracle": "Rollback/fork/outage blocks key-bearing operations; recovery retains the independent checkpoint boundary."
     },

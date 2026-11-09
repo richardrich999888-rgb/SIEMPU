@@ -167,6 +167,29 @@ export function backup(dir, destination, passphrase) {
 export function restore(archive, destination, passphrase, trustedPublicKey, { checkpoint } = {}) {
   destination = resolve(destination);
   const priorDestination = emptyDestination(destination);
+  const { manifest, decoded } = readBackup(archive, passphrase, trustedPublicKey, checkpoint);
+  // Offline, exclusive maintenance in an operator-controlled parent directory. Staging
+  // keeps verification/write failures from publishing a partial service directory.
+  mkdirSync(dirname(destination), { recursive: true, mode: 0o700 });
+  const staging = mkdtempSync(join(dirname(destination), '.siepmu-restore-'));
+  try {
+    mkdirSync(join(staging, 'relay'), { mode: 0o700 });
+    for (const [name, bytes] of decoded)
+      writeFileSync(join(staging, name), bytes, { mode: 0o600, flag: 'wx' });
+    verifyRestoredHistory(staging, trustedPublicKey, checkpoint, manifest.payload.checkpoint);
+    const current = emptyDestination(destination);
+    if (current?.ino !== priorDestination?.ino || current?.dev !== priorDestination?.dev)
+      throw new Error('Restore destination changed');
+    if (current) rmdirSync(destination);
+    renameSync(staging, destination);
+  } finally {
+    rmSync(staging, { recursive: true, force: true });
+  }
+  return manifest;
+}
+/** Authenticate/decode an archive without restoring or trusting its database state.
+ * Callers must separately verify history AND authorization state before publication. */
+export function readBackup(archive, passphrase, trustedPublicKey, checkpoint) {
   if (checkpoint === undefined || checkpoint === null)
     throw new Error('Independently retained checkpoint required');
   if (
@@ -177,7 +200,7 @@ export function restore(archive, destination, passphrase, trustedPublicKey, { ch
     checkpoint.payload.issuedAt < 0
   )
     throw new Error('Backup predates or conflicts with trusted checkpoint');
-  const p = JSON.parse(readFileSync(archive));
+  const p = JSON.parse(Buffer.isBuffer(archive) ? archive : readFileSync(archive));
   if (
     !sameMembers(p, ['format', 'salt', 'iv', 'ciphertext', 'tag']) ||
     p.format !== 'SIEPMU_BACKUP_V1'
@@ -244,24 +267,7 @@ export function restore(archive, destination, passphrase, trustedPublicKey, { ch
     !verifyPacket(trustedPublicKey, packet(restoredKey, { purpose: 'SIEPMU_BACKUP_KEY_CHECK_V1' }))
   )
     throw new Error('Backup authority key mismatch');
-  // Offline, exclusive maintenance in an operator-controlled parent directory. Staging
-  // keeps verification/write failures from publishing a partial service directory.
-  mkdirSync(dirname(destination), { recursive: true, mode: 0o700 });
-  const staging = mkdtempSync(join(dirname(destination), '.siepmu-restore-'));
-  try {
-    mkdirSync(join(staging, 'relay'), { mode: 0o700 });
-    for (const [name, bytes] of decoded)
-      writeFileSync(join(staging, name), bytes, { mode: 0o600, flag: 'wx' });
-    verifyRestoredHistory(staging, trustedPublicKey, checkpoint, manifest.checkpoint);
-    const current = emptyDestination(destination);
-    if (current?.ino !== priorDestination?.ino || current?.dev !== priorDestination?.dev)
-      throw new Error('Restore destination changed');
-    if (current) rmdirSync(destination);
-    renameSync(staging, destination);
-  } finally {
-    rmSync(staging, { recursive: true, force: true });
-  }
-  return content.manifest;
+  return { manifest: content.manifest, decoded };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const [command, a, b, c, checkpointPath, ...extra] = process.argv.slice(2);
