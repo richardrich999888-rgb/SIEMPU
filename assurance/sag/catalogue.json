@@ -393,12 +393,14 @@
         "deployment/secure/harness.mjs",
         "deployment/testbed/provision.mjs",
         "services/evidence/authorization-state.mjs",
-        "database/migrations/007-authorization-commit.sql"
+        "database/migrations/007-authorization-commit.sql",
+        "scripts/bootstrap.mjs"
       ],
       "tests": [
         "tests/authority-state-custody.test.mjs",
         "tests/writer-fencing.test.mjs",
-        "tests/transport/secure-stack.test.mjs"
+        "tests/transport/secure-stack.test.mjs",
+        "scripts/authority-handover.test.mjs"
       ]
     }
   ],
@@ -422,7 +424,7 @@
       "sha256": "b0ef9cdabe4185af1eceded73dcc829ff1497a3ca53875d183afb875d3d1f111"
     },
     "deployment/secure/harness.mjs": {
-      "sha256": "eadf6bfdcf2fd9663f7755c25ca58bb71ae5ee685e99939a347f342d7ae9cf31"
+      "sha256": "a1546727aa694501b44693709ed7f895d0ddb5c4c281300c1d08f33e483e3d8d"
     },
     "deployment/secure/lab-pki.mjs": {
       "sha256": "860dfb1f669582d303a276ed7a3cbdb016cc095585aa6743c2ab5b8c5e90a693"
@@ -530,13 +532,16 @@
       "sha256": "ad0d932a1646e8c15f5f3a324b65980104ac2682b7d9e03ea945aa9c792ede9f"
     },
     "scripts/authority-handover.mjs": {
-      "sha256": "dcf2b6c0be40c94a83ef10fcb785309f474bcf020776280a5294e9656f9a2084"
+      "sha256": "21a685e7dc2875ef62362850fa9f41299837b8d679530171a71108625a56776f"
+    },
+    "scripts/authority-handover.test.mjs": {
+      "sha256": "b9c864bc3acd676ce57285f9b4d11da1bad9e41575eb7a9a5da87be61de464e6"
     },
     "scripts/backup.mjs": {
       "sha256": "0e25e57ae024cc05efce53c4d89c3b843718e495990e372c2d53b7ae39568452"
     },
     "scripts/bootstrap.mjs": {
-      "sha256": "603611fa0424086d9ec784f464ccb1410c041b5d718176e7fb20c301f777ac70"
+      "sha256": "9fb57c9556c93bfc3caf90403621e21e70f679ed52605a225169a1d0c0fc350e"
     },
     "services/control/core.mjs": {
       "sha256": "a4d7b86760923efa9fa8b8ca41a17099d977aa33c7b4759f0cc491229c98bbfe"
@@ -680,7 +685,7 @@
       "sha256": "3ecc73a8288972f3d17c246f52ecc221f515b3899802f48f001632fd5fe2321a"
     },
     "tests/transport/secure-stack.test.mjs": {
-      "sha256": "a211a64abfe3ec9911a7c8765391ed503fc6dfdca6c44eae1e161f6a706b94a6"
+      "sha256": "0cdd3082f517c49505d22b457f4bef298388f581c09d03fc6e191ada1f2c2554"
     },
     "tests/transport/tls.test.mjs": {
       "sha256": "4820f99ea08fc55d369942e935bfd4ceca4fa82b0ceaeffff25d6084a13ba607"

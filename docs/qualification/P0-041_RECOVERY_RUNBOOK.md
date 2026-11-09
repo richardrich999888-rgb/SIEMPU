@@ -47,6 +47,11 @@ custodian's controlled maintenance host:
 node scripts/authority-handover.mjs CUSTODY_DB AUTHORITY_PUBLIC_KEY CUSTODIAN_PRIVATE_KEY REQUEST_JSON > NEW_SIGNED_RECEIPT
 ```
 
+The database must already exist in an operator-owned directory (0700), with database and private
+key files restricted to that operator (0600). JSON inputs are limited to 16 KiB and read through
+one validated descriptor; final symlinks are rejected. This maintenance boundary does not resist
+a hostile process with the same OS identity. Preserve that administration boundary during handover.
+
 The compare-and-swap fails if another handover or checkpoint won. Do not retry automatically
 with newly read values. Reconcile and review first. Retain and independently verify the signed
 receipt. Start the replacement with the new credential, pinned mTLS, the same custodian and

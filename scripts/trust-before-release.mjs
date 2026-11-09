@@ -147,13 +147,13 @@ export async function runTrustBeforeRelease({ iterations = ITERATIONS_DEFAULT } 
 
   const previousLab = process.env.SIEPMU_ALLOW_PQC_LAB;
   process.env.SIEPMU_ALLOW_PQC_LAB = '1';
-  const f = await provision();
+  const f = await provision({ allowPqcLab: true });
   let stack, proxy;
   try {
     await step(
       'Start five-process secure stack (TLS 1.3, mTLS, custody, collector; PQC lab on)',
       async () => {
-        stack = await startSecureStack(f.dir);
+        stack = await startSecureStack(f.dir, { allowPqcLab: true });
         return { ports: stack.ports };
       },
     );

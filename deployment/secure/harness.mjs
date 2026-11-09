@@ -13,13 +13,15 @@ import { join, resolve } from 'node:path';
 import { generateKeyPairSync } from 'node:crypto';
 import { generateLabPKI } from './lab-pki.mjs';
 import { requestBytes } from '../../packages/transport/tls.mjs';
+import { assertAuthorizationCommit } from '../../services/evidence/authorization-state.mjs';
 
-export async function seedLabCustodian(authorityDir, custodyDir) {
+export async function seedLabCustodian(authorityDir, custodyDir, { allowPqcLab = false } = {}) {
   const authorityKey = JSON.parse(readFileSync(join(authorityDir, 'public-key.json')));
   const authority = new Authority({
     dbPath: join(authorityDir, 'control.sqlite'),
     signingKey: JSON.parse(readFileSync(join(authorityDir, 'server-key.json'))),
     masterKey: readFileSync(join(authorityDir, 'master.key')),
+    allowPqcLab,
   });
   const custody = new CheckpointCustodian({
     database: join(custodyDir, 'checkpoints.sqlite'),
@@ -28,6 +30,7 @@ export async function seedLabCustodian(authorityDir, custodyDir) {
     allowBootstrap: true,
   });
   try {
+    assertAuthorizationCommit(authority);
     await custody.accept(
       packet(authority.key, {
         version: 1,
@@ -172,13 +175,20 @@ export function labEnvironment(
 }
 export async function startSecureStack(
   dir,
-  { root = resolve('.'), lab = prepareSecureLab(dir), spawnService = spawn } = {},
+  {
+    root = resolve('.'),
+    lab = prepareSecureLab(dir),
+    spawnService = spawn,
+    allowPqcLab = false,
+  } = {},
 ) {
-  await seedLabCustodian(dir, lab.independent);
+  await seedLabCustodian(dir, lab.independent, { allowPqcLab });
   const ports = {};
   for (const n of ['web', 'control', 'relay', 'checkpoint', 'collector'])
     ports[n] = await reservePort();
   const env = { ...process.env, ...labEnvironment(dir, lab.pki, ports) };
+  if (allowPqcLab) env.SIEPMU_ALLOW_PQC_LAB = '1';
+  else delete env.SIEPMU_ALLOW_PQC_LAB;
   delete env.SIEPMU_ALLOW_REMOTE_HTTP;
   const children = new Map(),
     logs = [];

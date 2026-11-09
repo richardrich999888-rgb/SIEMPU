@@ -8,10 +8,10 @@ import { reservePort } from '../../deployment/secure/ports.mjs';
 
 export const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const relayStores = new Map();
-export async function provision() {
+export async function provision(options = {}) {
   const dir = await mkdtemp(join(tmpdir(), 'siepmu-test-'));
   const { initDemo } = await import('../../scripts/bootstrap.mjs');
-  const provisioned = await initDemo(dir);
+  const provisioned = await initDemo(dir, options);
   const profiles = Object.fromEntries(
     provisioned.profiles.map((profile) => [profile.username, profile]),
   );
@@ -44,7 +44,7 @@ export async function openAuthority(dir, hooks = {}, options = {}) {
   });
 }
 export async function coreFixture(t, hooks = {}, options = {}) {
-  const fixture = await provision();
+  const fixture = await provision({ allowPqcLab: options.allowPqcLab ?? false });
   const authority = await openAuthority(fixture.dir, hooks, options);
   const transport = coreTransport(authority);
   const clients = Object.fromEntries(

@@ -116,3 +116,25 @@ test('complete TLS/mTLS exchange with independent custody, unauthorized client a
   assert.equal(restored, true);
   assert.equal(stack.logs().includes('SYNTHETIC isolated enclave'), false);
 });
+
+test('PQC laboratory runtime gate is explicitly bound at bootstrap and custody startup', async (t) => {
+  const f = await provision({ allowPqcLab: true });
+  let stack;
+  t.after(async () => {
+    await stack?.stop();
+    await rm(f.dir, { recursive: true, force: true });
+  });
+  stack = await startSecureStack(f.dir, { allowPqcLab: true });
+  const admin = new ApiClient(secureApiTransport(stack.baseUrl, stack.tls), f.profiles.admin);
+  await admin.authenticate();
+  assert.equal((await admin.ok('GET', '/api/admin/crypto')).allowPqcLab, true);
+});
+
+test('custody bootstrap refuses a runtime profile inconsistent with the existing seal', async (t) => {
+  const f = await provision();
+  t.after(() => rm(f.dir, { recursive: true, force: true }));
+  await assert.rejects(
+    startSecureStack(f.dir, { allowPqcLab: true }),
+    /AUTHORIZATION_COMMIT_MISMATCH/,
+  );
+});
