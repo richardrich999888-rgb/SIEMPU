@@ -7,12 +7,15 @@ import {
   readdirSync,
   existsSync,
   rmSync,
-  chmodSync,
+  lstatSync,
+  renameSync,
+  rmdirSync,
 } from 'node:fs';
-import { resolve, join } from 'node:path';
+import { resolve, join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomBytes, scryptSync, createCipheriv, createDecipheriv } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
+import { verifyEvidenceRecords } from '../apps/verifier/verify.mjs';
 import {
   packet,
   verifyPacket,
@@ -27,6 +30,55 @@ const names = [
   'relay.secret',
   'public-key.json',
 ];
+const sameMembers = (value, expected) => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const actual = Object.keys(value).sort(),
+    wanted = [...expected].sort();
+  return actual.length === wanted.length && actual.every((name, i) => name === wanted[i]);
+};
+const validHead = (head) =>
+  sameMembers(head, ['sequence', 'headHash']) &&
+  Number.isSafeInteger(head.sequence) &&
+  head.sequence >= 0 &&
+  typeof head.headHash === 'string' &&
+  /^[a-f0-9]{64}$/.test(head.headHash) &&
+  (head.sequence === 0) === (head.headHash === '0'.repeat(64));
+function emptyDestination(destination) {
+  let stat;
+  try {
+    stat = lstatSync(destination);
+  } catch (error) {
+    if (error.code === 'ENOENT') return undefined;
+    throw error;
+  }
+  if (!stat.isDirectory() || stat.isSymbolicLink() || readdirSync(destination).length)
+    throw new Error('Restore destination must be an empty real directory');
+  return stat;
+}
+function verifyRestoredHistory(directory, trustedPublicKey, checkpoint, head) {
+  const db = new DatabaseSync(join(directory, 'control.sqlite'), { readOnly: true });
+  try {
+    db.exec('PRAGMA trusted_schema=OFF; PRAGMA query_only=ON;');
+    const integrity = db.prepare('PRAGMA quick_check').all();
+    if (integrity.length !== 1 || integrity[0].quick_check !== 'ok')
+      throw new Error('Backup database integrity');
+    function* records() {
+      for (const row of db
+        .prepare('SELECT sequence,record,hash FROM evidence ORDER BY sequence')
+        .iterate()) {
+        const record = JSON.parse(row.record);
+        if (row.sequence !== record.payload?.sequence || hash(canonical(record)) !== row.hash)
+          throw new Error('Backup evidence row mismatch');
+        yield record;
+      }
+    }
+    const result = verifyEvidenceRecords(records(), trustedPublicKey, { checkpoint });
+    if (result.records !== head.sequence || result.headHash !== head.headHash)
+      throw new Error('Backup manifest checkpoint does not match history');
+  } finally {
+    db.close();
+  }
+}
 function snapshot(source, dest) {
   const db = new DatabaseSync(source);
   try {
@@ -103,10 +155,37 @@ export function backup(dir, destination, passphrase) {
 }
 export function restore(archive, destination, passphrase, trustedPublicKey, { checkpoint } = {}) {
   destination = resolve(destination);
-  if (existsSync(destination) && readdirSync(destination).length)
-    throw new Error('Restore destination must be empty');
+  const priorDestination = emptyDestination(destination);
+  if (checkpoint === undefined || checkpoint === null)
+    throw new Error('Independently retained checkpoint required');
+  if (
+    !verifyPacket(trustedPublicKey, checkpoint) ||
+    !sameMembers(checkpoint.payload, ['headHash', 'issuedAt', 'sequence']) ||
+    !validHead({ sequence: checkpoint.payload.sequence, headHash: checkpoint.payload.headHash }) ||
+    !Number.isSafeInteger(checkpoint.payload.issuedAt) ||
+    checkpoint.payload.issuedAt < 0
+  )
+    throw new Error('Backup predates or conflicts with trusted checkpoint');
   const p = JSON.parse(readFileSync(archive));
-  if (p.format !== 'SIEPMU_BACKUP_V1') throw new Error('Backup format');
+  if (
+    !sameMembers(p, ['format', 'salt', 'iv', 'ciphertext', 'tag']) ||
+    p.format !== 'SIEPMU_BACKUP_V1'
+  )
+    throw new Error('Backup format');
+  for (const [name, size] of [
+    ['salt', 32],
+    ['iv', 12],
+    ['tag', 16],
+    ['ciphertext', null],
+  ]) {
+    if (typeof p[name] !== 'string') throw new Error('Backup encoding');
+    const bytes = Buffer.from(p[name], 'base64');
+    if (
+      bytes.toString('base64') !== p[name] ||
+      (size === null ? !bytes.length : bytes.length !== size)
+    )
+      throw new Error('Backup encoding');
+  }
   const key = scryptSync(passphrase, Buffer.from(p.salt, 'base64'), 32, {
     N: 32768,
     r: 8,
@@ -120,37 +199,57 @@ export function restore(archive, destination, passphrase, trustedPublicKey, { ch
     Buffer.concat([d.update(Buffer.from(p.ciphertext, 'base64')), d.final()]),
   );
   if (!verifyPacket(trustedPublicKey, content.manifest)) throw new Error('Backup signature');
-  if (checkpoint !== undefined) {
-    if (
-      !verifyPacket(trustedPublicKey, checkpoint) ||
-      Object.keys(checkpoint.payload).sort().join() !== 'headHash,issuedAt,sequence' ||
-      !Number.isSafeInteger(checkpoint.payload.sequence) ||
-      checkpoint.payload.sequence < 0 ||
-      !Number.isSafeInteger(checkpoint.payload.issuedAt) ||
-      checkpoint.payload.issuedAt < 0 ||
-      typeof checkpoint.payload.headHash !== 'string' ||
-      !/^[a-f0-9]{64}$/.test(checkpoint.payload.headHash) ||
-      checkpoint.payload.sequence > content.manifest.payload.checkpoint.sequence ||
-      (checkpoint.payload.sequence === content.manifest.payload.checkpoint.sequence &&
-        checkpoint.payload.headHash !== content.manifest.payload.checkpoint.headHash)
-    )
-      throw new Error('Backup predates or conflicts with trusted checkpoint');
-  }
+  const manifest = content.manifest.payload;
+  if (
+    !sameMembers(content, ['manifest', 'files']) ||
+    !sameMembers(manifest, ['format', 'createdAt', 'checkpoint', 'files']) ||
+    manifest.format !== 'SIEPMU_BACKUP_V1' ||
+    !Number.isSafeInteger(manifest.createdAt) ||
+    manifest.createdAt < 0 ||
+    !validHead(manifest.checkpoint)
+  )
+    throw new Error('Backup manifest schema');
+  if (
+    checkpoint.payload.sequence > manifest.checkpoint.sequence ||
+    (checkpoint.payload.sequence === manifest.checkpoint.sequence &&
+      checkpoint.payload.headHash !== manifest.checkpoint.headHash)
+  )
+    throw new Error('Backup predates or conflicts with trusted checkpoint');
   const allowed = [...names, 'relay/relay.sqlite'];
-  if (Object.keys(content.files).sort().join() !== allowed.sort().join())
+  if (!sameMembers(content.files, allowed) || !sameMembers(manifest.files, allowed))
     throw new Error('Backup file manifest');
+  const decoded = new Map();
   for (const [name, data] of Object.entries(content.files)) {
-    if (hash(Buffer.from(data, 'base64')) !== content.manifest.payload.files[name])
-      throw new Error('Backup digest');
+    if (typeof data !== 'string') throw new Error('Backup file encoding');
+    const bytes = Buffer.from(data, 'base64');
+    if (bytes.toString('base64') !== data) throw new Error('Backup file encoding');
+    if (hash(bytes) !== manifest.files[name]) throw new Error('Backup digest');
+    decoded.set(name, bytes);
   }
-  mkdirSync(destination, { recursive: true, mode: 0o700 });
-  chmodSync(destination, 0o700);
-  mkdirSync(join(destination, 'relay'), { mode: 0o700 });
-  for (const [name, data] of Object.entries(content.files))
-    writeFileSync(join(destination, name), Buffer.from(data, 'base64'), {
-      mode: 0o600,
-      flag: 'wx',
-    });
+  const restoredKey = JSON.parse(decoded.get('server-key.json'));
+  if (
+    canonical(publicJwk(restoredKey)) !== canonical(trustedPublicKey) ||
+    canonical(JSON.parse(decoded.get('public-key.json'))) !== canonical(trustedPublicKey) ||
+    !verifyPacket(trustedPublicKey, packet(restoredKey, { purpose: 'SIEPMU_BACKUP_KEY_CHECK_V1' }))
+  )
+    throw new Error('Backup authority key mismatch');
+  // Offline, exclusive maintenance in an operator-controlled parent directory. Staging
+  // keeps verification/write failures from publishing a partial service directory.
+  mkdirSync(dirname(destination), { recursive: true, mode: 0o700 });
+  const staging = mkdtempSync(join(dirname(destination), '.siepmu-restore-'));
+  try {
+    mkdirSync(join(staging, 'relay'), { mode: 0o700 });
+    for (const [name, bytes] of decoded)
+      writeFileSync(join(staging, name), bytes, { mode: 0o600, flag: 'wx' });
+    verifyRestoredHistory(staging, trustedPublicKey, checkpoint, manifest.checkpoint);
+    const current = emptyDestination(destination);
+    if (current?.ino !== priorDestination?.ino || current?.dev !== priorDestination?.dev)
+      throw new Error('Restore destination changed');
+    if (current) rmdirSync(destination);
+    renameSync(staging, destination);
+  } finally {
+    rmSync(staging, { recursive: true, force: true });
+  }
   return content.manifest;
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

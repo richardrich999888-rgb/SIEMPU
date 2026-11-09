@@ -321,6 +321,32 @@ function verifyLink(record, sequence, previousHash, verify) {
   return digest(record);
 }
 
+// Synchronous, iterable history verification for offline recovery. The full JSON export
+// API keeps its own 100000-record input limit; recovery can stream database rows without
+// inheriting that export limit or retaining a second array of the entire history.
+export function verifyEvidenceRecords(
+  records,
+  trustedPublicKey,
+  { checkpoint: externalCheckpoint } = {},
+) {
+  const verify = trustedVerifier(trustedPublicKey);
+  const saved =
+    externalCheckpoint === undefined ? undefined : checkpointPayload(externalCheckpoint, verify);
+  let headHash = GENESIS,
+    count = 0,
+    anchorMatches = saved?.sequence === 0 && saved.headHash === GENESIS;
+  for (const record of records) {
+    assert(Number.isSafeInteger(count + 1), 'Evidence sequence is not a safe integer');
+    headHash = verifyLink(record, ++count, headHash, verify);
+    if (saved?.sequence === count) anchorMatches = saved.headHash === headHash;
+  }
+  if (saved) {
+    assert(saved.sequence <= count, 'Chain truncated before externally saved checkpoint');
+    assert(anchorMatches, 'Chain conflicts with externally saved checkpoint');
+  }
+  return { records: count, headHash, externalCheckpointVerified: saved !== undefined };
+}
+
 export async function verifyEvidence(
   input,
   trustedPublicKey,
@@ -352,28 +378,23 @@ export async function verifyEvidence(
   );
   keys(input, ['records', 'checkpoint']);
   assert(input.records.length <= 100000, 'Evidence export exceeds verifier record limit');
-  let headHash = GENESIS;
-  const hashes = [GENESIS];
-  for (let index = 0; index < input.records.length; index++) {
-    headHash = verifyLink(input.records[index], index + 1, headHash, verify);
-    hashes.push(headHash);
-  }
+  const { headHash } = verifyEvidenceRecords(input.records, trustedPublicKey);
   const suppliedCheckpoint = checkpointPayload(input.checkpoint, verify);
   assert(
     suppliedCheckpoint.sequence === input.records.length &&
       suppliedCheckpoint.headHash === headHash,
     'Export checkpoint does not match chain head',
   );
+  // The published full-export protocol treats falsy anchors as absent and checks
+  // the embedded checkpoint first. Recovery's strict helper has a separate contract.
   if (externalCheckpoint) {
     const saved = checkpointPayload(externalCheckpoint, verify);
     assert(
       saved.sequence <= input.records.length,
       'Chain truncated before externally saved checkpoint',
     );
-    assert(
-      hashes[saved.sequence] === saved.headHash,
-      'Chain conflicts with externally saved checkpoint',
-    );
+    const savedHash = saved.sequence === 0 ? GENESIS : digest(input.records[saved.sequence - 1]);
+    assert(savedHash === saved.headHash, 'Chain conflicts with externally saved checkpoint');
   }
   return {
     valid: true,
