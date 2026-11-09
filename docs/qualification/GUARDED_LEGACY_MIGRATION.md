@@ -68,7 +68,8 @@ independent policy records makes safe migration impossible with this evidence mo
 4. Inspect and review the plan. The source hash, trust-file hash, destination, schema,
    old/full state digests, policy, writer identity and authority floors are bound into
    `planDigest`. Read the private source policy and authorization records as part of
-   review; a digest alone is not a human-readable policy assessment.
+   review; a digest alone is not a human-readable policy assessment. Retain the returned
+   `planDigest` independently, with the reviewed request and original evidence.
 5. A separate reviewer signs the exact approval payload below using its independently
    pinned P-256 key. Do not have a script automatically confirm the four assertions.
    Re-run inspection/review if any input, key or destination changes.
@@ -77,7 +78,9 @@ independent policy records makes safe migration impossible with this evidence mo
    state in one private SQLite transaction. It verifies the history and seal, fsyncs the
    candidate and publishes a new directory by rename. No existing directory is replaced.
 7. Retain `receipt.json`, `plan.json`, `approval.json` and the original evidence separately.
-   Independently verify the candidate file digest, signed receipt and new checkpoint.
+   Run the public-key-only `verify` command below with the independently retained plan
+   digest. It rechecks the original evidence, candidate file digest, signed receipt,
+   approval, new checkpoint, exact migration event and writer handover request.
    The output is only `control.sqlite` and four JSON records: it contains no service,
    master, relay or writer private key. It is not a complete restored service directory.
 8. Activation is a separate maintenance decision, outside this prototype. The supplied
@@ -97,6 +100,8 @@ npm run test:legacy-migration
 node scripts/legacy-migration.mjs inspect /private/lab/request.json
 # Independent operator review and approval signing happen between these commands.
 node scripts/legacy-migration.mjs apply /private/lab/request.json /private/lab/approval.json /private/lab/authority-private.json
+# Supply the 64-character digest retained at inspection, not one read from the candidate.
+node scripts/legacy-migration.mjs verify /private/lab/request.json "$RETAINED_PLAN_SHA256"
 ```
 
 For encrypted backups provide `SIEPMU_BACKUP_PASSPHRASE` securely in the environment.
@@ -147,6 +152,41 @@ The displayed zero is intentionally invalid. Use the existing `packet` implement
 from `services/control/primitives.mjs` in a separately controlled signing environment.
 Test fixture signing is a synthetic example, not evidence of real operator review.
 
+## Candidate verification before any separate handover
+
+`verify REQUEST RETAINED_PLAN_SHA256` needs the original source snapshot/archive,
+independent trust file and writer public key referenced by the reviewed request, and
+the candidate at that request's exact destination. Verification accepts no signing
+private key. Backup verification still needs its passphrase. It opens only bounded,
+private copies with SQLite, leaves the source and candidate bytes unchanged, and
+removes its private staging on success or handled failure.
+
+The returned status is `VERIFIED_QUARANTINED`. It proves the checked artifact bindings
+under the supplied independent roots and retained plan pin; it is not a serving lease,
+custody freshness check, activation approval or independent assessor's finding. The
+verifier shares existing validation primitives and is not a second implementation.
+It never advances custody or performs writer handover. A later mutation requires
+verification again; exclusive maintenance remains required through separate handover.
+
+The verifier requires exactly the five expected candidate files, without SQLite
+sidecars, symlinks, hard links or private keys. It reconstructs the approved plan from
+the original evidence and compares the retained digest. It verifies both signatures,
+the receipt's exact file hash and new checkpoint, complete history from genesis and
+the original anchor, the V2 seal, and the unchanged authorization digest. It compares
+**all original logical table rows**, including non-authorization metadata, counters
+and historical migration records. Only migration 007 (when originally absent), one
+explicit signed migration event and its authorization seal may be added. The event
+must bind the exact approval, plan, original manifest and reviewed state. The handover
+request must match the reviewed writer, generation zero, anchor and policy floors.
+The builder now also checks preservation of all original logical table rows before
+publication; the existing seal check keeps precedence for authorization corruption.
+
+Expired approval is a refusal even if the candidate was built earlier. Do not modify
+or re-sign the existing candidate to make it pass. A renewed review must confirm the
+evidence and current policy again, then use a new destination and new bound approval.
+This verifier does not provide historical-audit acceptance for expired approvals, nor
+can it supply lost evidence or establish that no newer custodian head exists.
+
 ## Failure and recovery semantics
 
 All source/archive reads are bounded through one descriptor with NOFOLLOW/NONBLOCK.
@@ -162,6 +202,10 @@ it is never automatically resumed, trusted or activated. Preserve it if investig
 then explicitly remove it during maintenance. A retry starts from the original independent
 inputs and a still-valid reviewed approval. A failure after rename/fsync is an uncertain
 publication outcome: inspect the destination and receipt, do not overwrite or blindly retry.
+The `verify` command makes that inspection executable, while keeping the candidate
+quarantined. An injected parent-directory fsync failure after rename exercises this
+case: the candidate can be verified, a repeat `apply` refuses the existing destination,
+and custody remains unchanged. This does not establish physical power-loss durability.
 A crash during later custody handover is governed by the existing transactional handover
 and independent-receipt procedure. This is not a multi-store atomic disaster recovery
 protocol or physical power-loss qualification.
@@ -207,3 +251,15 @@ counts. Reproduce with `npm run validate`, `npm run test:e2e`,
 `npm run test:legacy-migration`. Counts overlap and must not be added.
 These tests do not establish independent assessment or sponsor acceptance.
 SAG grading and operational qualification are not established by these tests.
+
+The verification follow-up adds receipt/checkpoint substitution, writer/generation/floor
+tampering, extra/missing files, validly re-signed selective rollback and metadata changes,
+wrong/extra migration events, expired review, missing/invalid seals, and uncertain
+publication recovery tests. It also runs the real CLI after deleting the synthetic
+authority private-key file. First focused development run: 106/107 passed; the added
+row-preservation check initially preceded the established seal-error check. Restoring
+that existing error precedence retained both checks. The next run passed 111/113,
+including a failed parent: one new assertion expected `Invalid signature` instead of
+the existing verifier's exact `Invalid P1363 signature` message. Only that expectation
+was corrected. Final frozen-source results are recorded in the PR and generated reports;
+these intermediate counts are retained for traceability.

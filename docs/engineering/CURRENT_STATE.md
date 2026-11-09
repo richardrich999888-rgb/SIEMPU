@@ -1,5 +1,45 @@
 # Current engineering state (single authoritative handover file)
 
+## Candidate verification follow-up (10 November 2026 IST)
+
+Active draft PR: https://github.com/richardrich999888-rgb/SIEMPU/pull/42.
+Branch `codex/guarded-legacy-migration`, still based on unmerged PR #41. No comments
+or inline review threads were present when this follow-up started. Starting published
+head `bad91af7c7ebec490719331ca375673cdc2ef651`, tree
+`0e254aade52d399acd6dc5f7e842f4c50cb8fbfa`, matches local validation commit
+`c0beb0424268f569c16cddbf9d66a3e315f5c6a3` exactly. That predecessor passed all ten
+native gates/571 tests, 3 E2E, 359 adversarial tests and all nine CI/three Security jobs:
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42689294181
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42689294135
+These are predecessor results, not proof of the follow-up source.
+
+The procedure's independent candidate check is now executable with
+`node scripts/legacy-migration.mjs verify REQUEST RETAINED_PLAN_SHA256`. It requires
+original independent evidence and a separately retained reviewed plan pin, uses public
+signing keys only, and validates the receipt, approval, exact successor event/seal,
+all preserved logical rows and the precise writer handover request. Source and candidate
+remain untouched; only private temporary copies are opened. Success means
+`VERIFIED_QUARANTINED`, never live custody validation or activation. Expired review,
+missing evidence, extra files/sidecars and changed state are refused. The builder also
+checks unchanged non-authorization rows before publication. Core runtime/custody code
+and SQL migrations remain unchanged; deployment package exclusions still apply.
+
+New adversarial tests grant a synthetic attacker the authority signing key but retain
+independent review/snapshot pins, inject metadata/session/schema/event changes and
+handover substitution, and exercise uncertain publication after parent fsync failure.
+The real verifier CLI runs without the authority private-key file. Development failures
+(106/107 then 111/113) were error-precedence/message assertions; both are documented in
+the procedure, with no negative test removed. Freeze the new source and execute all
+native/E2E/adversarial gates before publication; the final PR body and generated reports
+bind the tested source/tree and observed hosted run IDs. Run `npm run test:legacy-migration`
+for focused reproduction. Do not reuse the predecessor's results for changed source.
+
+Next boundary: a separately authorized operational recovery/activation design still
+requires independently current policy/custody, complete service recovery and a defined
+relevant environment. No production migration, merge or deployment is performed.
+Provisional TRL 4 remains unchanged. SAG grading is not established.
+TRL 5 qualification and IAF operational approval are not established.
+
 ## Guarded legacy migration prototype (10 November 2026 IST)
 
 Branch `codex/guarded-legacy-migration`, stacked on PR #41 head

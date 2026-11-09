@@ -19,6 +19,7 @@ import { DatabaseSync } from 'node:sqlite';
 import {
   inspectLegacyMigration,
   applyLegacyMigration,
+  verifyLegacyMigration,
   readMigrationFile,
 } from '../scripts/legacy-migration.mjs';
 import { legacyFixture, privateJson } from './helpers/legacy-migration-fixture.mjs';
@@ -28,6 +29,7 @@ import { createRecoveryGuard } from '../services/evidence/custody.mjs';
 import {
   assertAuthorizationCommit,
   authorizationDigest,
+  sealAuthorizationCommit,
 } from '../services/evidence/authorization-state.mjs';
 import { packet, canonical, hash, verifyPacket } from '../services/control/primitives.mjs';
 import { pair } from './helpers/client.mjs';
@@ -82,6 +84,14 @@ for (const schema of [6, 7])
       assert.equal(readdirSync(f.request.destination).length, 5);
       for (const name of readdirSync(f.request.destination))
         assert.equal(statSync(join(f.request.destination, name)).mode & 0o077, 0);
+      const verified = verifyLegacyMigration(f.request, {
+        passphrase: f.passphrase,
+        expectedPlanDigest: inspected.planDigest,
+      });
+      assert.equal(verified.status, 'VERIFIED_QUARANTINED');
+      assert.equal(verified.receiptDigest, hash(canonical(receipt)));
+      assert.equal(hash(readFileSync(f.request.source)), before);
+      assert.equal(canonical(f.custody.db.prepare('SELECT * FROM anchor').get()), custodyBefore);
       // No activation is performed by migration; even the correct writer cannot acquire a lease yet.
       f.custody.requireFencing = true;
       const guard = createRecoveryGuard({
@@ -631,6 +641,15 @@ test('private-file, symlink, live-WAL and destination protections; executable in
     JSON.parse(result.stdout).payload.activation,
     'QUARANTINED_PENDING_INDEPENDENT_WRITER_HANDOVER',
   );
+  const planDigest = JSON.parse(readFileSync(approvalPath)).payload.planDigest;
+  // Verification requires no private authority/reviewer/writer key.
+  rmSync(join(f.data, 'server-key.json'));
+  const verified = cli(['verify', requestPath, planDigest]);
+  assert.equal(verified.status, 0, verified.stderr);
+  assert.equal(JSON.parse(verified.stdout).status, 'VERIFIED_QUARANTINED');
+  assert.notEqual(cli(['verify', requestPath]).status, 0);
+  assert.notEqual(cli(['verify', requestPath, 'f'.repeat(64)]).status, 0);
+  assert.notEqual(cli(['verify', requestPath, planDigest, '--force']).status, 0);
 });
 
 test('a longer correctly signed fork cannot replace the independently retained checkpoint', async (t) => {
@@ -701,4 +720,373 @@ for (const phase of ['staged', 'uncommitted', 'sealed'])
       Date.now = realNow;
     }
     clean(f);
+  });
+
+const builtCandidate = async (t) => {
+  const f = await legacyFixture(t),
+    approval = f.review();
+  await applyLegacyMigration(f.request, { approval, signingKey: f.key });
+  f.verify = () =>
+    verifyLegacyMigration(f.request, { expectedPlanDigest: approval.payload.planDigest });
+  return f;
+};
+const candidateJson = (f, name) => JSON.parse(readFileSync(join(f.request.destination, name)));
+const candidateBytes = (f) =>
+  Object.fromEntries(
+    readdirSync(f.request.destination).map((n) => [
+      n,
+      readFileSync(join(f.request.destination, n)),
+    ]),
+  );
+
+test('candidate verification is read-only and requires the independently retained plan pin', async (t) => {
+  const f = await builtCandidate(t),
+    original = candidateBytes(f),
+    source = readFileSync(f.request.source),
+    anchor = canonical(f.custody.db.prepare('SELECT * FROM anchor').get());
+  assert.throws(() => verifyLegacyMigration(f.request), /RETAINED_PLAN_REQUIRED/);
+  assert.throws(
+    () => verifyLegacyMigration(f.request, { expectedPlanDigest: '0'.repeat(64) }),
+    /RETAINED_PLAN_MISMATCH/,
+  );
+  assert.equal(f.verify().status, 'VERIFIED_QUARANTINED');
+  assert.deepEqual(candidateBytes(f), original);
+  assert.deepEqual(readFileSync(f.request.source), source);
+  assert.equal(canonical(f.custody.db.prepare('SELECT * FROM anchor').get()), anchor);
+  assert.equal(f.custody.db.prepare('SELECT count(*) n FROM writer_fence').get().n, 0);
+  assert.deepEqual(
+    readdirSync(f.root).filter((n) => n.startsWith('.siepmu-migration-')),
+    [],
+  );
+});
+
+test('substituted candidate records and handover parameters fail independent verification', async (t) => {
+  const f = await builtCandidate(t),
+    original = candidateBytes(f);
+  const cases = [
+    ['altered plan', 'plan.json', (p) => ({ ...p, destination: f.root }), /PLAN_MISMATCH/],
+    ['forged approval', 'approval.json', (p) => ({ ...p, signature: 'x' }), /APPROVAL_REQUIRED/],
+    [
+      'new approval signature',
+      'approval.json',
+      (p) => packet(f.reviewer.privateKey, p.payload),
+      /RECEIPT_MISMATCH/,
+    ],
+    ['forged receipt', 'receipt.json', (p) => ({ ...p, signature: 'x' }), /RECEIPT_MISMATCH/],
+    [
+      'ancestor checkpoint in signed receipt',
+      'receipt.json',
+      (p) => packet(f.key, { ...p.payload, checkpoint: f.trust.checkpoint }),
+      /CANDIDATE_HEAD/,
+    ],
+    [
+      'forged checkpoint in signed receipt',
+      'receipt.json',
+      (p) =>
+        packet(f.key, { ...p.payload, checkpoint: { ...p.payload.checkpoint, signature: 'x' } }),
+      /Invalid P1363 signature/,
+    ],
+    [
+      'signed unknown receipt member',
+      'receipt.json',
+      (p) => packet(f.key, { ...p.payload, force: true }),
+      /RECEIPT_MISMATCH/,
+    ],
+    [
+      'signed activation override',
+      'receipt.json',
+      (p) => packet(f.key, { ...p.payload, activation: 'ACTIVE' }),
+      /RECEIPT_MISMATCH/,
+    ],
+    [
+      'writer substitution',
+      'handover-request.json',
+      (p) => ({ ...p, writerKey: pair().publicKey }),
+      /HANDOVER_MISMATCH/,
+    ],
+    [
+      'generation substitution',
+      'handover-request.json',
+      (p) => ({ ...p, expectedGeneration: 1 }),
+      /HANDOVER_MISMATCH/,
+    ],
+    [
+      'anchor substitution',
+      'handover-request.json',
+      (p) => ({ ...p, expectedAnchor: { ...p.expectedAnchor, stateDigest: 'f'.repeat(64) } }),
+      /HANDOVER_MISMATCH/,
+    ],
+    [
+      'policy floor rollback',
+      'handover-request.json',
+      (p) => ({ ...p, authority: { epoch: 1, revocationVersion: 0 } }),
+      /HANDOVER_MISMATCH/,
+    ],
+    [
+      'extra handover option',
+      'handover-request.json',
+      (p) => ({ ...p, force: true }),
+      /HANDOVER_MISMATCH/,
+    ],
+  ];
+  for (const [name, file, mutate, error] of cases)
+    await t.test(name, () => {
+      privateJson(join(f.request.destination, file), mutate(candidateJson(f, file)));
+      assert.throws(f.verify, error);
+      writeFileSync(join(f.request.destination, file), original[file]);
+    });
+  assert.equal(f.verify().status, 'VERIFIED_QUARANTINED');
+});
+
+// Adversarial fixture: grant the attacker the authority key and recompute every candidate
+// signature/hash. Independent review, original snapshot and exact delta must still constrain it.
+function reissueCandidate(f, mutate) {
+  let checkpoint;
+  edit(join(f.request.destination, 'control.sqlite'), (db) => {
+    mutate(db);
+    const a = {
+      key: f.key,
+      crypto: { allowPqcLab: false },
+      all: (sql, ...args) => db.prepare(sql).all(...args),
+      run: (sql, ...args) => db.prepare(sql).run(...args),
+      epoch: () => db.prepare('SELECT * FROM authority WHERE id=1').get(),
+      checkpoint: () => {
+        const row = db
+          .prepare('SELECT sequence,hash FROM evidence ORDER BY sequence DESC LIMIT 1')
+          .get();
+        return { payload: { sequence: row.sequence, headHash: row.hash } };
+      },
+    };
+    sealAuthorizationCommit(a);
+    checkpoint = packet(f.key, { ...a.checkpoint().payload, issuedAt: Date.now() });
+  });
+  const r = candidateJson(f, 'receipt.json');
+  privateJson(
+    join(f.request.destination, 'receipt.json'),
+    packet(f.key, {
+      ...r.payload,
+      checkpoint,
+      databaseSha256: hash(readFileSync(join(f.request.destination, 'control.sqlite'))),
+    }),
+  );
+}
+
+test('validly re-signed state, unrelated data and schema changes cannot exceed the approved delta', async (t) => {
+  const f = await builtCandidate(t),
+    original = candidateBytes(f);
+  const cases = [
+    [
+      'selective session rollback',
+      (db) => db.exec('UPDATE sessions SET revoked=0'),
+      /STATE_CHANGED/,
+    ],
+    [
+      'unsealed unit metadata change',
+      (db) => db.exec("UPDATE units SET name=name||'-changed'"),
+      /PRESERVED_DATA_CHANGED/,
+    ],
+    [
+      'unsealed counter insertion',
+      (db) => db.exec("INSERT INTO counters VALUES('forged',123)"),
+      /PRESERVED_DATA_CHANGED/,
+    ],
+    [
+      'historical migration date change',
+      (db) => db.exec('UPDATE schema_migrations SET applied_at=applied_at+1'),
+      /PRESERVED_DATA_CHANGED/,
+    ],
+    [
+      'unknown schema object',
+      (db) => db.exec('CREATE VIEW extra AS SELECT id FROM users'),
+      /SCHEMA_SHAPE/,
+    ],
+    [
+      'forged historical record',
+      (db) => db.exec("UPDATE evidence SET record='{}' WHERE sequence=1"),
+      /EVIDENCE_ROW/,
+    ],
+  ];
+  for (const [name, mutate, error] of cases)
+    await t.test(name, () => {
+      reissueCandidate(f, mutate);
+      assert.throws(f.verify, error);
+      for (const [file, bytes] of Object.entries(original))
+        writeFileSync(join(f.request.destination, file), bytes);
+    });
+});
+
+test('validly signed migration event must match the independent review and exact successor', async (t) => {
+  const f = await builtCandidate(t),
+    original = candidateBytes(f);
+  const cases = [
+    ['different actor', (p) => ({ ...p, actorId: 'unreviewed' })],
+    ['different event type', (p) => ({ ...p, eventType: 'ORDINARY_RECOVERY' })],
+    [
+      'different approval binding',
+      (p) => ({ ...p, details: { ...p.details, approvalDigest: 'f'.repeat(64) } }),
+    ],
+    ['extra event member', (p) => ({ ...p, silentlyResealed: true })],
+    ['future timestamp', (p) => ({ ...p, timestamp: Date.now() + 120000 })],
+  ];
+  for (const [name, mutate] of cases)
+    await t.test(name, () => {
+      reissueCandidate(f, (db) => {
+        const row = db.prepare('SELECT * FROM evidence ORDER BY sequence DESC LIMIT 1').get();
+        const event = packet(f.key, mutate(JSON.parse(row.record).payload));
+        db.prepare('UPDATE evidence SET record=?,hash=? WHERE sequence=?').run(
+          canonical(event),
+          hash(canonical(event)),
+          row.sequence,
+        );
+      });
+      assert.throws(f.verify, /EVENT_MISMATCH/);
+      for (const [file, bytes] of Object.entries(original))
+        writeFileSync(join(f.request.destination, file), bytes);
+    });
+  reissueCandidate(f, (db) => {
+    const row = db.prepare('SELECT * FROM evidence ORDER BY sequence DESC LIMIT 1').get();
+    const event = packet(f.key, {
+      ...JSON.parse(row.record).payload,
+      sequence: row.sequence + 1,
+      previousHash: row.hash,
+    });
+    db.prepare('INSERT INTO evidence VALUES(?,?,?)').run(
+      event.payload.sequence,
+      canonical(event),
+      hash(canonical(event)),
+    );
+  });
+  assert.throws(f.verify, /CANDIDATE_HEAD/);
+});
+
+test('incomplete, changed, live or non-private candidates stay quarantined', async (t) => {
+  const f = await builtCandidate(t),
+    original = candidateBytes(f);
+  for (const name of Object.keys(original))
+    await t.test(`missing ${name}`, () => {
+      rmSync(join(f.request.destination, name));
+      assert.throws(f.verify, /CANDIDATE_FILES/);
+      writeFileSync(join(f.request.destination, name), original[name], { mode: 0o600 });
+    });
+  for (const name of [
+    'control.sqlite-wal',
+    'control.sqlite-shm',
+    'control.sqlite-journal',
+    'server-key.json',
+  ])
+    await t.test(`unexpected ${name}`, () => {
+      writeFileSync(join(f.request.destination, name), 'untrusted', { mode: 0o600 });
+      assert.throws(f.verify, /CANDIDATE_FILES/);
+      rmSync(join(f.request.destination, name));
+    });
+  const receipt = join(f.request.destination, 'receipt.json');
+  chmodSync(receipt, 0o644);
+  assert.throws(f.verify, /PRIVATE_FILE/);
+  chmodSync(receipt, 0o600);
+  rmSync(receipt);
+  symlinkSync(f.request.source, receipt);
+  assert.throws(f.verify);
+  rmSync(receipt);
+  writeFileSync(receipt, original['receipt.json'], { mode: 0o600 });
+  edit(join(f.request.destination, 'control.sqlite'), (db) =>
+    db.exec("UPDATE units SET name=name||'-changed'"),
+  );
+  assert.throws(f.verify, /RECEIPT_MISMATCH/);
+  assert.deepEqual(
+    readdirSync(f.root).filter((n) => n.startsWith('.siepmu-migration-')),
+    [],
+  );
+});
+
+test('verification refuses expired review and changed independent evidence without refreshing either', async (t) => {
+  const f = await builtCandidate(t),
+    original = candidateBytes(f),
+    now = Date.now;
+  try {
+    Date.now = () => candidateJson(f, 'approval.json').payload.expiresAt + 1;
+    assert.throws(f.verify, /APPROVAL_REQUIRED/);
+  } finally {
+    Date.now = now;
+  }
+  f.trust.expectedPolicyDigest = 'f'.repeat(64);
+  privateJson(f.request.trust, f.trust);
+  assert.throws(f.verify, /POLICY_MISMATCH/);
+  assert.deepEqual(candidateBytes(f), original);
+});
+
+test('a re-signed file receipt cannot excuse a missing or invalid authorization seal', async (t) => {
+  const f = await builtCandidate(t),
+    original = candidateBytes(f);
+  for (const [name, sql, error] of [
+    ['missing', 'DELETE FROM authorization_commit', /SEAL_REQUIRED/],
+    ['invalid', "UPDATE authorization_commit SET seal='{}'", /COMMIT_MISMATCH/],
+  ])
+    await t.test(name, () => {
+      edit(join(f.request.destination, 'control.sqlite'), (db) => db.exec(sql));
+      const receipt = candidateJson(f, 'receipt.json');
+      privateJson(
+        join(f.request.destination, 'receipt.json'),
+        packet(f.key, {
+          ...receipt.payload,
+          databaseSha256: hash(readFileSync(join(f.request.destination, 'control.sqlite'))),
+        }),
+      );
+      assert.throws(f.verify, error);
+      for (const [file, bytes] of Object.entries(original))
+        writeFileSync(join(f.request.destination, file), bytes);
+    });
+});
+
+test('uncertain publication after parent fsync failure is verified without blind retry or activation', async (t) => {
+  const f = await legacyFixture(t),
+    approval = f.review(),
+    before = readFileSync(f.request.source),
+    fsync = fs.fsyncSync;
+  try {
+    fs.fsyncSync = (fd) => {
+      if (existsSync(f.request.destination) && fs.fstatSync(fd).isDirectory())
+        throw new Error('INJECTED_PARENT_FSYNC_FAILURE');
+      return fsync(fd);
+    };
+    syncBuiltinESMExports();
+    await assert.rejects(
+      applyLegacyMigration(f.request, { approval, signingKey: f.key }),
+      /INJECTED_PARENT_FSYNC_FAILURE/,
+    );
+  } finally {
+    fs.fsyncSync = fsync;
+    syncBuiltinESMExports();
+  }
+  assert.ok(existsSync(f.request.destination));
+  const verified = verifyLegacyMigration(f.request, {
+    expectedPlanDigest: approval.payload.planDigest,
+  });
+  assert.equal(verified.status, 'VERIFIED_QUARANTINED');
+  assert.deepEqual(readFileSync(f.request.source), before);
+  assert.equal(f.custody.db.prepare('SELECT count(*) n FROM writer_fence').get().n, 0);
+  await assert.rejects(
+    applyLegacyMigration(f.request, { approval, signingKey: f.key }),
+    /DESTINATION_EXISTS/,
+  );
+});
+
+for (const phase of ['staged', 'sealed'])
+  test(`builder refuses unrelated database corruption at ${phase}`, async (t) => {
+    const f = await legacyFixture(t),
+      before = readFileSync(f.request.source);
+    await assert.rejects(
+      applyLegacyMigration(f.request, {
+        approval: f.review(),
+        signingKey: f.key,
+        onPhase: (p, staging) => {
+          if (p === phase)
+            edit(join(staging, 'control.sqlite'), (db) =>
+              db.exec("UPDATE units SET name=name||'-corrupt'"),
+            );
+        },
+      }),
+      /PRESERVED_DATA_CHANGED/,
+    );
+    clean(f);
+    assert.deepEqual(readFileSync(f.request.source), before);
   });

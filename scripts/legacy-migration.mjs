@@ -8,6 +8,7 @@ import {
   readSync,
   writeFileSync,
   readFileSync,
+  readdirSync,
   lstatSync,
   realpathSync,
   existsSync,
@@ -58,6 +59,13 @@ const files = [
   'relay/relay.sqlite',
 ];
 const packetShape = (p) => exactMembers(p, ['payload', 'signature', 'keyId']);
+const candidateFiles = [
+  'control.sqlite',
+  'plan.json',
+  'approval.json',
+  'receipt.json',
+  'handover-request.json',
+];
 
 /** Bounded, same-descriptor read. Inputs must be private, owner-held regular files. */
 export function readMigrationFile(path, limit = 1048576) {
@@ -84,17 +92,20 @@ export function readMigrationFile(path, limit = 1048576) {
   }
 }
 const jsonFile = (p) => JSON.parse(readMigrationFile(p));
-function destinationParent(destination) {
-  const parent = dirname(destination),
-    st = lstatSync(parent);
+function privateDirectory(path) {
+  const st = lstatSync(path);
   insist(
     st.isDirectory() &&
       !st.isSymbolicLink() &&
       st.uid === process.getuid() &&
       !(st.mode & 0o077) &&
-      realpathSync(parent) === parent,
+      realpathSync(path) === path,
     'MIGRATION_PRIVATE_PARENT_REQUIRED',
   );
+}
+function destinationParent(destination) {
+  const parent = dirname(destination);
+  privateDirectory(parent);
   // lexists, including a dangling symlink; an existing destination is never replaced.
   try {
     lstatSync(destination);
@@ -134,9 +145,9 @@ function legacyDigest(a) {
     }),
   );
 }
-function checkSchema(db) {
+function checkSchema(db, sealed = false) {
   const rows = db.prepare('SELECT * FROM schema_migrations ORDER BY version').all();
-  insist([6, 7].includes(rows.length), 'MIGRATION_UNSUPPORTED_SCHEMA');
+  insist((sealed ? [7] : [6, 7]).includes(rows.length), 'MIGRATION_UNSUPPORTED_SCHEMA');
   const expected = new DatabaseSync(':memory:');
   try {
     expected.exec(migrationTable);
@@ -157,8 +168,8 @@ function checkSchema(db) {
     insist(canonical(schema(db)) === canonical(schema(expected)), 'MIGRATION_SCHEMA_SHAPE');
     if (rows.length === 7)
       insist(
-        db.prepare('SELECT count(*) n FROM authorization_commit').get().n === 0,
-        'MIGRATION_ALREADY_SEALED',
+        db.prepare('SELECT count(*) n FROM authorization_commit').get().n === (sealed ? 1 : 0),
+        sealed ? 'MIGRATION_SEAL_REQUIRED' : 'MIGRATION_ALREADY_SEALED',
       );
   } finally {
     expected.close();
@@ -281,14 +292,18 @@ function verifyTrust(t) {
     );
   insist(digest(t.expectedPolicyDigest), 'MIGRATION_POLICY_REVIEW_REQUIRED');
 }
-function prepare(request, passphrase) {
+function prepare(request, passphrase, existingCandidate = false) {
   insist(
     exactMembers(request, ['sourceType', 'source', 'destination', 'trust', 'writerPublicKey']) &&
       ['database', 'backup'].includes(request.sourceType),
     'MIGRATION_REQUEST',
   );
   const destination = resolve(request.destination),
-    parent = destinationParent(destination);
+    parent = dirname(destination);
+  if (existingCandidate) {
+    privateDirectory(parent);
+    privateDirectory(destination);
+  } else destinationParent(destination);
   if (request.sourceType === 'database') {
     for (const suffix of ['-wal', '-shm', '-journal'])
       insist(!existsSync(request.source + suffix), 'MIGRATION_OFFLINE_SNAPSHOT_REQUIRED');
@@ -382,6 +397,206 @@ export function inspectLegacyMigration(request, { passphrase } = {}) {
     rmSync(p.staging, { recursive: true, force: true });
   }
 }
+// The only permitted logical changes are migration 007, one appended event and its seal.
+// Include non-authorization data too: a valid V2 seal cannot detect changed object/counter rows.
+function preservedDigest(db, plan) {
+  return hash(
+    canonical(
+      db
+        .prepare("SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name")
+        .all()
+        .filter(({ name }) => name !== 'authorization_commit')
+        .map(({ name }) => {
+          // Table names have already been checked against the exact trusted schema.
+          const where =
+            name === 'evidence'
+              ? ' WHERE sequence<=?'
+              : name === 'schema_migrations' && plan.schemaVersion === 6
+                ? ' WHERE version!=?'
+                : '';
+          const args =
+            name === 'evidence' ? [plan.checkpoint.sequence] : where ? [migrations[6]] : [];
+          return [name, db.prepare(`SELECT * FROM "${name}"${where} ORDER BY rowid`).all(...args)];
+        }),
+    ),
+  );
+}
+function checkApproval(approval, t, plan) {
+  const review = approval?.payload;
+  insist(
+    packetShape(approval) &&
+      verifyPacket(t.reviewerKey, approval) &&
+      exactMembers(review, [
+        'version',
+        'kind',
+        'planDigest',
+        'stateDigest',
+        'reviewer',
+        'scope',
+        'independentSnapshotConfirmed',
+        'latestCheckpointConfirmed',
+        'currentPolicyConfirmed',
+        'maintenanceConfirmed',
+        'expiresAt',
+      ]) &&
+      review.version === 1 &&
+      review.kind === 'LEGACY_MIGRATION_APPROVAL' &&
+      review.scope === 'SYNTHETIC_ONLY' &&
+      review.planDigest === hash(canonical(plan)) &&
+      review.stateDigest === plan.stateDigest &&
+      typeof review.reviewer === 'string' &&
+      review.reviewer.trim().length > 0 &&
+      review.reviewer.length <= 128 &&
+      review.independentSnapshotConfirmed === true &&
+      review.latestCheckpointConfirmed === true &&
+      review.currentPolicyConfirmed === true &&
+      review.maintenanceConfirmed === true &&
+      Number.isSafeInteger(review.expiresAt) &&
+      review.expiresAt > Date.now(),
+    'MIGRATION_OPERATOR_APPROVAL_REQUIRED',
+  );
+  return review;
+}
+function handoverRequest(p) {
+  return {
+    writerKey: p.writerKey,
+    expectedGeneration: 0,
+    expectedAnchor: { ...p.plan.checkpoint, stateDigest: p.plan.legacyStateDigest },
+    authority: p.plan.authority,
+  };
+}
+/** Public-key-only verification against original evidence and an independently retained plan pin.
+ * Does not open the supplied candidate with SQLite, refresh approval, mutate custody or activate. */
+export function verifyLegacyMigration(request, { expectedPlanDigest, passphrase } = {}) {
+  insist(digest(expectedPlanDigest), 'MIGRATION_RETAINED_PLAN_REQUIRED');
+  const p = prepare(request, passphrase, true);
+  let db;
+  try {
+    insist(hash(canonical(p.plan)) === expectedPlanDigest, 'MIGRATION_RETAINED_PLAN_MISMATCH');
+    insist(
+      canonical(readdirSync(p.plan.destination).sort()) === canonical([...candidateFiles].sort()),
+      'MIGRATION_CANDIDATE_FILES',
+    );
+    const records = Object.fromEntries(
+      candidateFiles.map((name) => [
+        name,
+        readMigrationFile(
+          join(p.plan.destination, name),
+          name === 'control.sqlite' ? 64 * 1024 * 1024 : 1048576,
+        ),
+      ]),
+    );
+    insist(
+      canonical(JSON.parse(records['plan.json'])) === canonical(p.plan),
+      'MIGRATION_PLAN_MISMATCH',
+    );
+    const approval = JSON.parse(records['approval.json']),
+      review = checkApproval(approval, p.t, p.plan),
+      receipt = JSON.parse(records['receipt.json']),
+      r = receipt?.payload;
+    insist(
+      packetShape(receipt) &&
+        verifyPacket(p.t.authorityKey, receipt) &&
+        exactMembers(r, [
+          'version',
+          'kind',
+          'planDigest',
+          'approvalDigest',
+          'checkpoint',
+          'databaseSha256',
+          'activation',
+        ]) &&
+        r.version === 1 &&
+        r.kind === 'LEGACY_MIGRATION_CANDIDATE' &&
+        r.planDigest === expectedPlanDigest &&
+        r.approvalDigest === hash(canonical(approval)) &&
+        r.databaseSha256 === hash(records['control.sqlite']) &&
+        r.activation === p.plan.activation,
+      'MIGRATION_RECEIPT_MISMATCH',
+    );
+    insist(
+      canonical(JSON.parse(records['handover-request.json'])) === canonical(handoverRequest(p)),
+      'MIGRATION_HANDOVER_MISMATCH',
+    );
+    const candidate = join(p.staging, 'candidate.sqlite');
+    writeFileSync(candidate, records['control.sqlite'], { flag: 'wx', mode: 0o600 });
+    db = new DatabaseSync(candidate, { readOnly: true });
+    db.exec('PRAGMA trusted_schema=OFF; PRAGMA foreign_keys=ON;');
+    insist(
+      canonical(db.prepare('PRAGMA quick_check').all()) === canonical([{ quick_check: 'ok' }]) &&
+        db.prepare('PRAGMA foreign_key_check').all().length === 0,
+      'MIGRATION_DATABASE_INTEGRITY',
+    );
+    checkSchema(db, true);
+    const a = facade(db, p.t.authorityKey),
+      head = a.checkpoint().payload;
+    verifyHistory(db, p.t.authorityKey, p.t.checkpoint, head);
+    verifyHistory(db, p.t.authorityKey, r.checkpoint, head);
+    insist(
+      r.checkpoint.payload.sequence === head.sequence &&
+        r.checkpoint.payload.headHash === head.headHash &&
+        head.sequence === p.plan.checkpoint.sequence + 1,
+      'MIGRATION_CANDIDATE_HEAD',
+    );
+    assertAuthorizationCommit(a);
+    insist(authorizationDigest(a) === p.plan.stateDigest, 'MIGRATION_STATE_CHANGED');
+    insist(
+      preservedDigest(db, p.plan) === preservedDigest(p.db, p.plan),
+      'MIGRATION_PRESERVED_DATA_CHANGED',
+    );
+    const event = JSON.parse(
+      a.get('SELECT record FROM evidence WHERE sequence=?', head.sequence).record,
+    ).payload;
+    insist(
+      exactMembers(event, [
+        'sequence',
+        'previousHash',
+        'eventId',
+        'eventType',
+        'timestamp',
+        'epoch',
+        'actorId',
+        'details',
+      ]) &&
+        event.eventType === 'LEGACY_AUTHORIZATION_MIGRATED' &&
+        event.previousHash === p.plan.checkpoint.headHash &&
+        typeof event.eventId === 'string' &&
+        event.eventId.length > 0 &&
+        event.eventId.length <= 128 &&
+        Number.isSafeInteger(event.timestamp) &&
+        event.timestamp >= 0 &&
+        event.timestamp <= Date.now() &&
+        event.timestamp < review.expiresAt &&
+        event.epoch === p.plan.authority.epoch &&
+        event.actorId === review.reviewer &&
+        canonical(event.details) ===
+          canonical({
+            planDigest: expectedPlanDigest,
+            approvalDigest: r.approvalDigest,
+            stateDigest: p.plan.stateDigest,
+            retainedManifestSha256: p.plan.retainedManifestSha256,
+          }),
+      'MIGRATION_EVENT_MISMATCH',
+    );
+    insist(review.expiresAt > Date.now(), 'MIGRATION_APPROVAL_EXPIRED');
+    return {
+      version: 1,
+      kind: 'LEGACY_MIGRATION_VERIFICATION',
+      scope: 'SYNTHETIC_ONLY',
+      status: 'VERIFIED_QUARANTINED',
+      planDigest: expectedPlanDigest,
+      receiptDigest: hash(canonical(receipt)),
+      databaseSha256: r.databaseSha256,
+      checkpoint: r.checkpoint,
+      writerKeyId: p.plan.writerKeyId,
+      activation: p.plan.activation,
+    };
+  } finally {
+    db?.close();
+    p.db.close();
+    rmSync(p.staging, { recursive: true, force: true });
+  }
+}
 export async function applyLegacyMigration(
   request,
   { approval, signingKey, passphrase, onPhase = () => {} } = {},
@@ -392,39 +607,8 @@ export async function applyLegacyMigration(
   let closed = false;
   try {
     const planDigest = hash(canonical(p.plan)),
-      review = approval?.payload;
-    insist(
-      packetShape(approval) &&
-        verifyPacket(p.t.reviewerKey, approval) &&
-        exactMembers(review, [
-          'version',
-          'kind',
-          'planDigest',
-          'stateDigest',
-          'reviewer',
-          'scope',
-          'independentSnapshotConfirmed',
-          'latestCheckpointConfirmed',
-          'currentPolicyConfirmed',
-          'maintenanceConfirmed',
-          'expiresAt',
-        ]) &&
-        review.version === 1 &&
-        review.kind === 'LEGACY_MIGRATION_APPROVAL' &&
-        review.scope === 'SYNTHETIC_ONLY' &&
-        review.planDigest === planDigest &&
-        review.stateDigest === p.plan.stateDigest &&
-        typeof review.reviewer === 'string' &&
-        review.reviewer.trim().length > 0 &&
-        review.reviewer.length <= 128 &&
-        review.independentSnapshotConfirmed === true &&
-        review.latestCheckpointConfirmed === true &&
-        review.currentPolicyConfirmed === true &&
-        review.maintenanceConfirmed === true &&
-        Number.isSafeInteger(review.expiresAt) &&
-        review.expiresAt > Date.now(),
-      'MIGRATION_OPERATOR_APPROVAL_REQUIRED',
-    );
+      review = checkApproval(approval, p.t, p.plan),
+      preserved = preservedDigest(p.db, p.plan);
     insist(
       signingKey?.d &&
         verifyPacket(p.t.authorityKey, packet(signingKey, { kind: 'MIGRATION_KEY_CHECK' })),
@@ -476,7 +660,9 @@ export async function applyLegacyMigration(
       throw e;
     }
     await onPhase('sealed', p.staging);
+    checkSchema(p.db, true);
     assertAuthorizationCommit(p.a);
+    insist(preservedDigest(p.db, p.plan) === preserved, 'MIGRATION_PRESERVED_DATA_CHANGED');
     verifyHistory(p.db, p.t.authorityKey, p.t.checkpoint, p.a.checkpoint().payload);
     const checkpoint = packet(signingKey, { ...p.a.checkpoint().payload, issuedAt: Date.now() });
     p.db.exec('PRAGMA wal_checkpoint(TRUNCATE); PRAGMA journal_mode=DELETE;');
@@ -492,12 +678,7 @@ export async function applyLegacyMigration(
       activation: p.plan.activation,
     });
     // A request only. No custodian mutation, service restart, live lease or private writer key.
-    const handover = {
-      writerKey: p.writerKey,
-      expectedGeneration: 0,
-      expectedAnchor: { ...p.plan.checkpoint, stateDigest: p.plan.legacyStateDigest },
-      authority: p.plan.authority,
-    };
+    const handover = handoverRequest(p);
     for (const [name, value] of Object.entries({
       'plan.json': p.plan,
       'approval.json': approval,
@@ -505,14 +686,7 @@ export async function applyLegacyMigration(
       'handover-request.json': handover,
     }))
       writeFileSync(join(p.staging, name), canonical(value) + '\n', { flag: 'wx', mode: 0o600 });
-    for (const name of [
-      'control.sqlite',
-      'plan.json',
-      'approval.json',
-      'receipt.json',
-      'handover-request.json',
-      '.',
-    ]) {
+    for (const name of [...candidateFiles, '.']) {
       const fd = openSync(join(p.staging, name), constants.O_RDONLY);
       try {
         fsyncSync(fd);
@@ -542,19 +716,23 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
       !extra.length &&
         (command === 'inspect'
           ? !approvalPath && !signingPath
-          : command === 'apply' && approvalPath && signingPath),
-      'Usage: legacy-migration.mjs inspect REQUEST | apply REQUEST APPROVAL AUTHORITY_PRIVATE_KEY',
+          : command === 'verify'
+            ? approvalPath && !signingPath
+            : command === 'apply' && approvalPath && signingPath),
+      'Usage: legacy-migration.mjs inspect REQUEST | apply REQUEST APPROVAL AUTHORITY_PRIVATE_KEY | verify REQUEST RETAINED_PLAN_SHA256',
     );
     const request = jsonFile(requestPath),
       passphrase = process.env.SIEPMU_BACKUP_PASSPHRASE;
     const result =
       command === 'inspect'
         ? inspectLegacyMigration(request, { passphrase })
-        : await applyLegacyMigration(request, {
-            passphrase,
-            approval: jsonFile(approvalPath),
-            signingKey: jsonFile(signingPath),
-          });
+        : command === 'verify'
+          ? verifyLegacyMigration(request, { passphrase, expectedPlanDigest: approvalPath })
+          : await applyLegacyMigration(request, {
+              passphrase,
+              approval: jsonFile(approvalPath),
+              signingKey: jsonFile(signingPath),
+            });
     console.log(JSON.stringify(result, null, 2));
   } catch (e) {
     console.error(

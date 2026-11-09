@@ -23,3 +23,9 @@ new candidate only when independently retained full-snapshot evidence, an exact 
 legacy custody evidence and separately signed operator review establish the state. It does
 not activate services or mutate source/custody stores. Checkpoint-only and limited-digest-only
 legacy states remain refused; no production migration is authorized by this prototype.
+Its separate `verify` command checks the generated candidate against the original
+evidence and an independently retained plan hash, using no signing private key. It
+also verifies every preserved logical row and the exact handover parameters. Successful
+verification leaves the candidate quarantined; custody freshness, writer transfer and
+any activation remain separate decisions. An expired review or missing evidence is
+a refusal, including after an interrupted or uncertain publication.
