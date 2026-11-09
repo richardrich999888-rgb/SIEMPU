@@ -16,7 +16,7 @@ function keypair() {
   const jwk = privateKey.export({ format: 'jwk' });
   return { publicKey: publicJwk(jwk), privateKey: { ...publicJwk(jwk), d: jwk.d } };
 }
-export async function initDemo(dir, { includeAdapter = false } = {}) {
+export async function initDemo(dir, { includeAdapter = false, allowPqcLab = false } = {}) {
   dir = resolve(dir);
   if (existsSync(resolve(dir, 'control.sqlite')))
     throw new Error('Refusing to overwrite existing database; use a new demo directory');
@@ -34,6 +34,7 @@ export async function initDemo(dir, { includeAdapter = false } = {}) {
     dbPath: resolve(dir, 'control.sqlite'),
     signingKey: signing.privateKey,
     masterKey: master,
+    allowPqcLab,
   });
   const units = { A: randomUUID(), B: randomUUID(), C: randomUUID() };
   const profiles = [];

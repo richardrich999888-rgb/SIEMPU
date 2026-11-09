@@ -3,14 +3,59 @@ import assert from 'node:assert/strict';
 import { performance } from 'node:perf_hooks';
 import { cpus, totalmem } from 'node:os';
 import { coreFixture } from '../tests/helpers/fixture.mjs';
-import { createObject, decryptObject } from '../tests/helpers/client.mjs';
+import { createObject, decryptObject, pair } from '../tests/helpers/client.mjs';
 import { verifyEvidence } from '../apps/verifier/verify.mjs';
+import { packet } from '../services/control/primitives.mjs';
+import {
+  CheckpointCustodian,
+  createRecoveryGuard,
+  authoritySnapshot,
+  authorizationDigest,
+} from '../services/evidence/custody.mjs';
+import { join } from 'node:path';
 
-export async function comparePolicyRelease({ iterations = 20 } = {}) {
+export async function comparePolicyRelease({ iterations = 20, custody = 'none' } = {}) {
   if (!Number.isSafeInteger(iterations) || iterations < 3 || iterations > 30)
     throw new Error('Comparison iterations must be 3..30');
+  if (!['none', 'fenced'].includes(custody)) throw new Error('Unknown custody profile');
   const cleanup = [];
   const f = await coreFixture({ after: (fn) => cleanup.push(fn) });
+  if (custody === 'fenced') {
+    const keys = pair(),
+      writer = pair();
+    const custodian = new CheckpointCustodian({
+      database: join(f.dir, 'benchmark-custody.sqlite'),
+      authorityKey: f.provisioned.serverPublicKey,
+      signingKey: keys.privateKey,
+      allowBootstrap: true,
+    });
+    cleanup.push(() => custodian.close());
+    const evidence = authoritySnapshot(f.authority),
+      stateDigest = authorizationDigest(f.authority);
+    await custodian.accept(
+      packet(f.authority.key, {
+        version: 1,
+        nonce: crypto.randomUUID(),
+        issuedAt: Date.now(),
+        stateDigest,
+        evidence,
+      }),
+    );
+    const cp = evidence.checkpoint.payload,
+      row = f.authority.epoch();
+    custodian.transferWriter({
+      writerKey: writer.publicKey,
+      expectedGeneration: 0,
+      expectedAnchor: { sequence: cp.sequence, headHash: cp.headHash, stateDigest },
+      authority: { epoch: row.epoch, revocationVersion: row.revocation_version },
+    });
+    f.authority.recoveryGuard = createRecoveryGuard({
+      custodianKey: keys.publicKey,
+      writer: { key: writer.privateKey, generation: 1 },
+      exchange: (r) => custodian.accept(r),
+      anchorQuery: (r) => custodian.anchor(r),
+    });
+  }
   const samples = {
     encryptAndSign: [],
     admitAndPrepare: [],
@@ -134,6 +179,7 @@ export async function comparePolicyRelease({ iterations = 20 } = {}) {
           iterations,
           payloadBytes: 4096,
           concurrency: 1,
+          custody,
           transport: 'in-process dispatch; temporary SQLite; in-memory ciphertext relay',
           baseline:
             'same signed encrypted object, wrapped key delivered in advance, no subsequent policy contact',
@@ -172,6 +218,7 @@ export async function comparePolicyRelease({ iterations = 20 } = {}) {
           'Timings include helper-generated device proofs and signed evidence; setup/authentication excluded.',
           'Process RSS peak includes setup; CPU spans sequential exchange plus reference decryption, not isolated service CPU.',
           'No WAN, load ceiling, HA, HSM or field performance is measured. Network/recovery evidence belongs to separate named CI matrices.',
+          'Fenced profile, when selected, uses a separately keyed SQLite custodian in this same process; timing excludes inter-host custody RTT and independent administration.',
         ],
       },
       evidence,

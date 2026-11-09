@@ -4,7 +4,7 @@ import {
   authoritySnapshot,
   authorizationDigest,
 } from '../../services/evidence/custody.mjs';
-import { packet, verifyPacket } from '../../services/control/primitives.mjs';
+import { packet, verifyPacket, publicJwk } from '../../services/control/primitives.mjs';
 import { anchorFromAnswer, RANGE_VERSION } from '../../services/evidence/incremental.mjs';
 import { spawn } from 'node:child_process';
 import { reservePort } from './ports.mjs';
@@ -13,13 +13,15 @@ import { join, resolve } from 'node:path';
 import { generateKeyPairSync } from 'node:crypto';
 import { generateLabPKI } from './lab-pki.mjs';
 import { requestBytes } from '../../packages/transport/tls.mjs';
+import { assertAuthorizationCommit } from '../../services/evidence/authorization-state.mjs';
 
-export async function seedLabCustodian(authorityDir, custodyDir) {
+export async function seedLabCustodian(authorityDir, custodyDir, { allowPqcLab = false } = {}) {
   const authorityKey = JSON.parse(readFileSync(join(authorityDir, 'public-key.json')));
   const authority = new Authority({
     dbPath: join(authorityDir, 'control.sqlite'),
     signingKey: JSON.parse(readFileSync(join(authorityDir, 'server-key.json'))),
     masterKey: readFileSync(join(authorityDir, 'master.key')),
+    allowPqcLab,
   });
   const custody = new CheckpointCustodian({
     database: join(custodyDir, 'checkpoints.sqlite'),
@@ -28,6 +30,7 @@ export async function seedLabCustodian(authorityDir, custodyDir) {
     allowBootstrap: true,
   });
   try {
+    assertAuthorizationCommit(authority);
     await custody.accept(
       packet(authority.key, {
         version: 1,
@@ -37,6 +40,23 @@ export async function seedLabCustodian(authorityDir, custodyDir) {
         evidence: authoritySnapshot(authority),
       }),
     );
+    const writer = JSON.parse(readFileSync(join(authorityDir, 'writer-credential.json')));
+    const checkpoint = authority.checkpoint().payload;
+    const epoch = authority.epoch();
+    const receipt = custody.transferWriter({
+      writerKey: publicJwk(writer.key),
+      expectedGeneration: 0,
+      expectedAnchor: {
+        sequence: checkpoint.sequence,
+        headHash: checkpoint.headHash,
+        stateDigest: authorizationDigest(authority),
+      },
+      authority: { epoch: epoch.epoch, revocationVersion: epoch.revocation_version },
+    });
+    writeFileSync(join(custodyDir, 'writer-handover-1.json'), JSON.stringify(receipt), {
+      mode: 0o600,
+      flag: 'wx',
+    });
   } finally {
     authority.close();
     custody.close();
@@ -67,6 +87,15 @@ export function prepareSecureLab(dir) {
   const independent = join(dir, 'custody');
   mkdirSync(independent, { mode: 0o700 });
   const keys = generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
+  const writerKeys = generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
+  writeFileSync(
+    join(dir, 'writer-credential.json'),
+    JSON.stringify({
+      generation: 1,
+      key: writerKeys.privateKey.export({ format: 'jwk' }),
+    }),
+    { mode: 0o600, flag: 'wx' },
+  );
   writeFileSync(
     join(independent, 'signing-key.json'),
     JSON.stringify(keys.privateKey.export({ format: 'jwk' })),
@@ -109,6 +138,8 @@ export function labEnvironment(
     SIEPMU_CUSTODY_SIGNING_KEY: join(dir, 'custody', 'signing-key.json'),
     SIEPMU_CUSTODY_DB: join(dir, 'custody', 'checkpoints.sqlite'),
     SIEPMU_CUSTODY_PORT: String(ports.checkpoint),
+    SIEPMU_CUSTODY_REQUIRE_FENCING: '1',
+    SIEPMU_WRITER_CREDENTIAL: join(dir, 'writer-credential.json'),
   };
   for (const role of ['web', 'control', 'relay', 'checkpoint']) {
     const prefix = 'SIEPMU_' + role.toUpperCase();
@@ -144,13 +175,20 @@ export function labEnvironment(
 }
 export async function startSecureStack(
   dir,
-  { root = resolve('.'), lab = prepareSecureLab(dir), spawnService = spawn } = {},
+  {
+    root = resolve('.'),
+    lab = prepareSecureLab(dir),
+    spawnService = spawn,
+    allowPqcLab = false,
+  } = {},
 ) {
-  await seedLabCustodian(dir, lab.independent);
+  await seedLabCustodian(dir, lab.independent, { allowPqcLab });
   const ports = {};
   for (const n of ['web', 'control', 'relay', 'checkpoint', 'collector'])
     ports[n] = await reservePort();
   const env = { ...process.env, ...labEnvironment(dir, lab.pki, ports) };
+  if (allowPqcLab) env.SIEPMU_ALLOW_PQC_LAB = '1';
+  else delete env.SIEPMU_ALLOW_PQC_LAB;
   delete env.SIEPMU_ALLOW_REMOTE_HTTP;
   const children = new Map(),
     logs = [];

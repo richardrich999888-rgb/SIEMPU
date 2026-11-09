@@ -44,6 +44,49 @@ const TEST_FILE = /(?:^tests\/|\.test\.mjs$|\.check\.mjs$|\/tests\/)/;
  * is a substring of the line. Value: [verdict, proposed wording or null].
  */
 export const MANUAL_VERDICTS = new Map([
+  // P0-041 applicant scoping/requests and explicit qualification limits, reviewed in context.
+  ['docs/qualification/P0-041_EVALUATION_PLAN.md::review; TRL 5, SAG grading', ['accurate', null]],
+  [
+    'docs/qualification/P0-041_FUNDING_VALIDATION_PLAN.md::SAG/laboratory owns methods',
+    ['accurate', null],
+  ],
+  [
+    'docs/qualification/P0-041_IAF_SPONSORSHIP_BRIEF.md::guidance for service-sponsored SAG assessment',
+    ['accurate', null],
+  ],
+  [
+    'docs/qualification/P0-041_IAF_SPONSORSHIP_BRIEF.md::commitment, SAG grading or operational approval is represented as established.',
+    ['accurate', null],
+  ],
+  [
+    'docs/qualification/P0-041_IAF_SPONSORSHIP_BRIEF.md::nomination of the sponsoring authority and SAG scope',
+    ['accurate', null],
+  ],
+  [
+    'docs/qualification/P0-041_IAF_SPONSORSHIP_BRIEF.md::P0-041 assurance manifest and SAG scoping dossier.',
+    ['accurate', null],
+  ],
+  [
+    'docs/qualification/P0-041_SAG_SCOPING.md::# P0 041 SAG applicant scoping dossier',
+    ['accurate', null],
+  ],
+  [
+    'docs/qualification/P0-041_SAG_SCOPING.md::Government approval and SAG grading',
+    ['accurate', null],
+  ],
+  [
+    'docs/qualification/P0-041_SAG_SCOPING.md::Nominate technical point of contact and request SAG scope determination',
+    ['accurate', null],
+  ],
+  ['docs/qualification/P0-041_SAG_SCOPING.md::Product/module/algorithm scope', ['accurate', null]],
+  [
+    'docs/qualification/P0-041_SAG_SCOPING.md::Public DRDO material describes SAG support',
+    ['accurate', null],
+  ],
+  [
+    'docs/qualification/P0-041_SAG_SCOPING.md::Applicability to this applicant and SAG work must',
+    ['accurate', null],
+  ],
   [
     '.claude/skills/siepmu-architecture/SKILL.md::re-validated at every decision',
     ['accurate', null],

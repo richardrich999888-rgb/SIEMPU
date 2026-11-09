@@ -61,6 +61,15 @@ jobs:
         run: node scripts/record-engineering-evidence.mjs --verified
       - name: Execute the source-bound adversarial laboratory campaign
         run: npm run test:adversarial -- artifacts/iaf-adversarial
+      - name: Execute five qualification demonstrations on the frozen source
+        run: npm run test:qualification
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        if: always()
+        with:
+          name: p0-041-qualification-evidence
+          path: artifacts/p0-041/
+          if-no-files-found: error
+          retention-days: 30
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         if: always()
         with:

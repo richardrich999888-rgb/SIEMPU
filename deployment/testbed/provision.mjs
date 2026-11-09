@@ -11,6 +11,9 @@ const provisioned = await initDemo(join(root, 'control'), { includeAdapter: true
   profiles = Object.fromEntries(provisioned.profiles.map((p) => [p.username, p]));
 const lab = prepareSecureLab(root),
   pki = lab.pki;
+copyFileSync(join(root, 'writer-credential.json'), join(root, 'control', 'writer-credential.json'));
+chmodSync(join(root, 'control', 'writer-credential.json'), 0o600);
+rmSync(join(root, 'writer-credential.json'));
 await seedLabCustodian(join(root, 'control'), lab.independent);
 pki.issue('unit-admin');
 const services = {},
@@ -110,6 +113,7 @@ for (const role of roles) {
       SIEPMU_RELAY_URL: 'https://relay:8082',
       SIEPMU_CUSTODY_URL: 'https://checkpoint:8444/v1/checkpoints',
       SIEPMU_CUSTODIAN_PUBLIC_KEY: '/state/custodian-public.json',
+      SIEPMU_WRITER_CREDENTIAL: '/state/writer-credential.json',
       SIEPMU_COLLECTOR_URL: 'https://collector:8445/v1/events',
       SIEPMU_COLLECTOR_PUBLIC_KEY: '/state/collector-public.json',
     });
@@ -129,6 +133,7 @@ for (const role of roles) {
       SIEPMU_CUSTODY_HOST: '0.0.0.0',
       SIEPMU_CUSTODY_DB: '/state/checkpoints.sqlite',
       SIEPMU_CUSTODY_SIGNING_KEY: '/state/signing-key.json',
+      SIEPMU_CUSTODY_REQUIRE_FENCING: '1',
     });
   }
   if (role === 'collector') {

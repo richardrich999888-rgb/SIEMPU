@@ -174,7 +174,7 @@ test('reviewed crypto inventory includes application, laboratory and optional to
   const c = JSON.parse(readFileSync('assurance/sag/catalogue.json'));
   const source = new Map(Object.keys(c.sourceBindings).map((p) => [p, readFileSync(p)]));
   assert.equal(validateCatalogue(c, source), c);
-  assert.equal(c.components.length, 19);
+  assert.equal(c.components.length, 20);
   const reader = c.components.find((v) => v.id === 'CR-18');
   assert.equal(reader.deploymentScope, 'LAB_ONLY');
   assert.ok(reader.sources.includes('integrations/india-dpi/iudx-resource-reader.mjs'));
@@ -182,6 +182,11 @@ test('reviewed crypto inventory includes application, laboratory and optional to
   assert.equal(recovery.deploymentScope, 'OPTIONAL_OFFLINE_TOOL');
   assert.deepEqual(recovery.sources, ['scripts/backup.mjs', 'apps/verifier/verify.mjs']);
   assert.deepEqual(recovery.tests, ['tests/recovery.test.mjs']);
+  const fencing = c.components.find((v) => v.id === 'CR-20');
+  assert.equal(fencing.deploymentScope, 'APPLICATION');
+  assert.ok(fencing.sources.includes('services/evidence/fencing.mjs'));
+  assert.ok(fencing.tests.includes('tests/writer-fencing.test.mjs'));
+  assert.ok(fencing.tests.includes('tests/authority-state-custody.test.mjs'));
   assert.ok(c.components.some((v) => v.mechanisms.some((m) => m.includes('TOTP HMAC-SHA1'))));
   assert.deepEqual(
     new Set(c.components.map((v) => v.deploymentScope)),

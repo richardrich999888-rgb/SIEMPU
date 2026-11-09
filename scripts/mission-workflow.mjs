@@ -293,11 +293,11 @@ export async function runMissionWorkflow(profileName) {
       1,
       'Provision synthetic users, devices, units and the five-process secure stack',
       async () => {
-        f = await provision();
+        f = await provision({ allowPqcLab: profileName !== 'classical' });
         profile = profileName === 'classical' ? classicalProfile(f) : pqcProfile(f);
         if (profile.labGate) process.env.SIEPMU_ALLOW_PQC_LAB = '1';
         else delete process.env.SIEPMU_ALLOW_PQC_LAB;
-        stack = await startSecureStack(f.dir);
+        stack = await startSecureStack(f.dir, { allowPqcLab: profile.labGate });
         return {
           services: Object.keys(stack.ports),
           pqcLabGate: profile.labGate ? 'open' : 'closed',

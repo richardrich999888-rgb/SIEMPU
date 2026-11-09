@@ -90,7 +90,12 @@ test('all local observations can be present without assigning operational qualif
   assert.ok(report.checks.every((c) => c.status === 'OBSERVED'));
   assert.equal(report.releaseDecision, 'NOT_QUALIFIED');
   assert.ok(report.qualificationGates.every((g) => g.status === 'EVIDENCE_REQUIRED'));
-  f.authority.crypto.allowPqcLab = true;
+  // Reporting fixture only: establish a coherent laboratory configuration. Raw runtime-gate
+  // tampering must remain rejected by the real guard (authority-state-custody.test.mjs).
+  f.authority.tx(() => {
+    f.authority.crypto.allowPqcLab = true;
+    f.authority.event('SYNTHETIC_PROFILE_CHANGE', 'reporting-fixture');
+  });
   assert.equal(
     (await f.clients.admin.ok('GET', '/api/admin/readiness')).checks.find(
       (c) => c.id === 'lab-crypto',

@@ -56,10 +56,14 @@ export function createCustodyServer({ custodian, tls }) {
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const read = (path) => JSON.parse(readFileSync(path));
+  const flag = process.env.SIEPMU_CUSTODY_REQUIRE_FENCING;
+  if (flag !== undefined && flag !== '1')
+    throw new Error('Fencing flag accepts only 1 or omission');
   const custodian = new CheckpointCustodian({
     database: process.env.SIEPMU_CUSTODY_DB,
     authorityKey: read(process.env.SIEPMU_AUTHORITY_PUBLIC_KEY),
     signingKey: read(process.env.SIEPMU_CUSTODY_SIGNING_KEY),
+    requireFencing: flag === '1',
   });
   const server = createCustodyServer({ custodian, tls: serverTLS('checkpoint') });
   server.listen(
