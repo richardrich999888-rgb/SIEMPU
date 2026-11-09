@@ -369,6 +369,37 @@
       "limitations": "Maintenance-only sequential snapshots; no complete all-service DR, hardware key protection, power-loss durability qualification or current-policy approval. Evidence authenticity cannot prove arbitrary policy table contents.",
       "sources": ["scripts/backup.mjs", "apps/verifier/verify.mjs"],
       "tests": ["tests/recovery.test.mjs"]
+    },
+    {
+      "id": "CR-20",
+      "purpose": "Complete authorization-state custody and explicit authority-writer fencing",
+      "mechanisms": [
+        "SHA-256 canonical authorization-state digest with profile SIEPMU_AUTHORIZATION_STATE_V2",
+        "ECDSA P-256 SHA-256 writer request and custodian lease signatures",
+        "Non-expiring writer generations; atomic SQLite compare-and-swap with monotonic policy-epoch and revocation floors",
+        "Authority-signed state/head seal committed atomically with each application transaction"
+      ],
+      "boundary": "Authority writer, independently keyed checkpoint custodian and local custodian maintenance operator",
+      "deploymentScope": "APPLICATION",
+      "custody": "Distinct software writer key per generation; custodian private key and database require independent administration. Handover receipts must be retained externally.",
+      "limitations": "Laboratory manual handover only. No quorum replication or automatic failover. A cloned current writer credential or rolled-back/compromised custodian defeats the stated ownership assumption. Previously returned keys cannot be revoked. Legacy digest migration is not automatic; production approval and hardware custody are unestablished.",
+      "sources": [
+        "services/evidence/custody.mjs",
+        "services/evidence/fencing.mjs",
+        "services/evidence/server.mjs",
+        "services/control/core.mjs",
+        "services/control/server.mjs",
+        "scripts/authority-handover.mjs",
+        "deployment/secure/harness.mjs",
+        "deployment/testbed/provision.mjs",
+        "services/evidence/authorization-state.mjs",
+        "database/migrations/007-authorization-commit.sql"
+      ],
+      "tests": [
+        "tests/authority-state-custody.test.mjs",
+        "tests/writer-fencing.test.mjs",
+        "tests/transport/secure-stack.test.mjs"
+      ]
     }
   ],
   "sourceBindings": {
@@ -384,14 +415,23 @@
     "assurance/kat/core/catalog.mjs": {
       "sha256": "55bd7186b6b0dd5fb566ccbe305bda56b5adf4950719d1ee35a3edfe8007572b"
     },
+    "database/migrations/007-authorization-commit.sql": {
+      "sha256": "6c3452dc967d3ed213c602371d7ccf1781e5135dbeb0a0987c96486bf6c9519f"
+    },
     "deployment/secure/adapter-process.mjs": {
       "sha256": "b0ef9cdabe4185af1eceded73dcc829ff1497a3ca53875d183afb875d3d1f111"
+    },
+    "deployment/secure/harness.mjs": {
+      "sha256": "eadf6bfdcf2fd9663f7755c25ca58bb71ae5ee685e99939a347f342d7ae9cf31"
     },
     "deployment/secure/lab-pki.mjs": {
       "sha256": "860dfb1f669582d303a276ed7a3cbdb016cc095585aa6743c2ab5b8c5e90a693"
     },
     "deployment/secure/sealed-adapter-process.mjs": {
       "sha256": "12032af7b6ceb4dd3a29b1413b1f708eb4942b107cfe31066385cc8d7cd7b3ab"
+    },
+    "deployment/testbed/provision.mjs": {
+      "sha256": "b093c083389f876316b120e8ebb0629b310b3b3a1b6ea12987e5c8ca54dc3c8a"
     },
     "integrations/india-dpi/iudx-resource-reader.mjs": {
       "sha256": "05df9aff7068ef329f20d6eb8091436a9aefe31321f282ec649413f667fad072"
@@ -489,20 +529,38 @@
     "packages/transport/tls.mjs": {
       "sha256": "ad0d932a1646e8c15f5f3a324b65980104ac2682b7d9e03ea945aa9c792ede9f"
     },
+    "scripts/authority-handover.mjs": {
+      "sha256": "dcf2b6c0be40c94a83ef10fcb785309f474bcf020776280a5294e9656f9a2084"
+    },
+    "scripts/backup.mjs": {
+      "sha256": "0e25e57ae024cc05efce53c4d89c3b843718e495990e372c2d53b7ae39568452"
+    },
     "scripts/bootstrap.mjs": {
       "sha256": "603611fa0424086d9ec784f464ccb1410c041b5d718176e7fb20c301f777ac70"
     },
     "services/control/core.mjs": {
-      "sha256": "96acf1333d74d866b772e8ab8e604f768e15579311448151f170e1aa4b1b975e"
+      "sha256": "a4d7b86760923efa9fa8b8ca41a17099d977aa33c7b4759f0cc491229c98bbfe"
     },
     "services/control/primitives.mjs": {
       "sha256": "973f9252bb45b4550d00d32e9a4805b46dfc9f37bfd4bf4e7b7b88106401725a"
     },
+    "services/control/server.mjs": {
+      "sha256": "ca4bc4bd68a261f4d9b301a6b28c2c380179c090a9a043e1a0d6ca8afeeffca8"
+    },
     "services/crypto-policy/registry.mjs": {
       "sha256": "caa441926110c631b83b85856e3e8fd365a5cc67e53da34fb64e5c66b71788f8"
     },
+    "services/evidence/authorization-state.mjs": {
+      "sha256": "125d30770e30370a20e54416f7f1c40a8c9547997786309f3d595d96de74f3fe"
+    },
     "services/evidence/custody.mjs": {
-      "sha256": "6c52adf5466468d02359e77ca8e5b5ea0831b072602841f36b3f29654eab2ee6"
+      "sha256": "69770574a047a356f641911db414cb95734cc200d8e01928998992009260dcd4"
+    },
+    "services/evidence/fencing.mjs": {
+      "sha256": "2c99e317dbfce3ecb279b1e9e68261c1b468f8b03482c0b47282ea10cfb3ddae"
+    },
+    "services/evidence/server.mjs": {
+      "sha256": "bbf702f48835b8957bfdda8cabd7f1f23d2b567ce45921010f7c46fd4191e033"
     },
     "services/integration/adapter.mjs": {
       "sha256": "d6429aa119fab93ff40e72a94cc73ee38378293c18276cfa1972c5d82b8a19fd"
@@ -555,6 +613,9 @@
     "tests/auth-routing.test.mjs": {
       "sha256": "058c5b000e9c927ba271d79a55422b52f272af9cbdf9d81998a44978a6bf7e47"
     },
+    "tests/authority-state-custody.test.mjs": {
+      "sha256": "7be8c7245475d9b9068eff36cb3a52d08a0fa4780e244c002988a53ab382f09f"
+    },
     "tests/authority.test.mjs": {
       "sha256": "5538c4737d7320decc185d71d36f4b6b1f36036e566773b6565fe4d3bcdc1304"
     },
@@ -606,6 +667,9 @@
     "tests/pqc/end-to-end.test.mjs": {
       "sha256": "a073d80a3fd539bf61eeb26aa81d4afbb3d11fcc3279fd8b610e40072f482f92"
     },
+    "tests/recovery.test.mjs": {
+      "sha256": "e1b5851d3777ff4b385eaa00181a21752ce11169376bb4937a2f099146387413"
+    },
     "tests/sealed-integration.test.mjs": {
       "sha256": "cdbe6e19aba039e7a0e8bdbf72275a39a92569535e1ded825bbb90c4270a8663"
     },
@@ -624,11 +688,8 @@
     "tests/verifier-replay.test.mjs": {
       "sha256": "0b0538ec7b9a62d6a6c9e5a2f084438c3cdee45d320f9004f56011f07e974b01"
     },
-    "scripts/backup.mjs": {
-      "sha256": "278b6f25e38447f6744e05d0b17fcbecd925c2ad552d77612751809ba3c60c05"
-    },
-    "tests/recovery.test.mjs": {
-      "sha256": "7ecc3e6431038c7b5b64d66ed7f744f00c04d57185718e5d328e89ea16572a3b"
+    "tests/writer-fencing.test.mjs": {
+      "sha256": "072cee2e0424ea6e64dc073f0cc35cb2b140feea5772f1cc7edbd4e4e37d2d5c"
     }
   }
 }

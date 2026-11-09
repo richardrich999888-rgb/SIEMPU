@@ -132,6 +132,11 @@ export function parsePqcLabFlag(value) {
 }
 export function startControl() {
   const allowPqcLab = parsePqcLabFlag(process.env.SIEPMU_ALLOW_PQC_LAB);
+  const writerPath = process.env.SIEPMU_WRITER_CREDENTIAL;
+  if (writerPath !== undefined && (!writerPath || !secureProfile()))
+    throw new Error('Writer fencing requires an explicit credential and isolated TLS profile');
+  if (writerPath && (statSync(writerPath).mode & 0o077) !== 0)
+    throw new Error('Writer credential permissions must be 0600');
   const dir = resolve(process.env.SIEPMU_DATA_DIR ?? '.data');
   for (const f of ['server-key.json', 'master.key', 'relay.secret']) {
     if ((statSync(resolve(dir, f)).mode & 0o077) !== 0)
@@ -155,6 +160,7 @@ export function startControl() {
           exchange: remoteCustodyExchange(process.env.SIEPMU_CUSTODY_URL, clientTLS('control')),
           // Incremental custody (ADR-014): ship only records after the custodian's anchor.
           anchorQuery: remoteAnchorQuery(process.env.SIEPMU_CUSTODY_URL, clientTLS('control')),
+          ...(writerPath ? { writer: JSON.parse(readFileSync(writerPath, 'utf8')) } : {}),
         })
       : undefined,
   });

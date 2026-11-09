@@ -16,6 +16,7 @@ import { tmpdir } from 'node:os';
 import { randomBytes, scryptSync, createCipheriv, createDecipheriv } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { verifyEvidenceRecords } from '../apps/verifier/verify.mjs';
+import { assertAuthorizationCommit } from '../services/evidence/authorization-state.mjs';
 import {
   packet,
   verifyPacket,
@@ -75,6 +76,16 @@ function verifyRestoredHistory(directory, trustedPublicKey, checkpoint, head) {
     const result = verifyEvidenceRecords(records(), trustedPublicKey, { checkpoint });
     if (result.records !== head.sequence || result.headHash !== head.headHash)
       throw new Error('Backup manifest checkpoint does not match history');
+    // Read-only view: never run migrations or create a fresh seal over restored bytes.
+    // This maintenance archive supports the default classical runtime configuration.
+    assertAuthorizationCommit({
+      publicKey: trustedPublicKey,
+      get: (sql, ...args) => db.prepare(sql).get(...args),
+      all: (sql, ...args) => db.prepare(sql).all(...args),
+      epoch: () => db.prepare('SELECT * FROM authority WHERE id=1').get(),
+      checkpoint: () => ({ payload: head }),
+      crypto: { allowPqcLab: false },
+    });
   } finally {
     db.close();
   }

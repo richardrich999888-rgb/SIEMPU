@@ -4,7 +4,7 @@ import {
   authoritySnapshot,
   authorizationDigest,
 } from '../../services/evidence/custody.mjs';
-import { packet, verifyPacket } from '../../services/control/primitives.mjs';
+import { packet, verifyPacket, publicJwk } from '../../services/control/primitives.mjs';
 import { anchorFromAnswer, RANGE_VERSION } from '../../services/evidence/incremental.mjs';
 import { spawn } from 'node:child_process';
 import { reservePort } from './ports.mjs';
@@ -37,6 +37,23 @@ export async function seedLabCustodian(authorityDir, custodyDir) {
         evidence: authoritySnapshot(authority),
       }),
     );
+    const writer = JSON.parse(readFileSync(join(authorityDir, 'writer-credential.json')));
+    const checkpoint = authority.checkpoint().payload;
+    const epoch = authority.epoch();
+    const receipt = custody.transferWriter({
+      writerKey: publicJwk(writer.key),
+      expectedGeneration: 0,
+      expectedAnchor: {
+        sequence: checkpoint.sequence,
+        headHash: checkpoint.headHash,
+        stateDigest: authorizationDigest(authority),
+      },
+      authority: { epoch: epoch.epoch, revocationVersion: epoch.revocation_version },
+    });
+    writeFileSync(join(custodyDir, 'writer-handover-1.json'), JSON.stringify(receipt), {
+      mode: 0o600,
+      flag: 'wx',
+    });
   } finally {
     authority.close();
     custody.close();
@@ -67,6 +84,15 @@ export function prepareSecureLab(dir) {
   const independent = join(dir, 'custody');
   mkdirSync(independent, { mode: 0o700 });
   const keys = generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
+  const writerKeys = generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
+  writeFileSync(
+    join(dir, 'writer-credential.json'),
+    JSON.stringify({
+      generation: 1,
+      key: writerKeys.privateKey.export({ format: 'jwk' }),
+    }),
+    { mode: 0o600, flag: 'wx' },
+  );
   writeFileSync(
     join(independent, 'signing-key.json'),
     JSON.stringify(keys.privateKey.export({ format: 'jwk' })),
@@ -109,6 +135,8 @@ export function labEnvironment(
     SIEPMU_CUSTODY_SIGNING_KEY: join(dir, 'custody', 'signing-key.json'),
     SIEPMU_CUSTODY_DB: join(dir, 'custody', 'checkpoints.sqlite'),
     SIEPMU_CUSTODY_PORT: String(ports.checkpoint),
+    SIEPMU_CUSTODY_REQUIRE_FENCING: '1',
+    SIEPMU_WRITER_CREDENTIAL: join(dir, 'writer-credential.json'),
   };
   for (const role of ['web', 'control', 'relay', 'checkpoint']) {
     const prefix = 'SIEPMU_' + role.toUpperCase();

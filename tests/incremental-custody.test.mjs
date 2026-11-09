@@ -249,7 +249,7 @@ test('authorization state changed without a chain event is detected on the uncha
   f.authority.run('UPDATE users SET active=0 WHERE id=?', f.profiles.alice.userId);
   assert.equal(guard.allows(f.authority), false);
   await assert.rejects(guard.authorize(f.authority), /Recovery trust/);
-  assert.equal(guard.reason, 'RECOVERY_ROLLBACK_OR_FORK');
+  assert.equal(guard.reason, 'AUTHORIZATION_COMMIT_MISMATCH');
 });
 
 test('missing local record (storage hole) quarantines instead of shipping a short chain', async (t) => {

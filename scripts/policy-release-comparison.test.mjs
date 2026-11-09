@@ -18,3 +18,13 @@ test('negative-control comparison observes fresh-policy denial without claiming 
   assert.ok(report.audit.records > 0);
   assert.ok(report.sequentialObjectsPerSecond > 0);
 });
+
+test('fenced comparison preserves denial and explicitly records its custody boundary', async () => {
+  const { report } = await comparePolicyRelease({ iterations: 3, custody: 'fenced' });
+  assert.equal(report.workload.custody, 'fenced');
+  assert.equal(report.policyExperiment.newIssuancesAfterRevocation, 0);
+  assert.equal(report.policyExperiment.currentPolicyReason, 'POLICY_DENIED');
+  assert.equal(report.policyExperiment.predeliveredReferenceDecrypts, true);
+  assert.equal(report.measurements.policyRelease.count, 3);
+  await assert.rejects(comparePolicyRelease({ custody: 'silent-fallback' }), /Unknown custody/);
+});

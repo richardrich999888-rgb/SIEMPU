@@ -4,7 +4,7 @@
   "targetTrl": 8,
   "currentAssessment": "PROVISIONAL_TRL4_UNCHANGED",
   "qualification": "NOT_ESTABLISHED",
-  "sourceBaseline": "3244158f3d1f8fabe1b745b1588392f82884dfcf",
+  "sourceBaseline": "62b8e6634cc6ba2a634b3170654fc21a34c8c0b4",
   "scope": "Synthetic laboratory tests only; no real IAF system, confidential data, formal grading or independent assessment.",
   "families": [
     {
@@ -52,7 +52,9 @@
       "tests": [
         "tests/checkpoint-custody.test.mjs",
         "tests/recovery.test.mjs",
-        "tests/incremental-custody.test.mjs"
+        "tests/incremental-custody.test.mjs",
+        "tests/authority-state-custody.test.mjs",
+        "tests/writer-fencing.test.mjs"
       ],
       "oracle": "Rollback/fork/outage blocks key-bearing operations; recovery retains the independent checkpoint boundary."
     },
@@ -184,15 +186,15 @@
     {
       "id": "IAF-G06",
       "priority": "P0",
-      "status": "IMPLEMENTATION_PENDING",
+      "status": "PARTIAL_LAB",
       "requirements": ["R2", "R4", "R11"],
       "owner": "SYNTRIASS + hosting owner",
       "title": "High availability without split-brain release",
-      "current": "The authority is one SQLite writer; container isolation is not multi-host consensus.",
-      "implementationNeeded": "Design and implement single-writer fencing/failover and durable custody on independently administered hosts.",
+      "current": "P0-041 adds independent writer credentials, explicit generations, atomic custodian fencing, monotonic epoch/revocation floors and compare-and-swap handover. Separate-process contention and interrupted handover are tested. Automatic failover, replicated custody, independent-host administration and agreed RPO/RTO remain unproven.",
+      "implementationNeeded": "Qualify the manual handover and reconciliation runbook on independently administered hosts; design replicated custody only against an agreed availability requirement. Current custodian outage blocks release; software credential cloning is outside this fence.",
       "sponsorInputs": "IAF-08, IAF-03",
       "exitEvidence": "Witnessed leader loss, partition, restore and competing-writer trials with zero unauthorized/duplicate issuance and agreed RPO/RTO.",
-      "source": "services/control/core.mjs"
+      "source": "docs/qualification/P0-041_RECOVERY_RUNBOOK.md"
     },
     {
       "id": "IAF-G07",
@@ -214,7 +216,7 @@
       "requirements": ["R2", "R6", "R10"],
       "owner": "SYNTRIASS + operations owner",
       "title": "Backup, retention and disaster recovery",
-      "current": "Rollback controls and synthetic restore tests exist; retention/compaction and independent-host recovery remain incomplete. REC-01 follow-up requires independent checkpoints in both restore APIs, verifies signed history and exact ancestry plus stored sequence/hash and manifest head, and stages before publication. Complete all-service recovery, power-loss qualification and accepted RPO/RTO remain open.",
+      "current": "Rollback controls and synthetic restore tests exist; retention/compaction and independent-host recovery remain incomplete. REC-01 follow-up requires independent checkpoints in both restore APIs, verifies signed history and exact ancestry plus stored sequence/hash and manifest head, and stages before publication. Complete all-service recovery, power-loss qualification and accepted RPO/RTO remain open. P0-041 binds session, challenge, MFA, credential, crypto-policy/key and FLASH-approval state to custody; selective rollback regressions fail closed. Legacy digest migration requires a separately reviewed procedure and remains blocked.",
       "implementationNeeded": "Implement approved retention and deletion, encrypted backup custody, restore procedures and regular drills.",
       "sponsorInputs": "IAF-04, IAF-09",
       "exitEvidence": "Witnessed restore from damaged/missing media with retained checkpoints, measured RPO/RTO and no stale authorization.",

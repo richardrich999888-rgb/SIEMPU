@@ -305,6 +305,16 @@ test('restore proves retained ancestry, rejects signed divergent/corrupt histori
       (db) => db.prepare('UPDATE evidence SET hash=? WHERE sequence=1').run('f'.repeat(64)),
     ],
     ['gap', (db) => db.exec('DELETE FROM evidence WHERE sequence=1')],
+    ['missing-authorization-seal', (db) => db.exec('DELETE FROM authorization_commit')],
+    ['partial-authorization-state', (db) => db.exec('UPDATE users SET active=0')],
+    [
+      'altered-authorization-seal',
+      (db) => {
+        const seal = JSON.parse(db.prepare('SELECT seal FROM authorization_commit').get().seal);
+        seal.payload.stateDigest = 'f'.repeat(64);
+        db.prepare('UPDATE authorization_commit SET seal=?').run(canonical(seal));
+      },
+    ],
   ]) {
     const corrupted = join(temp, 'corrupt-' + name);
     cpSync(dir, corrupted, { recursive: true });

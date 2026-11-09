@@ -22,6 +22,10 @@ import { CryptoPolicyRegistry, validatePqcEnvelope } from '../crypto-policy/regi
 import { cryptoPolicyDigest } from '../../packages/crypto-provider/policy.mjs';
 import { decisionEvidence } from '../evidence/decision.mjs';
 import {
+  assertAuthorizationCommit,
+  sealAuthorizationCommit,
+} from '../evidence/authorization-state.mjs';
+import {
   canonical,
   hash,
   decode,
@@ -176,7 +180,12 @@ export class Authority {
   tx(fn) {
     this.db.exec('BEGIN IMMEDIATE');
     try {
+      // A valid unanchored event must not launder partially restored authorization state.
+      // Migration/bootstrap runs before crypto initialization; existing history is never sealed
+      // merely by opening it. Guarded runtime transactions require the prior committed binding.
+      if (this.crypto && this.recoveryGuard) assertAuthorizationCommit(this);
       const r = fn();
+      if (this.crypto) sealAuthorizationCommit(this);
       this.db.exec('COMMIT');
       return r;
     } catch (e) {
@@ -398,13 +407,18 @@ export class Authority {
       challenge.operation = b.operation;
       challenge.requestHash = b.requestHash;
     }
-    this.run(
-      'INSERT INTO challenges(id,session_id,payload,expires_at) VALUES(?,?,?,?)',
-      challengeId,
-      s.id,
-      canonical(challenge),
-      challenge.expiresAt,
-    );
+    this.tx(() => {
+      this.run(
+        'INSERT INTO challenges(id,session_id,payload,expires_at) VALUES(?,?,?,?)',
+        challengeId,
+        s.id,
+        canonical(challenge),
+        challenge.expiresAt,
+      );
+      this.event('DEVICE_CHALLENGE_ISSUED', s.user_id, {
+        details: { challengeId, purpose: b.purpose },
+      });
+    });
     return { challengeId, challenge };
   }
   renewSession(s, b) {
@@ -468,6 +482,9 @@ export class Authority {
     );
     assert(verify(key, v, p.signature), 'INVALID_PROOF', 403);
     this.run('UPDATE challenges SET used=1 WHERE id=?', c.id);
+    this.event('DEVICE_PROOF_USED', s.user_id, {
+      details: { challengeId: c.id, purpose },
+    });
   }
   operation(s, b, op) {
     s = this.bound(s);
@@ -1311,6 +1328,9 @@ export class Authority {
       const [, id] = path.match(/^\/api\/objects\/([^/]+)\/claim$/);
       assert(uuid(id));
       s = this.operation(s, b, 'claim:' + id);
+      // Proof consumption is now independently anchored authentication state. Refresh the
+      // exact-state lease before the synchronous release transaction; never ignore its change.
+      if (this.recoveryGuard) await this.recoveryGuard.authorize(this);
       value = this.claim(s, id, b.expectedEpoch);
       if (value.denied)
         return {
