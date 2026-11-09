@@ -1,5 +1,75 @@
 # Current engineering state (single authoritative handover file)
 
+## Candidate verification follow-up (10 November 2026 IST)
+
+Active draft PR: https://github.com/richardrich999888-rgb/SIEMPU/pull/42.
+Branch `codex/guarded-legacy-migration`, still based on unmerged PR #41. No comments
+or inline review threads were present when this follow-up started. Starting published
+head `bad91af7c7ebec490719331ca375673cdc2ef651`, tree
+`0e254aade52d399acd6dc5f7e842f4c50cb8fbfa`, matches local validation commit
+`c0beb0424268f569c16cddbf9d66a3e315f5c6a3` exactly. That predecessor passed all ten
+native gates/571 tests, 3 E2E, 359 adversarial tests and all nine CI/three Security jobs:
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42689294181
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42689294135
+These are predecessor results, not proof of the follow-up source.
+
+The procedure's independent candidate check is now executable with
+`node scripts/legacy-migration.mjs verify REQUEST RETAINED_PLAN_SHA256`. It requires
+original independent evidence and a separately retained reviewed plan pin, uses public
+signing keys only, and validates the receipt, approval, exact successor event/seal,
+all preserved logical rows and the precise writer handover request. Source and candidate
+remain untouched; only private temporary copies are opened. Success means
+`VERIFIED_QUARANTINED`, never live custody validation or activation. Expired review,
+missing evidence, extra files/sidecars and changed state are refused. The builder also
+checks unchanged non-authorization rows before publication. Core runtime/custody code
+and SQL migrations remain unchanged; deployment package exclusions still apply.
+
+New adversarial tests grant a synthetic attacker the authority signing key but retain
+independent review/snapshot pins, inject metadata/session/schema/event changes and
+handover substitution, and exercise uncertain publication after parent fsync failure.
+The real verifier CLI runs without the authority private-key file. Development failures
+(106/107 then 111/113) were error-precedence/message assertions; both are documented in
+the procedure, with no negative test removed. Freeze the new source and execute all
+native/E2E/adversarial gates before publication; the final PR body and generated reports
+bind the tested source/tree and observed hosted run IDs. Run `npm run test:legacy-migration`
+for focused reproduction. Do not reuse the predecessor's results for changed source.
+
+Next boundary: a separately authorized operational recovery/activation design still
+requires independently current policy/custody, complete service recovery and a defined
+relevant environment. No production migration, merge or deployment is performed.
+Provisional TRL 4 remains unchanged. SAG grading is not established.
+TRL 5 qualification and IAF operational approval are not established.
+
+## Guarded legacy migration prototype (10 November 2026 IST)
+
+Branch `codex/guarded-legacy-migration`, stacked on PR #41 head
+`64cce099f1729b899c6da702c85d438c22162a06`; PR #40 inspected at `62b8e6634cc6ba2a634b3170654fc21a34c8c0b4`.
+The old limited custody digest cannot establish full authorization state. The explicit
+synthetic-only builder requires the exact independently retained original backup manifest/pin,
+matching checkpoint and old custody receipt, policy agreement, and a separate reviewer-signed
+approval. It creates a new candidate directory and signed migration event/seal; it never writes
+source databases, advances custody, activates services or deploys a migration. Existing default
+restore/quarantine remains strict. Fresh writer handover is a separate exact-anchor/generation CAS.
+
+Eligibility, private input schemas, operator steps, failure semantics and impossible cases:
+`docs/qualification/GUARDED_LEGACY_MIGRATION.md`. Execute `npm run test:legacy-migration`.
+Source is excluded from application/offline release packages. No new dependency or applied SQL
+migration changed. Supported inputs are exact schema 001–006 snapshots or schema 007 with empty
+seal table, classical policy only; more general legacy formats remain refused.
+
+Development focused regression passed 85/85 before expanded rollback cases.
+Frozen implementation `0793fb1108f59f7cf0c4d4630289ef88fbbd475d` ran 571 tests (569 pass,
+2 fail): exact crypto-inventory expectations and line-scoped qualification wording needed
+updates. All 68 migration tests and the other nine gates passed. The follow-up changes only
+that exact inventory assertion and documentation; no runtime behavior or gate is weakened. The initial harness
+failures and their causes are retained in the procedure document. Freeze the final source and
+run all local gates/E2E/adversarial tests before publication. The new draft PR records final
+commit, observed counts and hosted CI/Security URLs. Do not treat PR #41's older 503/291 results
+as validation of this branch. The generated report binds the exact tested SHA/tree/source digest.
+Next executable task: review/reproduce this prototype and its independent-evidence assumptions;
+do not apply it to production or bypass missing evidence. Provisional TRL 4 remains unchanged.
+SAG grading, TRL 5 qualification and IAF operational approval are not established.
+
 ## PR #39 public-interface assurance iteration (8 November 2026)
 
 Active draft PR: https://github.com/richardrich999888-rgb/SIEMPU/pull/39,

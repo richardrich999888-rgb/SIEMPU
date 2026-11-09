@@ -25,7 +25,11 @@ const validPath = (p) =>
   p.split('/').every((x) => x && x !== '.' && x !== '..');
 // Laboratory-only source never enters a signed release: endpoint PQC providers
 // and the optional NEXORA operator bridge have separate dependency/qualification boundaries.
-export const RELEASE_EXCLUDED_PATHS = Object.freeze(['packages/pqc-lab', 'integrations/nexora']);
+export const RELEASE_EXCLUDED_PATHS = Object.freeze([
+  'packages/pqc-lab',
+  'integrations/nexora',
+  'scripts/legacy-migration.mjs',
+]);
 function files(root, prefix = '', excluded = []) {
   const out = [];
   for (const name of readdirSync(join(root, prefix)).sort()) {
