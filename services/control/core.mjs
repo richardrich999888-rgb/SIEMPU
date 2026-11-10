@@ -24,6 +24,7 @@ import { decisionEvidence } from '../evidence/decision.mjs';
 import {
   assertAuthorizationCommit,
   sealAuthorizationCommit,
+  readEvidenceHead,
 } from '../evidence/authorization-state.mjs';
 import {
   canonical,
@@ -293,10 +294,8 @@ export class Authority {
     return rec;
   }
   checkpoint() {
-    const last = this.get('SELECT sequence,hash FROM evidence ORDER BY sequence DESC LIMIT 1');
     return packet(this.key, {
-      sequence: last?.sequence ?? 0,
-      headHash: last?.hash ?? '0'.repeat(64),
+      ...readEvidenceHead(this),
       issuedAt: Date.now(),
     });
   }
