@@ -1,4 +1,8 @@
-import { authorizationDigest, assertAuthorizationCommit } from './authorization-state.mjs';
+import {
+  authorizationDigest,
+  assertAuthorizationCommit,
+  readEvidenceHead,
+} from './authorization-state.mjs';
 export { authorizationDigest } from './authorization-state.mjs';
 import { DatabaseSync } from 'node:sqlite';
 import { randomUUID } from 'node:crypto';
@@ -426,7 +430,7 @@ export function createRecoveryGuard({
     mode: anchorQuery ? 'incremental' : 'full-chain',
     fencing: owner ? 'EXPLICIT_WRITER_GENERATION' : 'NOT_CONFIGURED',
     allows(authority) {
-      const head = authority.checkpoint().payload;
+      const head = readEvidenceHead(authority);
       return (
         this.state === 'VALIDATED' &&
         lease &&

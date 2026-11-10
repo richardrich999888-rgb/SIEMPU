@@ -1,6 +1,14 @@
 import { canonical, hash, packet, verifyPacket } from '../control/primitives.mjs';
 import { exactMembers } from './incremental.mjs';
 
+// Fresh local database observation only: this is NOT a signed checkpoint or a trust root.
+// Local comparisons need the head bytes, not a new signature that is immediately discarded.
+// Never cache this result: transaction rollback and out-of-band changes must remain visible.
+export function readEvidenceHead(authority) {
+  const last = authority.get('SELECT sequence,hash FROM evidence ORDER BY sequence DESC LIMIT 1');
+  return { sequence: last?.sequence ?? 0, headHash: last?.hash ?? '0'.repeat(64) };
+}
+
 /**
  * Versioned digest of authentication and release-policy state. Challenge creation/consumption
  * and session changes have evidence events, so an unchanged head cannot hide their rollback.
@@ -31,7 +39,7 @@ export function authorizationDigest(authority) {
 /** A commit seal is made within the SAME SQLite transaction as the state and history.
  * Never generate a seal during recovery: that would sign attacker-restored state. */
 export function sealAuthorizationCommit(authority) {
-  const head = authority.checkpoint().payload;
+  const head = readEvidenceHead(authority);
   const commit = packet(authority.key, {
     version: 1,
     kind: 'AUTHORIZATION_COMMIT',
@@ -49,7 +57,7 @@ export function assertAuthorizationCommit(authority) {
   if (!row) throw new Error('AUTHORIZATION_COMMIT_MISSING');
   const seal = JSON.parse(row.seal),
     p = seal.payload,
-    head = authority.checkpoint().payload;
+    head = readEvidenceHead(authority);
   if (
     !verifyPacket(authority.publicKey, seal) ||
     !exactMembers(p, ['version', 'kind', 'sequence', 'headHash', 'stateDigest']) ||

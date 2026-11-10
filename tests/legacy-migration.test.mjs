@@ -847,6 +847,7 @@ function reissueCandidate(f, mutate) {
     const a = {
       key: f.key,
       crypto: { allowPqcLab: false },
+      get: (sql, ...args) => db.prepare(sql).get(...args),
       all: (sql, ...args) => db.prepare(sql).all(...args),
       run: (sql, ...args) => db.prepare(sql).run(...args),
       epoch: () => db.prepare('SELECT * FROM authority WHERE id=1').get(),

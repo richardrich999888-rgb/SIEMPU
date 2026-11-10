@@ -1,5 +1,28 @@
 # Current engineering state (single authoritative handover file)
 
+## P0 043 checkpoint signing cost (10 November 2026 IST)
+
+Base: PR #42 `92353e1224e3eedb35db9d7420b6820a2574632a`; its four observed
+push/PR CI/Security runs succeeded. The unchanged migration suite was freshly rerun:
+113 passed. These are baseline observations, not validation of this increment.
+
+Branch `codex/p0-043-authority-assurance` removes discarded checkpoint signatures from
+local state/seal/lease comparisons through a fresh SQLite head lookup. Exported
+checkpoints, seals and custody exchanges remain signed. No cache, migration, threshold
+or dependency change. Four new rollback/custody/signature regressions and a source-bound
+matched comparison accompany the change. See `docs/qualification/P0-043_CHECKPOINT_COST.md`
+for the measurement protocol, retained first-run fixture failure and trust boundary.
+
+Freeze and validate the exact revision before publishing results. The generated report
+and PR bind final test counts, benchmark samples and hosted checks; do not transfer
+PR #42's results to this source. Follow-on priorities remain full-state growth/retention,
+full-system recovery and representative independent-host evaluation. All 19 gaps remain
+open or partial. Provisional TRL 4 is unchanged. No merge, activation or deployment.
+
+SAG grading is not established.
+
+TRL 5 qualification and IAF operational approval are not established.
+
 ## Candidate verification follow-up (10 November 2026 IST)
 
 Active draft PR: https://github.com/richardrich999888-rgb/SIEMPU/pull/42.

@@ -407,7 +407,8 @@
         "tests/authority-state-custody.test.mjs",
         "tests/writer-fencing.test.mjs",
         "tests/transport/secure-stack.test.mjs",
-        "scripts/authority-handover.test.mjs"
+        "scripts/authority-handover.test.mjs",
+        "tests/evidence-head.test.mjs"
       ]
     }
   ],
@@ -554,7 +555,7 @@
       "sha256": "8609a52f9985f6ea7a20be433114dd2ba75e829960d34f929106cf7994db3f9a"
     },
     "services/control/core.mjs": {
-      "sha256": "a4d7b86760923efa9fa8b8ca41a17099d977aa33c7b4759f0cc491229c98bbfe"
+      "sha256": "2803c67e5f86d66391dad7a30d24edf17a4f5e5f90fdbc7b322195f66f552e1b"
     },
     "services/control/primitives.mjs": {
       "sha256": "973f9252bb45b4550d00d32e9a4805b46dfc9f37bfd4bf4e7b7b88106401725a"
@@ -566,10 +567,10 @@
       "sha256": "caa441926110c631b83b85856e3e8fd365a5cc67e53da34fb64e5c66b71788f8"
     },
     "services/evidence/authorization-state.mjs": {
-      "sha256": "125d30770e30370a20e54416f7f1c40a8c9547997786309f3d595d96de74f3fe"
+      "sha256": "f7a09e71446ef9931126bc1a4fe1e9b3aef35cdf362adc55226c433af01e8be7"
     },
     "services/evidence/custody.mjs": {
-      "sha256": "69770574a047a356f641911db414cb95734cc200d8e01928998992009260dcd4"
+      "sha256": "e5ab3f90cfe88e541a6ccf7ed1fe9d321bef5d3ade6cd532214a07f73baeed7b"
     },
     "services/evidence/fencing.mjs": {
       "sha256": "2c99e317dbfce3ecb279b1e9e68261c1b468f8b03482c0b47282ea10cfb3ddae"
@@ -652,6 +653,9 @@
     "tests/durable-telemetry.test.mjs": {
       "sha256": "3bca8c1136d2197fdbd04eaebaa17401db337a88fc7113dfd603d368ce0e00db"
     },
+    "tests/evidence-head.test.mjs": {
+      "sha256": "98dcef43118147fb4fadc551ba463477ec0294ce354e219dca83f3f288afc24b"
+    },
     "tests/file-inspection.test.mjs": {
       "sha256": "699a4681119a725429bb3fe649842a6ddabbac3d23e5b46ed99115825051e377"
     },
@@ -668,7 +672,7 @@
       "sha256": "9e0a455711d79c65c1ca3d53d9d549cdb993e2aa033b51b0159d44efc1f6fa51"
     },
     "tests/legacy-migration.test.mjs": {
-      "sha256": "5d22eb2de36fddb3cd9b75fdb41e17e4e6bc5aed3b1d6eb8761b1c8d923c11e5"
+      "sha256": "54d89a32be9b82b7e0b9fb7a622695c53fe5c8bd4268282db14c1c0bf02eb2ae"
     },
     "tests/managed-endpoint/native.check.mjs": {
       "sha256": "01bd7e9ac9bd8db7bf67fa67a6420162fc17f065b00cfcfb2b6467f793dcca4f"
