@@ -3,8 +3,8 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
-import { snapshot } from '../assurance/sag/package.mjs';
-import { sha256, fingerprint, insist } from '../assurance/sag/format.mjs';
+import { snapshot } from '../sag/package.mjs';
+import { sha256, fingerprint, insist } from '../sag/format.mjs';
 
 const root = process.cwd();
 const destination = resolve(process.argv[2]);

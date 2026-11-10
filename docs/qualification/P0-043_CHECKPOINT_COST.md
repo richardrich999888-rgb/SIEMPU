@@ -64,7 +64,7 @@ remain unchanged. These predecessor logs are retained separately from final resu
 
 ## Reproducible matched measurement
 
-`scripts/checkpoint-cost.mjs` uses the existing 20 × 4 KiB fenced policy-release
+`assurance/bench/checkpoint-cost.mjs` uses the existing 20 × 4 KiB fenced policy-release
 comparison, including fresh revocation denial, old-key negative control and tamper
 verification. It records exact target commit/tree/source fingerprint, its own harness
 SHA-256, runtime, raw samples, CPU, RSS and checkpoint calls. It refuses a dirty source
@@ -74,9 +74,9 @@ Use the **same candidate harness file** from each clean checkout's working direc
 
 ```sh
 cd /path/to/clean-baseline
-node /path/to/clean-candidate/scripts/checkpoint-cost.mjs /path/to/new-baseline-1.json
+node /path/to/clean-candidate/assurance/bench/checkpoint-cost.mjs /path/to/new-baseline-1.json
 cd /path/to/clean-candidate
-node /path/to/clean-candidate/scripts/checkpoint-cost.mjs /path/to/new-candidate-1.json
+node /path/to/clean-candidate/assurance/bench/checkpoint-cost.mjs /path/to/new-candidate-1.json
 ```
 
 Repeat in fresh processes, alternating baseline/candidate order. Do not run other
@@ -91,3 +91,8 @@ The full-state digest still scans authorization rows; evidence/state growth, ret
 full-system recovery and representative-scale capacity remain open. An optimization here
 does not close IAF-G10 or establish a new TRL. Final results belong to the exact executed
 revision's generated report and PR evidence, not this pre-freeze procedure.
+
+Packaging review found the first benchmark location under `scripts/` entered the application
+bundle. It was moved into the existing assurance-only tree before final delivery.
+Application and offline release allowlists omit that tree; retain the observed initial
+manifest entry and the corrected package checks. No production activation occurred.
