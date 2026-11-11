@@ -38,6 +38,7 @@ const demos = [
       'tests/authority-state-custody.test.mjs',
       'tests/writer-fencing.test.mjs',
       'scripts/authority-handover.test.mjs',
+      'tests/guarded-recovery.test.mjs',
     ],
     expected:
       'Wrong ancestry, partial authorization rollback, unanchored-suffix rollback, missing seals, stale writers, lower floors and interrupted writes fail closed.',

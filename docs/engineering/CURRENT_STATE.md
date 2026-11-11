@@ -1,5 +1,99 @@
 # Current engineering state (single authoritative handover file)
 
+## Guarded recovery hosted fixture contention (11 November 2026 IST)
+
+PR #44 head `01e41aca38e1f3f23c1c5dbbb9a4e001db80be4f`, tree
+`f6d2bd9b8b5c2f7da33dbb1b62f83efc8f6c931d`, matches local tested
+`ad8299722eaa2ddbde678d5bd1212ab03860454e` and hosted merge ref
+`befae6c440c69b7e37cfba4ad11e98dff6cc257f`. Local ten gates/683 native,
+3 E2E, 471 adversarial tests and both recovery profiles passed. ADV-04 finished
+in 73.873 seconds and ADV-07 in 133.379 seconds, within unchanged 180-second limits.
+Each rehearsal preserved its one acknowledged object and denied the stale writer.
+Final-source Security passed all three jobs:
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/43074408441
+
+Hosted CI failed ADV-05 (47/48): ADV-ADAPTER-10's direct fixture session-expiry
+write raised `database is locked` at test line 325, before readiness assertions.
+The other eight adversarial families and both recovery rehearsals passed.
+Run: https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/43074408411
+Downloaded adversarial artifact 13882721337 SHA-256 matched
+`e0b12d107070e43ea8d3c575686de8111c0eb3b76a5469e9f13f8b7b0b11b74d`.
+No overall CI pass is claimed. Container/testbed jobs were skipped downstream.
+
+This follow-up gives only the fixture connection the same bounded 5000-ms SQLite
+busy wait as the live authority, closes it in finally, and asserts an existing
+session was actually expired. All startup/expired-readiness denial assertions
+remain. No runtime or recovery protocol changes; refresh the source binding.
+Next: repeat the focused case, run full validation/E2E, publish without force,
+and inspect final hosted results. Final observed results belong in PR #44.
+
+## Guarded recovery publication and batch follow-up (11 November 2026 IST)
+
+Draft PR: https://github.com/richardrich999888-rgb/SIEMPU/pull/44, still unmerged,
+stacked on #42. Published head `9dab1a71121df09e51cc139727577600638a6bb6` has tree
+`236dffe87f76e9f3fe8e428e524646ed0ec86072`, exactly matching local tested commit
+`1c3cb081855f69a6b949b37d67ab3bbefa9deed9` and CI merge ref
+`49ef4da706c1c3f1e066e9295c366ab1faa69842`. Local all ten gates passed: 683/683
+native, 67/67 recovery subset, 3/3 E2E; coverage 98.05% lines / 91.25% branches /
+98.42% functions. Source digest `a4c5bc318d510efdfd5157c9c65f623e7a0b4c1f2f349026212816b9d35e1e03`.
+Hosted Security passed all three jobs:
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/43069935450
+Hosted CI passed all nine jobs:
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/43069936183
+
+The first follow-up full gate caught an unclassified assurance term in this
+status record (claims-audit test); the wording was corrected to “tested”.
+No test or claim-audit rule was relaxed.
+
+The local adversarial campaign failed ADV-04's 180-second batch budget (terminated,
+no complete TAP count); all other eight families passed and source remained unchanged.
+Move the 67-test recovery suite to smaller ADV-07, preserving every test path,
+assertion, family count and existing time/output limits. No runtime code or test
+assertion changes. Final reports/PR must distinguish this scheduling follow-up's
+observed results from the named predecessor. Run all required gates, publish the
+follow-up without force or merge, and verify the final hosted source.
+
+## Guarded recovery reconstruction (11 November 2026 IST)
+
+Branch `codex/guarded-disaster-recovery`, based exactly on PR #42 commit
+`92353e1224e3eedb35db9d7420b6820a2574632a`, tree
+`24ac0909e1463eb2c5c51f67de70bd39dc991bb3`. Separate draft target:
+`codex/guarded-legacy-migration`. Parallel P0-043 work was not imported or altered.
+The 10 November unpublished workspace was reset; its local commit objects/logs were
+lost. Prior reported 682 native and focused counts must not be reused for this source.
+
+Reconstructed source-only recovery verifies sealed archive plus independently pinned
+collector snapshot, complete history/state/schema/policy, expiring distinct reviewer
+approval, existing custody CAS and fresh writer lease. Publication remains quarantined.
+Lost response reconciliation uses signed custody history, never another transfer.
+All logical rows including BLOB bytes bind pre-serving resume. Protected advancement
+supersedes review. Full runtime crypto-policy validation and monitoring signature/row
+bindings are checked. The reconstructed focused suite passed 67/67 and packaging 12/12. First frozen
+commit `fd998afc6fe062abfabc44499c87031ba4787db7` hit a test-file format-check
+failure; that run was interrupted, then only formatting and source bindings changed.
+Final full-source results must be read from frozen reports and the separate draft PR.
+
+Files: `scripts/guarded-recovery.mjs`, `scripts/recovery-rehearsal.mjs`,
+`tests/guarded-recovery.test.mjs`, two helpers, ADR-019 and
+`docs/qualification/GUARDED_DISASTER_RECOVERY.md`. Both scripts are excluded from
+application/offline packages; native, security, ADV-07 and DEMO-3 exercise the tests.
+No dependencies, runtime authority/crypto/custody code or applied SQL are changed.
+
+Reproduce: `npm run validate`, `npm run test:e2e`,
+`npm run test:adversarial -- artifacts/NEW_ADVERSARIAL_DIRECTORY`,
+`npm run rehearse:recovery -- artifacts/NEW_RECOVERY_DIRECTORY`. Commit before frozen
+campaigns. Final reports bind commit/tree; the published PR records exact local and
+hosted source identities, run URLs, observed results and limits. The previous base
+passed hosted CI https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42696789521
+and Security https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42696789900;
+these are predecessor evidence, not this reconstruction's result.
+
+Next boundary after final publication/verification: relevant-environment endpoint and
+connector recovery, exporter cursor reconciliation, new review after protected state
+advances, full-site DR and HA. Do not silently broaden pre-serving resume.
+No production DB, merge or deployment. Provisional TRL 4 remains unchanged.
+SAG grading, TRL 5 qualification and IAF operational approval are not established.
+
 ## Candidate verification follow-up (10 November 2026 IST)
 
 Active draft PR: https://github.com/richardrich999888-rgb/SIEMPU/pull/42.

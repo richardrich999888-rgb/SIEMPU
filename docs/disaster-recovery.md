@@ -29,3 +29,13 @@ also verifies every preserved logical row and the exact handover parameters. Suc
 verification leaves the candidate quarantined; custody freshness, writer transfer and
 any activation remain separate decisions. An expired review or missing evidence is
 a refusal, including after an interrupted or uncertain publication.
+
+## Guarded synthetic multi-store recovery
+
+The [guarded rehearsal](qualification/GUARDED_DISASTER_RECOVERY.md) adds a separately
+witnessed collector snapshot, reviewed writer handover and fresh lease to a new sealed
+recovery set. Existing independent custody is preserved, never restored/reset.
+Execute `npm run test:guarded-recovery` and, on a clean committed tree,
+`npm run rehearse:recovery -- artifacts/NEW_DIRECTORY`. Resume permits only unchanged
+pre-serving state; protected advancement requires a new consistent set and review.
+Full-site DR, endpoint/connector recovery and production activation remain unqualified.
