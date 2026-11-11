@@ -42,3 +42,11 @@ Published obligations remain R1–R12 in `docs/requirements/README.md`. These ar
 New findings AUTH-STATE-01 and the unanchored-suffix variant are addressed by ADR 017; fencing is specified in ADR 018. The external sponsor/evaluator must agree closure evidence. No open gate is converted to VERIFIED.
 
 P0 044 adds bounded control/relay restore checks and a growth drill (see `P0-044_RECOVERY_STORES.md`). IAF-G08 and IAF-G10 remain PARTIAL_LAB; all-store recovery, retention, scale and independently current custody remain required.
+
+## P0-047 disposition
+
+All 19 statuses remain unchanged. The machine-readable current-state entries now track
+P0-047 node deployment, the bounded campaign and independent-host blockers. See
+[p0-047/READINESS.md](p0-047/READINESS.md) for every gap and relevant-environment criterion.
+The common-provisioner fixture and quarantined standby do not establish independent
+custody, automatic HA, physical-token validation or operational qualification.

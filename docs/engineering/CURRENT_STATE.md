@@ -1,5 +1,14 @@
 # Current engineering state (single authoritative handover file)
 
+## P0-047 real-network preparation
+
+Recovery branches #44 and #45 are explicitly reconciled. See
+[the P0-047 evaluation entry point](../qualification/p0-047/README.md) for source ancestry,
+actual-service deployment commands, bounded CORE/Mininet profiles and the NET-01–NET-12
+protocol. Generated results bind to their own source SHA; this entry does not predict a pass.
+Independent hosts, administrative custody, external reproduction and official evaluation
+remain blocked. Provisional TRL 4 and all 19 qualification-gap statuses are unchanged.
+
 ## P0 044 control/relay recovery bounds (11 November 2026 IST)
 
 Branch `codex/p0-044-recovery-bounds`, base PR #43 `07ab59762f5a086152835709ea5df60d07890e74`.
