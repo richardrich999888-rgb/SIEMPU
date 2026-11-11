@@ -10,6 +10,11 @@ import {
   lstatSync,
   renameSync,
   rmdirSync,
+  openSync,
+  closeSync,
+  fstatSync,
+  readSync,
+  constants,
 } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -17,6 +22,7 @@ import { randomBytes, scryptSync, createCipheriv, createDecipheriv } from 'node:
 import { pathToFileURL } from 'node:url';
 import { verifyEvidenceRecords } from '../apps/verifier/verify.mjs';
 import { assertAuthorizationCommit } from '../services/evidence/authorization-state.mjs';
+import { storedObjectIntegrityReason } from '../services/admission/integrity.mjs';
 import {
   packet,
   verifyPacket,
@@ -31,6 +37,37 @@ const names = [
   'relay.secret',
   'public-key.json',
 ];
+// Explicit laboratory limits for this whole-archive JSON format. Larger stores
+// require a separately reviewed streaming format; never silently omit data.
+export const BACKUP_LIMITS = Object.freeze({
+  archive: 64 * 1024 * 1024,
+  decoded: 32 * 1024 * 1024,
+  metadata: 16 * 1024,
+});
+function boundedFile(path, limit) {
+  const fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+  try {
+    const before = fstatSync(fd);
+    if (!before.isFile() || before.size > limit) throw new Error('Backup input size or type limit');
+    const bytes = Buffer.alloc(before.size);
+    let offset = 0;
+    while (offset < bytes.length) {
+      const n = readSync(fd, bytes, offset, bytes.length - offset, offset);
+      if (!n) throw new Error('Backup input changed');
+      offset += n;
+    }
+    const after = fstatSync(fd);
+    if (
+      after.size !== before.size ||
+      after.mtimeMs !== before.mtimeMs ||
+      after.ctimeMs !== before.ctimeMs
+    )
+      throw new Error('Backup input changed');
+    return bytes;
+  } finally {
+    closeSync(fd);
+  }
+}
 const sameMembers = (value, expected) => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const actual = Object.keys(value).sort(),
@@ -86,8 +123,52 @@ function verifyRestoredHistory(directory, trustedPublicKey, checkpoint, head) {
       checkpoint: () => ({ payload: head }),
       crypto: { allowPqcLab: false },
     });
+    verifyRelaySnapshot(directory, db);
   } finally {
     db.close();
+  }
+}
+// File signatures authenticate bytes, not completeness of the control/relay pair.
+// Read only, before publication; never synthesize missing blobs or repair signed state.
+function verifyRelaySnapshot(directory, control) {
+  const relay = new DatabaseSync(join(directory, 'relay/relay.sqlite'), { readOnly: true });
+  try {
+    relay.exec('PRAGMA trusted_schema=OFF; PRAGMA query_only=ON;');
+    const integrity = relay.prepare('PRAGMA quick_check').all();
+    if (integrity.length !== 1 || integrity[0].quick_check !== 'ok')
+      throw new Error('Backup relay database integrity');
+    for (const name of ['blobs', 'workload_nonces']) {
+      if (relay.prepare('SELECT type FROM sqlite_schema WHERE name=?').get(name)?.type !== 'table')
+        throw new Error('Backup relay schema');
+    }
+    for (const row of relay
+      .prepare('SELECT hash,ciphertext,size,created_at FROM blobs')
+      .iterate()) {
+      if (
+        typeof row.hash !== 'string' ||
+        !/^[a-f0-9]{64}$/.test(row.hash) ||
+        !(row.ciphertext instanceof Uint8Array) ||
+        !Number.isSafeInteger(row.size) ||
+        row.size < 16 ||
+        row.size !== row.ciphertext.length ||
+        !Number.isSafeInteger(row.created_at) ||
+        row.created_at < 0 ||
+        hash(row.ciphertext) !== row.hash
+      )
+        throw new Error('Backup relay blob integrity');
+    }
+    const blob = relay.prepare('SELECT 1 FROM blobs WHERE hash=?');
+    const device = control.prepare('SELECT signing_key FROM devices WHERE id=?');
+    for (const row of control.prepare('SELECT * FROM objects').iterate()) {
+      const key = device.get(row.sender_device);
+      if (!key || storedObjectIntegrityReason(row, JSON.parse(key.signing_key)))
+        throw new Error('Backup stored object integrity');
+      if (!blob.get(row.digest)) throw new Error('Backup referenced ciphertext missing');
+    }
+    // Unreferenced intact blobs can result from an interrupted submission. Preserve
+    // them; this check grants no permission to delete, release or forward content.
+  } finally {
+    relay.close();
   }
 }
 function snapshot(source, dest) {
@@ -112,15 +193,22 @@ export function backup(dir, destination, passphrase) {
     mkdirSync(join(temp, 'relay'));
     snapshot(relay, join(temp, 'relay', 'relay.sqlite'));
     const fileNames = [...names, 'relay/relay.sqlite'];
+    let total = 0;
     const files = Object.fromEntries(
-      fileNames.map((name) => [
-        name,
-        readFileSync(name.endsWith('.sqlite') ? join(temp, name) : join(dir, name)).toString(
-          'base64',
-        ),
-      ]),
+      fileNames.map((name) => {
+        const database = name.endsWith('.sqlite');
+        const bytes = boundedFile(
+          database ? join(temp, name) : join(dir, name),
+          Math.min(
+            BACKUP_LIMITS.decoded - total,
+            database ? BACKUP_LIMITS.decoded : BACKUP_LIMITS.metadata,
+          ),
+        );
+        total += bytes.length;
+        return [name, bytes.toString('base64')];
+      }),
     );
-    const key = JSON.parse(readFileSync(join(dir, 'server-key.json')));
+    const key = JSON.parse(Buffer.from(files['server-key.json'], 'base64'));
     const db = new DatabaseSync(join(temp, 'control.sqlite'));
     const row = db
       .prepare('SELECT sequence,hash FROM evidence ORDER BY sequence DESC LIMIT 1')
@@ -200,7 +288,9 @@ export function readBackup(archive, passphrase, trustedPublicKey, checkpoint) {
     checkpoint.payload.issuedAt < 0
   )
     throw new Error('Backup predates or conflicts with trusted checkpoint');
-  const p = JSON.parse(Buffer.isBuffer(archive) ? archive : readFileSync(archive));
+  const input = Buffer.isBuffer(archive) ? archive : boundedFile(archive, BACKUP_LIMITS.archive);
+  if (input.length > BACKUP_LIMITS.archive) throw new Error('Backup input size or type limit');
+  const p = JSON.parse(input);
   if (
     !sameMembers(p, ['format', 'salt', 'iv', 'ciphertext', 'tag']) ||
     p.format !== 'SIEPMU_BACKUP_V1'
@@ -253,9 +343,17 @@ export function readBackup(archive, passphrase, trustedPublicKey, checkpoint) {
   if (!sameMembers(content.files, allowed) || !sameMembers(manifest.files, allowed))
     throw new Error('Backup file manifest');
   const decoded = new Map();
+  let total = 0;
   for (const [name, data] of Object.entries(content.files)) {
     if (typeof data !== 'string') throw new Error('Backup file encoding');
+    const limit = Math.min(
+      BACKUP_LIMITS.decoded - total,
+      name.endsWith('.sqlite') ? BACKUP_LIMITS.decoded : BACKUP_LIMITS.metadata,
+    );
+    if (data.length > 4 * Math.ceil(limit / 3)) throw new Error('Backup decoded size limit');
     const bytes = Buffer.from(data, 'base64');
+    total += bytes.length;
+    if (bytes.length > limit) throw new Error('Backup decoded size limit');
     if (bytes.toString('base64') !== data) throw new Error('Backup file encoding');
     if (hash(bytes) !== manifest.files[name]) throw new Error('Backup digest');
     decoded.set(name, bytes);

@@ -184,12 +184,14 @@ test('reviewed crypto inventory includes application, laboratory and optional to
     'scripts/backup.mjs',
     'apps/verifier/verify.mjs',
     'scripts/legacy-migration.mjs',
+    'services/admission/integrity.mjs',
   ]);
   assert.deepEqual(recovery.tests, [
     'tests/recovery.test.mjs',
     'tests/legacy-migration.test.mjs',
     'tests/helpers/legacy-migration-fixture.mjs',
     'tests/helpers/migration-worker.mjs',
+    'tests/recovery-stores.test.mjs',
   ]);
   const fencing = c.components.find((v) => v.id === 'CR-20');
   assert.equal(fencing.deploymentScope, 'APPLICATION');
