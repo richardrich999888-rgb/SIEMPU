@@ -24,7 +24,13 @@ report = {'backend': args.backend, 'evidenceClass': 'EMULATED_SHARED_KERNEL', 'i
 
 
 def save():
-    (output / 'emulation.json').write_text(json.dumps(report, indent=2) + '\n')
+    path = output / 'emulation.json'
+    path.write_text(json.dumps(report, indent=2) + '\n')
+    path.chmod(0o600)
+    if os.geteuid() == 0 and state.exists():
+        owner = state.stat()
+        os.chown(path, owner.st_uid, owner.st_gid)
+        os.chown(output, owner.st_uid, owner.st_gid)
 
 
 try:
@@ -192,5 +198,5 @@ finally:
         session.shutdown()
     report['finishedAtUnixMs'] = time.time_ns() // 1000000
     save()
-print(json.dumps({'outcome': report['outcome'], 'report': str(output / 'emulation.json')}))
+print(json.dumps({'outcome': report['outcome'], 'error': report.get('error'), 'report': str(output / 'emulation.json')}))
 raise SystemExit(1 if report['outcome'] == 'FAIL' else 0)
