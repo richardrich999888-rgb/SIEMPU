@@ -37,17 +37,17 @@ The original source and failure log are retained in the evaluation package.
 
 ## Deliverable map
 
-| Item                   | Location                                                                            | Evidence limit                                                     |
-| ---------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| D1 architecture        | `ARCHITECTURE.md`                                                                   | Proposed host/custody boundaries, not observed deployment          |
-| D2 CORE/Mininet        | `deployment/real-network/emulate.py`                                                | Executed on hosted privileged runners; shared kernel, not independent hosts  |
-| D3 campaign            | `campaign.mjs`, `run-local.mjs`, `run-remote.mjs`, `CAMPAIGNS.md`                   | All NET IDs explicitly represented; unsupported steps stay blocked |
-| D4 adversarial         | retained baseline failure; existing nine-family campaign; `CAMPAIGNS.md`            | Applicant lab tests, not third-party assessment                    |
-| D5 performance         | generated `campaign.json`                                                           | Three short repetitions; no endurance/RTO guarantee                |
-| D6 evaluation          | existing `assurance/sag/package.mjs` and `verify.mjs`, plus campaign logs/manifests | Independent retention and reproduction still required              |
-| D7 readiness           | `READINESS.md`, existing 19-gap register                                            | No gap closed by emulation or CI                                   |
-| D8 laboratory requests | `LAB_ACCESS.md`, `TESTBED_SELECTION.md`                                             | Prepared only, no submission or terms acceptance                   |
-| D9 draft PR            | published PR metadata                                                               | Source SHA and hosted results must be read at exact head           |
+| Item                   | Location                                                                            | Evidence limit                                                              |
+| ---------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| D1 architecture        | `ARCHITECTURE.md`                                                                   | Proposed host/custody boundaries, not observed deployment                   |
+| D2 CORE/Mininet        | `deployment/real-network/emulate.py`                                                | Executed on hosted privileged runners; shared kernel, not independent hosts |
+| D3 campaign            | `campaign.mjs`, `run-local.mjs`, `run-remote.mjs`, `CAMPAIGNS.md`                   | All NET IDs explicitly represented; unsupported steps stay blocked          |
+| D4 adversarial         | retained baseline failure; existing nine-family campaign; `CAMPAIGNS.md`            | Applicant lab tests, not third-party assessment                             |
+| D5 performance         | generated `campaign.json`                                                           | Three short repetitions; no endurance/RTO guarantee                         |
+| D6 evaluation          | existing `assurance/sag/package.mjs` and `verify.mjs`, plus campaign logs/manifests | Independent retention and reproduction still required                       |
+| D7 readiness           | `READINESS.md`, existing 19-gap register                                            | No gap closed by emulation or CI                                            |
+| D8 laboratory requests | `LAB_ACCESS.md`, `TESTBED_SELECTION.md`                                             | Prepared only, no submission or terms acceptance                            |
+| D9 draft PR            | published PR metadata                                                               | Source SHA and hosted results must be read at exact head                    |
 
 ## Run a local application experiment
 
