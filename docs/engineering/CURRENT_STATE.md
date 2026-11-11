@@ -1,5 +1,30 @@
 # Current engineering state (single authoritative handover file)
 
+## P0-046 unified recovery candidate (11 November 2026 IST)
+
+Branch `codex/p0-046-unified-defence-assurance`, based on PR #45
+`6ac57e5e6e561c73525de08b09950263d2fe7dee`, selectively imports PR #44
+`9dab1a71121df09e51cc139727577600638a6bb6`. Common ancestor PR #42 is
+`92353e1224e3eedb35db9d7420b6820a2574632a`. See P0-046_RECONCILIATION.md.
+Both original recovery suites passed 79 tests during integration. New refusal/state tests and
+capacity tests were then exercised; these are pre-freeze observations, not final revision results.
+Frozen predecessor `b7a7d03aa69767e95a34c6e8f0b4ccfc4c0b0ddb` passed 707/709 native tests;
+two claims-audit tests rejected line-scoped dossier wording. Only that wording was corrected;
+the source-bound failure report is retained. The initial extension also had three harness assertion
+failures (plain Error lacks status); retained
+logs distinguish them from product behavior. No negative test was removed or relaxed.
+
+Freeze and run all native/E2E/adversarial, crypto, package and hosted gates on the exact published
+revision. The generated report and draft PR bind final SHA/tree, raw measurements, failures and
+workflow URLs. Do not copy PR #44/#45 counts forward. The new verification API has no activation,
+writer-transfer or lease side effects. No production merge or deployment.
+
+The five P0-046 candidate documents record architecture, TRL limits, proposed SAG scope, sponsorship
+request and all 19 retained gaps. Next: independent combined review; streaming/retention and full
+operational-store recovery; sponsor-nominated hosts, identity/module profile and acceptance scope.
+Provisional TRL 4 remains unchanged. SAG grading is not established.
+TRL 5 qualification and IAF operational approval are not established.
+
 ## P0 044 control/relay recovery bounds (11 November 2026 IST)
 
 Branch `codex/p0-044-recovery-bounds`, base PR #43 `07ab59762f5a086152835709ea5df60d07890e74`.
@@ -47,6 +72,47 @@ open or partial. Provisional TRL 4 is unchanged. No merge, activation or deploym
 SAG grading is not established.
 
 TRL 5 qualification and IAF operational approval are not established.
+
+## Guarded recovery reconstruction (11 November 2026 IST)
+
+Branch `codex/guarded-disaster-recovery`, based exactly on PR #42 commit
+`92353e1224e3eedb35db9d7420b6820a2574632a`, tree
+`24ac0909e1463eb2c5c51f67de70bd39dc991bb3`. Separate draft target:
+`codex/guarded-legacy-migration`. Parallel P0-043 work was not imported or altered.
+The 10 November unpublished workspace was reset; its local commit objects/logs were
+lost. Prior reported 682 native and focused counts must not be reused for this source.
+
+Reconstructed source-only recovery verifies sealed archive plus independently pinned
+collector snapshot, complete history/state/schema/policy, expiring distinct reviewer
+approval, existing custody CAS and fresh writer lease. Publication remains quarantined.
+Lost response reconciliation uses signed custody history, never another transfer.
+All logical rows including BLOB bytes bind pre-serving resume. Protected advancement
+supersedes review. Full runtime crypto-policy validation and monitoring signature/row
+bindings are checked. The reconstructed focused suite passed 67/67 and packaging 12/12. First frozen
+commit `fd998afc6fe062abfabc44499c87031ba4787db7` hit a test-file format-check
+failure; that run was interrupted, then only formatting and source bindings changed.
+Final full-source results must be read from frozen reports and the separate draft PR.
+
+Files: `scripts/guarded-recovery.mjs`, `scripts/recovery-rehearsal.mjs`,
+`tests/guarded-recovery.test.mjs`, two helpers, ADR-019 and
+`docs/qualification/GUARDED_DISASTER_RECOVERY.md`. Both scripts are excluded from
+application/offline packages; native, security, ADV-04 and DEMO-3 exercise the tests.
+No dependencies, runtime authority/crypto/custody code or applied SQL are changed.
+
+Reproduce: `npm run validate`, `npm run test:e2e`,
+`npm run test:adversarial -- artifacts/NEW_ADVERSARIAL_DIRECTORY`,
+`npm run rehearse:recovery -- artifacts/NEW_RECOVERY_DIRECTORY`. Commit before frozen
+campaigns. Final reports bind commit/tree; the published PR records exact local and
+hosted source identities, run URLs, observed results and limits. The previous base
+passed hosted CI https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42696789521
+and Security https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/42696789900;
+these are predecessor evidence, not this reconstruction's result.
+
+Next boundary after final publication/verification: relevant-environment endpoint and
+connector recovery, exporter cursor reconciliation, new review after protected state
+advances, full-site DR and HA. Do not silently broaden pre-serving resume.
+No production DB, merge or deployment. Provisional TRL 4 remains unchanged.
+SAG grading, TRL 5 qualification and IAF operational approval are not established.
 
 ## Candidate verification follow-up (10 November 2026 IST)
 
