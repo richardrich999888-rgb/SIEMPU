@@ -27,7 +27,7 @@ are retained in the accompanying evidence. No old test count is transferred to t
 | `.github/workflows/ci.yml`                             | PR #44 only         | Preserved from its originating branch; changed behavior reviewed.                      |
 | `assurance/bench/checkpoint-cost.mjs`                  | PR #45 lineage only | Preserved from its originating branch; changed behavior reviewed.                      |
 | `assurance/bench/recovery-growth.mjs`                  | PR #45 lineage only | Preserved from its originating branch; changed behavior reviewed.                      |
-| `assurance/iaf/plan.json`                              | Both branches       | Union of ADV-04 tests; no threshold or gap closure.                                    |
+| `assurance/iaf/plan.json`                              | Both branches       | Union of test paths; guarded suite scheduled in ADV-07; no threshold or gap closure.   |
 | `assurance/qualification/run.mjs`                      | PR #44 only         | Preserved from its originating branch; changed behavior reviewed.                      |
 | `assurance/sag/catalogue.json`                         | Both branches       | Union of CR-19 mechanisms/source/tests; hashes regenerated from reviewed merged bytes. |
 | `docs/decisions/ADR-019-guarded-synthetic-recovery.md` | PR #44 only         | Preserved from its originating branch; changed behavior reviewed.                      |
@@ -79,3 +79,7 @@ not final-source evidence). The first nine-test extension passed six and failed 
 ApiClient.ok throws a plain Error without an HTTP status property. The corrected harness sends
 the claim request directly and asserts the exact refusal status plus unchanged issuance counts.
 This was a harness assertion error, not a demonstrated unauthorized release.
+
+## Late upstream follow-up
+
+During freeze review PR #44 advanced to `64df68c13cb1fa7a3f27af2275a9dab9aca857c3`. Its two additional commits are retained in the evidence comparison. They redistribute the 67-test guarded suite from ADV-04 to ADV-07 without removing any test or relaxing 180-second/1-MiB batch limits, and bound a live SQLite session-expiry fixture write with the authority’s existing 5000-ms busy wait. The fixture now always closes and requires an existing session row to change before testing denial. Both changes are ported, with the corresponding source binding; the unified ten-test suite stays in ADV-04. The original pinned PR #44 remains the performance baseline. These are test scheduling/fixture corrections; no runtime recovery safeguard changes.

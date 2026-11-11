@@ -322,8 +322,16 @@ test('ADV-ADAPTER-10 real startup failure is diagnosable and expired sessions wi
     403,
   );
   const db = new DatabaseSync(join(f.dir, 'control.sqlite'));
-  db.prepare('UPDATE sessions SET expires_at=0 WHERE user_id=?').run(f.profiles.alice.userId);
-  db.close();
+  try {
+    // The live authority is a separate writer; bound fixture contention as it does.
+    db.exec('PRAGMA busy_timeout=5000;');
+    const changed = db
+      .prepare('UPDATE sessions SET expires_at=0 WHERE user_id=?')
+      .run(f.profiles.alice.userId);
+    assert.ok(changed.changes > 0, 'the fixture must expire an existing session');
+  } finally {
+    db.close();
+  }
   const expired = await ready();
   assert.equal(expired.status, 503);
   assert.equal(JSON.parse(expired.body).checks.authority, false);

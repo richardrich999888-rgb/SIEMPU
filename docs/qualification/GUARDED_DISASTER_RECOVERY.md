@@ -26,7 +26,7 @@ directory. The rehearsal accepts only an artifact destination: it generates fres
 synthetic fixtures, runs sealed and migrated-then-fenced profiles and removes the
 private fixture stores/keys. Public evidence, trust packets, plan, approval and
 handover are retained with source commit/tree/fingerprint and SHA-256 manifest.
-CI uploads `guarded-recovery-evidence`; ADV-04, DEMO-3 and security regression also
+CI uploads `guarded-recovery-evidence`; ADV-07, DEMO-3 and security regression also
 run these tests. Counts overlap. The recovery scripts are excluded from application,
 container and signed offline packages. No startup migration or network admin route
 is added. The full operator driver is a test helper, not a production recovery CLI.

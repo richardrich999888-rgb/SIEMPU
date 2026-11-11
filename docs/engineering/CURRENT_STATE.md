@@ -1,5 +1,9 @@
 # Current engineering state (single authoritative handover file)
 
+## P0-046 late upstream test reliability reconciliation (11 November 2026 UTC)
+
+PR #44 advanced from the pinned `9dab1a7` to `64df68c13cb1fa7a3f27af2275a9dab9aca857c3` during final review. Its follow-up records an ADV-04 batch timeout and a live SQLite fixture write failing before expiry assertions. Port its unchanged 67-test recovery suite scheduling into ADV-07, preserving the complete test-path multiset and existing 180-second/1-MiB limits. Keep the ten new unified tests in ADV-04. Port the fixture-only 5000-ms busy wait, guaranteed close and positive row-change assertion; refresh the exact source binding. No runtime protocol, denial assertion or threshold changes. The pinned-PR benchmark comparison remains against the user-specified revisions. All final-source results must be independently rerun and bound in the delivery manifest.
+
 ## P0-046 unified recovery candidate (11 November 2026 IST)
 
 Branch `codex/p0-046-unified-defence-assurance`, based on PR #45
