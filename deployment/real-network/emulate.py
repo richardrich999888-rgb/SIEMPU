@@ -53,11 +53,18 @@ owner = state.stat()
 drop = ['setpriv', '--reuid', str(owner.st_uid), '--regid', str(owner.st_gid), '--clear-groups']
 
 
-def command(name, argv, shell=False):
+def command(name, argv, shell=False, accepted=(0,)):
     text = argv if shell else shlex.join(argv)
-    if args.backend == 'core':
-        return nodes[name].cmd(text, shell=shell)
-    return nodes[name].cmd(text)
+    # Both backends run the same explicit shell exit oracle. Mininet otherwise
+    # returns stdout even when tc/mount fails; that must never become a pass.
+    wrapped = '{ ' + text + '; }; p047_rc=$?; printf "\\nP047_EXIT=%d\\n" "$p047_rc"'
+    response = nodes[name].cmd(wrapped, shell=True) if args.backend == 'core' else nodes[name].cmd(wrapped)
+    body, marker, status = response.rpartition('\nP047_EXIT=')
+    if not marker or not status.strip().isdigit():
+        raise RuntimeError('COMMAND_EXIT_RECORD_MISSING:' + name)
+    if int(status.strip()) not in accepted:
+        raise RuntimeError('COMMAND_FAILED:' + name + ':' + status.strip() + ':' + body[-300:])
+    return body
 
 
 def endpoint(name, role, operation, arg=None):
@@ -65,15 +72,14 @@ def endpoint(name, role, operation, arg=None):
                                      str(state / name / role), operation]
     if arg is not None:
         argv.append(str(arg))
-    # Preserve the endpoint's JSON failure oracle; CORE raises on a nonzero shell exit.
-    response = command(name, shlex.join(argv) + '; true', shell=True)
+    response = command(name, argv, accepted=(0, 1))
     return json.loads(response.strip().splitlines()[-1])
 
 
 try:
     if args.backend == 'mininet':
         from mininet.net import Mininet
-        from mininet.node import LinuxBridge
+        from mininet.nodelib import LinuxBridge
         from mininet.link import TCLink
         net = Mininet(controller=None, switch=LinuxBridge, link=TCLink, build=False, ipBase='10.77.0.0/24')
         switch = net.addSwitch('p047s')
@@ -104,7 +110,7 @@ try:
     for name in 'DCB':
         log = state / name / 'service-private.log'
         argv = ['setsid'] + drop + [node_binary, str(root / 'deployment/real-network/host.mjs'), str(state / name)]
-        pid = command(name, f'cd {shlex.quote(str(root))} || exit; {shlex.join(argv)} > {shlex.quote(str(log))} 2>&1 & echo $!', shell=True).strip()
+        pid = command(name, f'cd {shlex.quote(str(root))} || exit; {shlex.join(argv)} > {shlex.quote(str(log))} 2>&1 & echo $!', shell=True).strip().splitlines()[-1]
         assert pid.isdigit()
         processes.append(int(pid))
     for _ in range(60):
@@ -138,7 +144,9 @@ try:
                                        'outcome': 'PASS', 'elapsedMs': (time.monotonic_ns()-began)/1e6,
                                        'sent': sent, 'received': received})
                 save()
-        report['rows'].append({'profile': label, 'observedQdisc': command('A', ['tc', '-s', '-j', 'qdisc', 'show', 'dev', interface])})
+        observed = json.loads(command('A', ['tc', '-s', '-j', 'qdisc', 'show', 'dev', interface]))
+        assert any(item.get('kind') == 'netem' and item.get('packets', 0) > 0 for item in observed), 'NETEM_NOT_OBSERVED'
+        report['rows'].append({'profile': label, 'observedQdisc': observed})
     queued = endpoint('A', 'unit-a', 'queue', 4096)
     assert queued['ok']
     command('A', ['tc', 'qdisc', 'replace', 'dev', interface, 'root', 'netem', 'loss', '100%'])
