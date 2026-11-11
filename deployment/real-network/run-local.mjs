@@ -40,6 +40,8 @@ const report = {
     memory: totalmem(),
   },
   rows: [],
+  startupDiagnostics: [],
+  startupDiagnosticsTruncated: false,
   limitations: [
     'One kernel and administrator',
     'No emulated link or external network',
@@ -84,12 +86,21 @@ const tls = { ca: readFileSync(join(roleDir('unit-a'), 'keys/ca.crt')) };
 async function ready() {
   for (let i = 0; i < 120; i++) {
     try {
-      if (
-        (await requestBytes(deployment.urls.web + '/health/ready', { tls, timeoutMs: 500 }))
-          .status === 200
-      )
-        return;
-    } catch {}
+      const response = await requestBytes(deployment.urls.web + '/health/ready', {
+        tls,
+        timeoutMs: 500,
+      });
+      report.lastReadiness = {
+        status: response.status,
+        body: response.body.toString('utf8').slice(0, 500),
+      };
+      if (response.status === 200) return;
+    } catch (error) {
+      report.lastReadiness = {
+        code: error.code ?? error.name,
+        message: String(error.message).slice(0, 200),
+      };
+    }
     await new Promise((r) => setTimeout(r, 100));
   }
   throw new Error('TESTBED_READINESS');
@@ -125,7 +136,16 @@ function resources() {
   );
 }
 try {
-  for (const node of ['D', 'C', 'B']) hosts.push(startHost(join(privateDir, node)));
+  for (const node of ['D', 'C', 'B'])
+    hosts.push(
+      startHost(join(privateDir, node), {
+        onLog(role, line) {
+          if (report.startupDiagnostics.length < 40)
+            report.startupDiagnostics.push({ role, line: line.slice(0, 1000) });
+          else report.startupDiagnosticsTruncated = true;
+        },
+      }),
+    );
   await ready();
   report.diskBefore = disk(privateDir);
   report.resourcesBefore = resources();
@@ -175,6 +195,13 @@ try {
   report.resourcesAfter = resources();
 } catch (error) {
   report.runnerFailure = String(error.message).slice(0, 300);
+  report.serviceStatesAtFailure = hosts.flatMap((h) =>
+    [...h.children.entries()].map(([role, c]) => ({
+      role,
+      exitCode: c.exitCode,
+      signalCode: c.signalCode,
+    })),
+  );
 } finally {
   for (const h of [...hosts].reverse()) await h.stop();
   for (let n = 1; n <= 12; n++) {
