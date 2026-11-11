@@ -45,12 +45,8 @@
       "deploymentScope": "APPLICATION",
       "custody": "Passphrase-derived software key",
       "limitations": "Endpoint compromise, memory erasure and recovery need separate assessment.",
-      "sources": [
-        "packages/crypto/crypto.mjs"
-      ],
-      "tests": [
-        "tests/crypto.test.mjs"
-      ]
+      "sources": ["packages/crypto/crypto.mjs"],
+      "tests": ["tests/crypto.test.mjs"]
     },
     {
       "id": "CR-03",
@@ -63,32 +59,19 @@
       "deploymentScope": "APPLICATION",
       "custody": "Password hashes and encrypted TOTP seed",
       "limitations": "Phishing-resistant/hardware-backed login is not implemented. TOTP policy needs sponsor review.",
-      "sources": [
-        "services/control/primitives.mjs",
-        "services/control/core.mjs"
-      ],
-      "tests": [
-        "tests/authority.test.mjs",
-        "tests/additional-boundaries.test.mjs"
-      ]
+      "sources": ["services/control/primitives.mjs", "services/control/core.mjs"],
+      "tests": ["tests/authority.test.mjs", "tests/additional-boundaries.test.mjs"]
     },
     {
       "id": "CR-04",
       "purpose": "Stored MFA seed protection",
-      "mechanisms": [
-        "AES-256-GCM; 12-byte random IV"
-      ],
+      "mechanisms": ["AES-256-GCM; 12-byte random IV"],
       "boundary": "Authority storage",
       "deploymentScope": "APPLICATION",
       "custody": "Locally provisioned software master.key",
       "limitations": "No HSM, hardware attestation or physical tamper evaluation.",
-      "sources": [
-        "services/control/primitives.mjs",
-        "scripts/bootstrap.mjs"
-      ],
-      "tests": [
-        "tests/authority.test.mjs"
-      ]
+      "sources": ["services/control/primitives.mjs", "scripts/bootstrap.mjs"],
+      "tests": ["tests/authority.test.mjs"]
     },
     {
       "id": "CR-05",
@@ -197,20 +180,13 @@
     {
       "id": "CR-09",
       "purpose": "Signed offline distribution",
-      "mechanisms": [
-        "ECDSA P-256 SHA-256",
-        "SHA-256 file/manifest digests"
-      ],
+      "mechanisms": ["ECDSA P-256 SHA-256", "SHA-256 file/manifest digests"],
       "boundary": "Release signer and offline installer",
       "deploymentScope": "APPLICATION",
       "custody": "Independent release trust key and rollback ledger; software signer",
       "limitations": "Package integrity is distinct from grading and deployment authorisation.",
-      "sources": [
-        "packages/release/offline.mjs"
-      ],
-      "tests": [
-        "tests/offline-release.test.mjs"
-      ]
+      "sources": ["packages/release/offline.mjs"],
+      "tests": ["tests/offline-release.test.mjs"]
     },
     {
       "id": "CR-10",
@@ -240,10 +216,7 @@
     {
       "id": "CR-11",
       "purpose": "Independent Rust evidence verifier",
-      "mechanisms": [
-        "ECDSA P-256 SHA-256; RustCrypto p256",
-        "SHA-256"
-      ],
+      "mechanisms": ["ECDSA P-256 SHA-256; RustCrypto p256", "SHA-256"],
       "boundary": "Offline native verifier",
       "deploymentScope": "OPTIONAL_OFFLINE_TOOL",
       "custody": "Public verification keys only",
@@ -253,17 +226,12 @@
         "native/evidence-verify/Cargo.toml",
         "native/Cargo.lock"
       ],
-      "tests": [
-        "tests/native/evidence-differential.check.mjs"
-      ]
+      "tests": ["tests/native/evidence-differential.check.mjs"]
     },
     {
       "id": "CR-12",
       "purpose": "VANIAN NEXORA evidence snapshots",
-      "mechanisms": [
-        "Ed25519 signed head",
-        "SHA-256 domain-separated Merkle leaf"
-      ],
+      "mechanisms": ["Ed25519 signed head", "SHA-256 domain-separated Merkle leaf"],
       "boundary": "Offline operator bridge",
       "deploymentScope": "OPTIONAL_OFFLINE_TOOL",
       "custody": "Software NEXORA signer; separate NEXORA and authority trust anchors",
@@ -274,10 +242,7 @@
         "integrations/nexora/Cargo.toml",
         "integrations/nexora/Cargo.lock"
       ],
-      "tests": [
-        "integrations/nexora/tests/snapshot.rs",
-        "tests/nexora/bridge.check.mjs"
-      ]
+      "tests": ["integrations/nexora/tests/snapshot.rs", "tests/nexora/bridge.check.mjs"]
     },
     {
       "id": "CR-13",
@@ -297,10 +262,7 @@
         "services/control/core.mjs",
         "scripts/bootstrap.mjs"
       ],
-      "tests": [
-        "tests/crypto.test.mjs",
-        "tests/authority.test.mjs"
-      ]
+      "tests": ["tests/crypto.test.mjs", "tests/authority.test.mjs"]
     },
     {
       "id": "CR-14",
@@ -319,9 +281,7 @@
         "services/relay/server.mjs",
         "services/relay/client.mjs"
       ],
-      "tests": [
-        "services/relay/relay.test.mjs"
-      ]
+      "tests": ["services/relay/relay.test.mjs"]
     },
     {
       "id": "CR-15",
@@ -342,9 +302,7 @@
         "services/integration/sealed-server.mjs",
         "deployment/secure/sealed-adapter-process.mjs"
       ],
-      "tests": [
-        "tests/sealed-integration.test.mjs"
-      ]
+      "tests": ["tests/sealed-integration.test.mjs"]
     },
     {
       "id": "CR-16",
@@ -362,9 +320,7 @@
         "integrations/pkcs11/worker.py",
         "integrations/pkcs11/requirements.txt"
       ],
-      "tests": [
-        "tests/pkcs11/provider.check.mjs"
-      ]
+      "tests": ["tests/pkcs11/provider.check.mjs"]
     },
     {
       "id": "CR-17",
@@ -382,10 +338,7 @@
         "integrations/managed-endpoint/outbox.mjs",
         "packages/storage/private-sqlite.mjs"
       ],
-      "tests": [
-        "tests/managed-outbox.test.mjs",
-        "tests/managed-endpoint/native.check.mjs"
-      ]
+      "tests": ["tests/managed-outbox.test.mjs", "tests/managed-endpoint/native.check.mjs"]
     },
     {
       "id": "CR-18",
@@ -398,13 +351,8 @@
       "deploymentScope": "LAB_ONLY",
       "custody": "Provider token stays in the endpoint process and TLS request header; private laboratory CA trust supplied separately",
       "limitations": "No live provider token validation was exercised. Hashes identify received bytes, not truth or authority. Public-network transport and automatic SIEPMU imports are absent. This module is excluded from the application bundle.",
-      "sources": [
-        "integrations/india-dpi/iudx-resource-reader.mjs",
-        "packages/transport/tls.mjs"
-      ],
-      "tests": [
-        "tests/india-dpi-iudx.test.mjs"
-      ]
+      "sources": ["integrations/india-dpi/iudx-resource-reader.mjs", "packages/transport/tls.mjs"],
+      "tests": ["tests/india-dpi-iudx.test.mjs"]
     },
     {
       "id": "CR-19",
@@ -596,7 +544,7 @@
       "sha256": "2ff141c1e05f59a19d2f110838a6e60a2f380a8517493b0ec69e50fb5700d462"
     },
     "packages/release/offline.mjs": {
-      "sha256": "f9d07df8a7bb8d4cbd3049393b5b6514d2f2d3d772fe202d72c602e0ff069d64"
+      "sha256": "c4e2d789fc476eacbf3332248e2c8ddab07cb34b8c411e9c132a190326ee6f74"
     },
     "packages/storage/private-sqlite.mjs": {
       "sha256": "27f4c063229409f66196d858c3f82d82efba98dba3cf332b06ff22776ae7e3e2"
@@ -686,7 +634,7 @@
       "sha256": "b0f13392ea0c676c146ef37c2bf5b90d6ab38c5235c66cf07703bdeb2f9a2430"
     },
     "tests/adapter-adversarial.test.mjs": {
-      "sha256": "af65e7a58db6bccc3a0eb793c7af0bbd1074f95ce5af15db2a0a55da1d005cb5"
+      "sha256": "b7f9f6404ff67330601f18dbd96ef017b5054aaec187f122b41033de22c90917"
     },
     "tests/additional-boundaries.test.mjs": {
       "sha256": "c23fc43cda693cc2d94cde6e024996113f0afc9d11df17742cf21002d9c19826"
@@ -752,7 +700,7 @@
       "sha256": "dbd0d6eef9de284de7be7d3e30e97aab55fe2429d4c81afc6cb41eba1b29a3d5"
     },
     "tests/offline-release.test.mjs": {
-      "sha256": "203a72412e06997a946b60d9cf6ebfeae4a378a6efb5bbb4b24c9093715ecea0"
+      "sha256": "5e17a48e497f4bb6b87e964a76429123feccadfc5ade339e6a79a946af78293b"
     },
     "tests/pkcs11/provider.check.mjs": {
       "sha256": "524650da5112eb91b8ea63d966c6df9d86feae492e76bb22049065c915e2c397"
@@ -791,7 +739,7 @@
       "sha256": "aeb23c6bd0bb99147f17b16ecf7499c44a4a4fa76c605d9667ab98bab030a700"
     },
     "scripts/guarded-recovery.mjs": {
-      "sha256": "7da98eca0dc0d712b387e0ce8d8556009aaa5e0ee3ffe621c9b87e86b8dd5445"
+      "sha256": "db81bfb1195f0abe9d89aca7079a55dfc1ae34592032001e7bdeaace76a70eff"
     },
     "scripts/recovery-rehearsal.mjs": {
       "sha256": "f36c6893ec43fc32402b0146452b1bdd388ebba6a62ec02dfb10b0e6287a0a1b"

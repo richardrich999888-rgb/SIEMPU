@@ -390,7 +390,18 @@ function prepare(request, passphrase, existing = false) {
   const staging = mkdtempSync(join(parent, '.siepmu-recovery-')),
     service = join(staging, 'service');
   try {
-    restore(archive, service, passphrase, t.authorityKey, { checkpoint: t.checkpoint });
+    try {
+      restore(archive, service, passphrase, t.authorityKey, { checkpoint: t.checkpoint });
+    } catch (error) {
+      // The bounded backup verifier now rejects these before verifyStores runs.
+      // Preserve the recovery API's error contract, never retry or bypass restore.
+      const code = {
+        'Backup referenced ciphertext missing': 'RECOVERY_RELAY_MISSING_OBJECT',
+        'Backup relay blob integrity': 'RECOVERY_RELAY_CORRUPTION',
+      }[error.message];
+      if (code) throw new Error(code, { cause: error });
+      throw error;
+    }
     mkdirSync(join(service, 'monitor'), { mode: 0o700 });
     writeFileSync(join(service, 'monitor/collector.sqlite'), monitor, { flag: 'wx', mode: 0o600 });
     const c = verifyStores(service, t);
