@@ -48,7 +48,7 @@ public permission for this exact security campaign was found. Request explicit r
 | IIT Hyderabad indigenous testbed                      | [Official usage/registration portal](https://5gtestbed.in/testbedusage.jsp): `5gtbadmin@5g.iith.ac.in`; [testbed-manager directory](https://user.cewit.org.in/5gtb/linkfiles/new/ContactDetail.html): `5gtestbedmanager@5g.iith.ac.in` | University lab alternative for end-to-end interoperability. Ask whether application-layer data-plane experiments and independent compute/custody are available; tariff/allocation and rules unconfirmed                                                                                              |
 
 TCoE's official programme announcement states up to ₹50 lakh and up to 80% approved
-cost support for TRL 5–8: [TCoE announcement](https://www.linkedin.com/posts/tcoe-india_dot-tcoeindia-tdip-activity-7487909847988887552-wRmu).
+cost support at its TRL 5–8 entry gate: [TCoE announcement](https://www.linkedin.com/posts/tcoe-india_dot-tcoeindia-tdip-activity-7487909847988887552-wRmu).
 The official portal's public [programme-content endpoint](https://pilot.tcoe.in/api/cms/content),
 read on 12 November 2026 IST, confirms those conditions, a minimum 20% beneficiary
 contribution, and the pilot contact above.

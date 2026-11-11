@@ -1,4 +1,4 @@
-# D7: relevant-environment and TRL 5 readiness assessment
+# D7: relevant-environment assessment — TRL 5 readiness BLOCKED
 
 **Assessment: provisional internal TRL 4 unchanged. P0-047 incomplete.**
 SAG grading, TRL 5 qualification and IAF operational approval are not established.

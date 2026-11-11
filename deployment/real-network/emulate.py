@@ -96,15 +96,17 @@ try:
         from core.nodes.base import CoreNode
         from core.nodes.network import SwitchNode
         core = CoreEmu()
+        os.umask(0o077)
         session = core.create_session()
         session.set_state(EventTypes.CONFIGURATION_STATE)
         switch = session.add_node(SwitchNode)
         for index, name in enumerate('ABCDEF', 1):
             options = CoreNode.create_options()
-            options.name = 'p047' + name.lower()
-            nodes[name] = session.add_node(CoreNode, options=options)
+            options.model = 'p047-application-only'
+            nodes[name] = session.add_node(CoreNode, name='p047' + name.lower(), options=options)
             session.add_link(nodes[name].id, switch.id, InterfaceData(id=0, name='eth0', ip4=f'10.77.0.{index}', ip4_mask=24))
-        session.instantiate()
+        startup_errors = session.instantiate()
+        assert not startup_errors, 'CORE_NODE_STARTUP_FAILED'
         for name in nodes:
             command(name, ['mount', '--bind', str(state / 'hosts.example'), '/etc/hosts'])
     for name in 'DCB':

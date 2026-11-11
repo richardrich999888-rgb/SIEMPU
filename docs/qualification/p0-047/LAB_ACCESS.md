@@ -91,7 +91,7 @@ I am Naga Sri Ganesh, Founder and CEO of SYNTRIASS Labs Pvt. Ltd. We are develop
 AIRON–SIEPMU for iDEX DISC-14 PS-69 and are preparing supervised validation of secure
 application traffic over authorised public/private telecom networks.
 
-We understand that the TDIP pilot-validation programme specifies TRL 5–8 and requires an
+We do not yet meet the TDIP pilot programme’s TRL 5–8 maturity gate. It also requires an
 eligible recognised entity and identified industry/TSP partner consent. Our current
 assessment remains provisional TRL 4. This is therefore a request for technical and
 eligibility guidance, not an application claiming that the present prototype meets the gate.
