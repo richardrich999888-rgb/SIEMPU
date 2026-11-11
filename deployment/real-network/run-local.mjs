@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync } from 'node:fs';
+import {
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  readdirSync,
+  statSync,
+  realpathSync,
+} from 'node:fs';
 import { resolve, join } from 'node:path';
 import { platform, release, cpus, totalmem } from 'node:os';
 import { DatabaseSync } from 'node:sqlite';
@@ -40,6 +47,11 @@ const report = {
     memory: totalmem(),
   },
   rows: [],
+  pathObservation: {
+    requestedPrivateRootIsCanonical: privateDir === realpathSync(privateDir),
+    controlStateMode: statSync(join(privateDir, 'B/control/state')).mode & 0o777,
+    controlStateOwner: statSync(join(privateDir, 'B/control/state')).uid,
+  },
   startupDiagnostics: [],
   startupDiagnosticsTruncated: false,
   limitations: [

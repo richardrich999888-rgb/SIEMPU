@@ -1,11 +1,11 @@
 // Optional native path. Requires genuinely enrolled keys and the real inspection sandbox.
 // There is no software fallback, mock key provider or simulated inspection success.
-import { readFileSync, writeFileSync } from 'node:fs';
-import { resolve, join } from 'node:path';
+import { readFileSync, writeFileSync, realpathSync } from 'node:fs';
+import { join } from 'node:path';
 import { openManagedEndpoint } from '../../integrations/managed-endpoint/index.mjs';
 import { hash } from '../../services/control/primitives.mjs';
 const [directory, op, arg] = process.argv.slice(2),
-  dir = resolve(directory);
+  dir = realpathSync(directory);
 const json = (name) => JSON.parse(readFileSync(join(dir, name)));
 const inputs = json('native-inputs.json');
 const client = await openManagedEndpoint({

@@ -1,13 +1,13 @@
 // Executes real endpoint cryptography over the normal HTTPS authority path.
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { resolve, join } from 'node:path';
+import { readFileSync, writeFileSync, existsSync, realpathSync } from 'node:fs';
+import { join } from 'node:path';
 import { IntegrationEndpoint } from '../../packages/integration/client.mjs';
 import { ManagedOutbox } from '../../integrations/managed-endpoint/outbox.mjs';
 import { hash } from '../../services/control/primitives.mjs';
 
 const [directory, operation, argument] = process.argv.slice(2),
-  dir = resolve(directory);
+  dir = realpathSync(directory);
 const read = (name) => JSON.parse(readFileSync(join(dir, name)));
 const config = read('endpoint.json'),
   profile = read('state/profile.json'),

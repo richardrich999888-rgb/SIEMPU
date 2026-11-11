@@ -1,8 +1,37 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, mkdtempSync, mkdirSync, symlinkSync, rmSync, statSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { quantiles } from '../deployment/real-network/campaign.mjs';
 import { validateInventory } from '../deployment/real-network/inventory.mjs';
+import { provision, placement } from '../deployment/real-network/provision.mjs';
+
+test('symlinked workspace uses canonical private state without weakening database guards', async (t) => {
+  const root = mkdtempSync(join(tmpdir(), 'p047-private-path-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  mkdirSync(join(root, 'real'), { mode: 0o700 });
+  symlinkSync(join(root, 'real'), join(root, 'alias'));
+  const state = join(root, 'alias', 'nodes');
+  await provision(state, { mode: 'local-process' });
+  for (const [node, roles] of Object.entries(placement)) {
+    for (const role of roles) {
+      const stat = statSync(join(state, node, role, 'state'));
+      assert.equal(stat.mode & 0o777, 0o700);
+      assert.equal(stat.uid, process.getuid());
+    }
+  }
+  const result = spawnSync(
+    process.execPath,
+    ['deployment/real-network/endpoint.mjs', join(state, 'A/unit-a'), 'queue-status'],
+    { encoding: 'utf8', timeout: 10000 },
+  );
+  assert.equal(result.status, 0, result.stderr);
+  const observation = JSON.parse(result.stdout.trim());
+  assert.equal(observation.ok, true);
+  assert.deepEqual(observation.result.entries, []);
+});
 
 test('benchmark suppresses tail estimates with insufficient samples and rejects invalid measurements', () => {
   assert.deepEqual(quantiles([]), { count: 0, p50Ms: null, p95Ms: null, p99Ms: null });

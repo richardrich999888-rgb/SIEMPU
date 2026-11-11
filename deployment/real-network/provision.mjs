@@ -1,6 +1,14 @@
 // Synthetic fixture provisioner. Private node bundles are never evaluation evidence.
 import { execFileSync } from 'node:child_process';
-import { cpSync, mkdirSync, readFileSync, writeFileSync, rmSync, existsSync } from 'node:fs';
+import {
+  cpSync,
+  chmodSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  rmSync,
+  existsSync,
+} from 'node:fs';
 import { join, resolve } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
@@ -51,6 +59,8 @@ export async function provision(directory, { mode = 'multi-host', root = resolve
       mkdirSync(roleDir, { mode: 0o700 });
       cpSync(service.volumes[0].split(':/state')[0], join(roleDir, 'state'), { recursive: true });
       cpSync(join(staging, 'keys', role), join(roleDir, 'keys'), { recursive: true });
+      chmodSync(join(roleDir, 'state'), 0o700);
+      chmodSync(join(roleDir, 'keys'), 0o700);
       const env = {};
       for (const [key, value] of Object.entries(service.environment)) {
         let s = value

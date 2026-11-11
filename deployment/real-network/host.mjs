@@ -1,11 +1,11 @@
 import { spawn } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { snapshot } from '../../assurance/sag/package.mjs';
 
 export function startHost(nodeDirectory, { root = resolve('.'), onLog = () => {} } = {}) {
-  const directory = resolve(nodeDirectory),
+  const directory = realpathSync(nodeDirectory),
     config = JSON.parse(readFileSync(directory + '/node.json'));
   const source = snapshot(root);
   if (source.commit !== config.source.commit || source.tree !== config.source.tree)

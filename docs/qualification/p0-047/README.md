@@ -159,3 +159,11 @@ runner. It installs the distribution Mininet backend and records its package ver
 then executes the actual application processes. Read the hosted result before claiming
 execution; a defined workflow is not evidence. CI and namespace results remain separate
 from independent-host, independent-administrator and external-laboratory evidence.
+
+The first hosted runs at `d7b45c2` and diagnostic revision `58e31f2` failed readiness.
+The retained diagnostic artifact identifies `PRIVATE_DATABASE_DIRECTORY` while opening
+the control telemetry store. The private database guard was preserved. Deployment now
+canonicalises host/endpoint state paths and explicitly restores 0700 on copied private
+directories. A symlinked-workspace reproduction checks the actual outbox path; the hosted
+report records whether the requested workspace path was canonical. This finding does
+not close the separate historical IAF-G18 adapter-startup gap.
