@@ -29,6 +29,8 @@ export const RELEASE_EXCLUDED_PATHS = Object.freeze([
   'packages/pqc-lab',
   'integrations/nexora',
   'scripts/legacy-migration.mjs',
+  'scripts/guarded-recovery.mjs',
+  'scripts/recovery-rehearsal.mjs',
 ]);
 function files(root, prefix = '', excluded = []) {
   const out = [];

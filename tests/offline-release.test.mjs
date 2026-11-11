@@ -21,10 +21,9 @@ test('signed offline package installs with bundled runtime; tampering, rollback,
     join(source, 'services', 'proof.mjs'),
     "console.log('OFFLINE_RUNTIME_VERIFIED');\n",
   );
-  writeFileSync(
-    join(source, 'scripts', 'legacy-migration.mjs'),
-    "throw new Error('LAB_TOOL_MUST_NOT_SHIP');\n",
-  );
+  const excluded = ['legacy-migration.mjs', 'guarded-recovery.mjs', 'recovery-rehearsal.mjs'];
+  for (const name of excluded)
+    writeFileSync(join(source, 'scripts', name), "throw new Error('LAB_TOOL_MUST_NOT_SHIP');\n");
   const revision = 'a'.repeat(40),
     bundle = join(root, 'bundle'),
     destination = join(root, 'installed'),
@@ -36,7 +35,8 @@ test('signed offline package installs with bundled runtime; tampering, rollback,
     version: 2,
     revision,
   });
-  assert.ok(!manifest.payload.files.some((f) => f.path.endsWith('/legacy-migration.mjs')));
+  for (const name of excluded)
+    assert.ok(!manifest.payload.files.some((f) => f.path.endsWith('/' + name)));
   const opts = { bundle, destination, ledger, trustedKey: keys.publicKey };
   assert.throws(
     () => installOfflineBundle({ ...opts, trustedKey: recovery.publicKey, initialize: true }),

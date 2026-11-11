@@ -356,25 +356,35 @@
     },
     {
       "id": "CR-19",
-      "purpose": "Encrypted maintenance backup, independently anchored restore and explicit synthetic legacy migration",
+      "purpose": "Encrypted maintenance backup, independently anchored restore and explicit synthetic legacy migration and guarded synthetic multi-store recovery",
       "mechanisms": [
         "scrypt N=32768 r=8 p=1; 32-byte salt; 256-bit derived key",
         "AES-256-GCM with 96-bit IV, 128-bit tag and SIEPMU_BACKUP_V1 AAD",
         "ECDSA P-256 SHA-256 signed manifest and evidence chain",
         "SHA-256 file, record and retained-checkpoint comparison",
         "Independent full-snapshot manifest pin and exact legacy custody anchor; separate P-256 reviewer approval bound to the complete migration plan",
-        "Public-key candidate verification bound to an independently retained review-plan hash, exact logical-row preservation and writer handover parameters"
+        "Public-key candidate verification bound to an independently retained review-plan hash, exact logical-row preservation and writer handover parameters",
+        "Separate signed monitoring snapshot and reviewed seven-file plan; existing explicit fenced handover and fresh live lease; typed SQLite row digests for pre-serving resume"
       ],
-      "boundary": "Offline operator, six-file co-located control/relay archive, private staging and retained checkpoint; separate reviewer and synthetic-only candidate builder",
+      "boundary": "Offline operator, six-file control/relay archive plus separately pinned collector snapshot, private staging, independent custody and reviewer; synthetic-only recovery driver",
       "deploymentScope": "OPTIONAL_OFFLINE_TOOL",
       "custody": "Passphrase, archive and independently retained public key/checkpoint require separate operator custody; software signing/master/relay keys are included inside encrypted archive.",
-      "limitations": "Maintenance-only sequential snapshots; no complete all-service DR, hardware key protection, power-loss durability qualification or current-policy approval. Evidence authenticity cannot prove arbitrary policy table contents. Synthetic migration requires a trusted historical full-snapshot witness; old custody digest alone is insufficient. It builds a separate quarantined database candidate, never advances custody or activates services, and is excluded from deployed application/offline packages.",
-      "sources": ["scripts/backup.mjs", "apps/verifier/verify.mjs", "scripts/legacy-migration.mjs"],
+      "limitations": "Maintenance-only sequential snapshots; no complete all-service DR, hardware key protection, power-loss durability qualification or current-policy approval. Evidence authenticity cannot prove arbitrary policy table contents. Synthetic migration requires a trusted historical full-snapshot witness; old custody digest alone is insufficient. It builds a separate quarantined database candidate, never advances custody or activates services, and is excluded from deployed application/offline packages. Guarded recovery adds a separately pinned collector snapshot and preserves existing custody. Resume is restricted to unchanged pre-serving state. Complete signed telemetry replay is bounded to 1000 evidence records and 1000 alerts; no exporter cursor, endpoint queues/keys, connector state, production activation or independent administration is demonstrated.",
+      "sources": [
+        "scripts/backup.mjs",
+        "apps/verifier/verify.mjs",
+        "scripts/legacy-migration.mjs",
+        "scripts/guarded-recovery.mjs",
+        "scripts/recovery-rehearsal.mjs"
+      ],
       "tests": [
         "tests/recovery.test.mjs",
         "tests/legacy-migration.test.mjs",
         "tests/helpers/legacy-migration-fixture.mjs",
-        "tests/helpers/migration-worker.mjs"
+        "tests/helpers/migration-worker.mjs",
+        "tests/guarded-recovery.test.mjs",
+        "tests/helpers/recovery-rehearsal.mjs",
+        "tests/helpers/recovery-worker.mjs"
       ]
     },
     {
@@ -530,7 +540,7 @@
       "sha256": "2ff141c1e05f59a19d2f110838a6e60a2f380a8517493b0ec69e50fb5700d462"
     },
     "packages/release/offline.mjs": {
-      "sha256": "f9d07df8a7bb8d4cbd3049393b5b6514d2f2d3d772fe202d72c602e0ff069d64"
+      "sha256": "c4e2d789fc476eacbf3332248e2c8ddab07cb34b8c411e9c132a190326ee6f74"
     },
     "packages/storage/private-sqlite.mjs": {
       "sha256": "27f4c063229409f66196d858c3f82d82efba98dba3cf332b06ff22776ae7e3e2"
@@ -683,7 +693,7 @@
       "sha256": "dbd0d6eef9de284de7be7d3e30e97aab55fe2429d4c81afc6cb41eba1b29a3d5"
     },
     "tests/offline-release.test.mjs": {
-      "sha256": "203a72412e06997a946b60d9cf6ebfeae4a378a6efb5bbb4b24c9093715ecea0"
+      "sha256": "5e17a48e497f4bb6b87e964a76429123feccadfc5ade339e6a79a946af78293b"
     },
     "tests/pkcs11/provider.check.mjs": {
       "sha256": "524650da5112eb91b8ea63d966c6df9d86feae492e76bb22049065c915e2c397"
@@ -714,6 +724,21 @@
     },
     "tests/writer-fencing.test.mjs": {
       "sha256": "072cee2e0424ea6e64dc073f0cc35cb2b140feea5772f1cc7edbd4e4e37d2d5c"
+    },
+    "scripts/guarded-recovery.mjs": {
+      "sha256": "7da98eca0dc0d712b387e0ce8d8556009aaa5e0ee3ffe621c9b87e86b8dd5445"
+    },
+    "scripts/recovery-rehearsal.mjs": {
+      "sha256": "f36c6893ec43fc32402b0146452b1bdd388ebba6a62ec02dfb10b0e6287a0a1b"
+    },
+    "tests/guarded-recovery.test.mjs": {
+      "sha256": "164b307e3c526129da75a01579f478d79912cb3656df4ea5bc0842514ba305c7"
+    },
+    "tests/helpers/recovery-rehearsal.mjs": {
+      "sha256": "0c240a66e6774001924377de041a35eb14d4d5ef3f1a962576f3d48e5d416eaf"
+    },
+    "tests/helpers/recovery-worker.mjs": {
+      "sha256": "4469a9ed7e7d0f86596bbcc45cc005dd8fd218769890503b4d623bc9944eb952"
     }
   }
 }
