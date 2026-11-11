@@ -3,6 +3,7 @@ import argparse
 import importlib.util
 import json
 import os
+import re
 from pathlib import Path
 import shlex
 import shutil
@@ -65,11 +66,12 @@ def command(name, argv, shell=False, accepted=(0,)):
     # returns stdout even when tc/mount fails; that must never become a pass.
     wrapped = '{ ' + text + '; }; p047_rc=$?; printf "\\nP047_EXIT=%d\\n" "$p047_rc"'
     response = nodes[name].cmd(wrapped, shell=True) if args.backend == 'core' else nodes[name].cmd(wrapped)
-    body, marker, status = response.rpartition('\nP047_EXIT=')
-    if not marker or not status.strip().isdigit():
+    marker = re.search(r'(?:^|\n)P047_EXIT=(\d+)\s*\Z', response)
+    if marker is None:
         raise RuntimeError('COMMAND_EXIT_RECORD_MISSING:' + name)
-    if int(status.strip()) not in accepted:
-        raise RuntimeError('COMMAND_FAILED:' + name + ':' + status.strip() + ':' + body[-300:])
+    body, status = response[:marker.start()], int(marker.group(1))
+    if status not in accepted:
+        raise RuntimeError('COMMAND_FAILED:' + name + ':' + str(status) + ':' + body[-300:])
     return body
 
 
