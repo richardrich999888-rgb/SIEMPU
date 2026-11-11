@@ -79,3 +79,5 @@ Technical references reviewed 11 November 2026: SQLite PRAGMA documentation
 checks; neither proves ciphertext completeness. Node 24 filesystem documentation
 (https://nodejs.org/docs/latest-v24.x/api/fs.html) describes descriptor reads and open flags.
 The application adds its own semantic checks and byte limits. No new dependency or licence.
+
+The first frozen full validation also caught a missing source hash and stale exact inventory expectations for the reused envelope validator/new regressions. The inventory and expected members were updated together; completeness and tamper checks remain unchanged. Retain that failing report separately from final-source evidence.

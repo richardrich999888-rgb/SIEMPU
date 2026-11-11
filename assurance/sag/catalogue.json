@@ -728,6 +728,9 @@
     },
     "tests/recovery-stores.test.mjs": {
       "sha256": "8abc80e49fe8988e692c9905745f9765bc7705b8c26def7f5a4bbb40efcce304"
+    },
+    "services/admission/integrity.mjs": {
+      "sha256": "aeb23c6bd0bb99147f17b16ecf7499c44a4a4fa76c605d9667ab98bab030a700"
     }
   }
 }
