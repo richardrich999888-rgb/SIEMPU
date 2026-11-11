@@ -45,8 +45,12 @@
       "deploymentScope": "APPLICATION",
       "custody": "Passphrase-derived software key",
       "limitations": "Endpoint compromise, memory erasure and recovery need separate assessment.",
-      "sources": ["packages/crypto/crypto.mjs"],
-      "tests": ["tests/crypto.test.mjs"]
+      "sources": [
+        "packages/crypto/crypto.mjs"
+      ],
+      "tests": [
+        "tests/crypto.test.mjs"
+      ]
     },
     {
       "id": "CR-03",
@@ -59,19 +63,32 @@
       "deploymentScope": "APPLICATION",
       "custody": "Password hashes and encrypted TOTP seed",
       "limitations": "Phishing-resistant/hardware-backed login is not implemented. TOTP policy needs sponsor review.",
-      "sources": ["services/control/primitives.mjs", "services/control/core.mjs"],
-      "tests": ["tests/authority.test.mjs", "tests/additional-boundaries.test.mjs"]
+      "sources": [
+        "services/control/primitives.mjs",
+        "services/control/core.mjs"
+      ],
+      "tests": [
+        "tests/authority.test.mjs",
+        "tests/additional-boundaries.test.mjs"
+      ]
     },
     {
       "id": "CR-04",
       "purpose": "Stored MFA seed protection",
-      "mechanisms": ["AES-256-GCM; 12-byte random IV"],
+      "mechanisms": [
+        "AES-256-GCM; 12-byte random IV"
+      ],
       "boundary": "Authority storage",
       "deploymentScope": "APPLICATION",
       "custody": "Locally provisioned software master.key",
       "limitations": "No HSM, hardware attestation or physical tamper evaluation.",
-      "sources": ["services/control/primitives.mjs", "scripts/bootstrap.mjs"],
-      "tests": ["tests/authority.test.mjs"]
+      "sources": [
+        "services/control/primitives.mjs",
+        "scripts/bootstrap.mjs"
+      ],
+      "tests": [
+        "tests/authority.test.mjs"
+      ]
     },
     {
       "id": "CR-05",
@@ -180,13 +197,20 @@
     {
       "id": "CR-09",
       "purpose": "Signed offline distribution",
-      "mechanisms": ["ECDSA P-256 SHA-256", "SHA-256 file/manifest digests"],
+      "mechanisms": [
+        "ECDSA P-256 SHA-256",
+        "SHA-256 file/manifest digests"
+      ],
       "boundary": "Release signer and offline installer",
       "deploymentScope": "APPLICATION",
       "custody": "Independent release trust key and rollback ledger; software signer",
       "limitations": "Package integrity is distinct from grading and deployment authorisation.",
-      "sources": ["packages/release/offline.mjs"],
-      "tests": ["tests/offline-release.test.mjs"]
+      "sources": [
+        "packages/release/offline.mjs"
+      ],
+      "tests": [
+        "tests/offline-release.test.mjs"
+      ]
     },
     {
       "id": "CR-10",
@@ -216,7 +240,10 @@
     {
       "id": "CR-11",
       "purpose": "Independent Rust evidence verifier",
-      "mechanisms": ["ECDSA P-256 SHA-256; RustCrypto p256", "SHA-256"],
+      "mechanisms": [
+        "ECDSA P-256 SHA-256; RustCrypto p256",
+        "SHA-256"
+      ],
       "boundary": "Offline native verifier",
       "deploymentScope": "OPTIONAL_OFFLINE_TOOL",
       "custody": "Public verification keys only",
@@ -226,12 +253,17 @@
         "native/evidence-verify/Cargo.toml",
         "native/Cargo.lock"
       ],
-      "tests": ["tests/native/evidence-differential.check.mjs"]
+      "tests": [
+        "tests/native/evidence-differential.check.mjs"
+      ]
     },
     {
       "id": "CR-12",
       "purpose": "VANIAN NEXORA evidence snapshots",
-      "mechanisms": ["Ed25519 signed head", "SHA-256 domain-separated Merkle leaf"],
+      "mechanisms": [
+        "Ed25519 signed head",
+        "SHA-256 domain-separated Merkle leaf"
+      ],
       "boundary": "Offline operator bridge",
       "deploymentScope": "OPTIONAL_OFFLINE_TOOL",
       "custody": "Software NEXORA signer; separate NEXORA and authority trust anchors",
@@ -242,7 +274,10 @@
         "integrations/nexora/Cargo.toml",
         "integrations/nexora/Cargo.lock"
       ],
-      "tests": ["integrations/nexora/tests/snapshot.rs", "tests/nexora/bridge.check.mjs"]
+      "tests": [
+        "integrations/nexora/tests/snapshot.rs",
+        "tests/nexora/bridge.check.mjs"
+      ]
     },
     {
       "id": "CR-13",
@@ -262,7 +297,10 @@
         "services/control/core.mjs",
         "scripts/bootstrap.mjs"
       ],
-      "tests": ["tests/crypto.test.mjs", "tests/authority.test.mjs"]
+      "tests": [
+        "tests/crypto.test.mjs",
+        "tests/authority.test.mjs"
+      ]
     },
     {
       "id": "CR-14",
@@ -281,7 +319,9 @@
         "services/relay/server.mjs",
         "services/relay/client.mjs"
       ],
-      "tests": ["services/relay/relay.test.mjs"]
+      "tests": [
+        "services/relay/relay.test.mjs"
+      ]
     },
     {
       "id": "CR-15",
@@ -302,7 +342,9 @@
         "services/integration/sealed-server.mjs",
         "deployment/secure/sealed-adapter-process.mjs"
       ],
-      "tests": ["tests/sealed-integration.test.mjs"]
+      "tests": [
+        "tests/sealed-integration.test.mjs"
+      ]
     },
     {
       "id": "CR-16",
@@ -320,7 +362,9 @@
         "integrations/pkcs11/worker.py",
         "integrations/pkcs11/requirements.txt"
       ],
-      "tests": ["tests/pkcs11/provider.check.mjs"]
+      "tests": [
+        "tests/pkcs11/provider.check.mjs"
+      ]
     },
     {
       "id": "CR-17",
@@ -338,7 +382,10 @@
         "integrations/managed-endpoint/outbox.mjs",
         "packages/storage/private-sqlite.mjs"
       ],
-      "tests": ["tests/managed-outbox.test.mjs", "tests/managed-endpoint/native.check.mjs"]
+      "tests": [
+        "tests/managed-outbox.test.mjs",
+        "tests/managed-endpoint/native.check.mjs"
+      ]
     },
     {
       "id": "CR-18",
@@ -351,8 +398,13 @@
       "deploymentScope": "LAB_ONLY",
       "custody": "Provider token stays in the endpoint process and TLS request header; private laboratory CA trust supplied separately",
       "limitations": "No live provider token validation was exercised. Hashes identify received bytes, not truth or authority. Public-network transport and automatic SIEPMU imports are absent. This module is excluded from the application bundle.",
-      "sources": ["integrations/india-dpi/iudx-resource-reader.mjs", "packages/transport/tls.mjs"],
-      "tests": ["tests/india-dpi-iudx.test.mjs"]
+      "sources": [
+        "integrations/india-dpi/iudx-resource-reader.mjs",
+        "packages/transport/tls.mjs"
+      ],
+      "tests": [
+        "tests/india-dpi-iudx.test.mjs"
+      ]
     },
     {
       "id": "CR-19",
@@ -364,24 +416,30 @@
         "SHA-256 file, record and retained-checkpoint comparison",
         "Independent full-snapshot manifest pin and exact legacy custody anchor; separate P-256 reviewer approval bound to the complete migration plan",
         "Public-key candidate verification bound to an independently retained review-plan hash, exact logical-row preservation and writer handover parameters",
-        "Before-publication relay schema/ciphertext and stored-object/reference checks; bounded 64 MiB archive and 32 MiB decoded maintenance format"
+        "Before-publication relay schema/ciphertext and stored-object/reference checks; bounded 64 MiB archive and 32 MiB decoded maintenance format",
+        "Separate signed monitoring snapshot and reviewed seven-file plan; existing explicit fenced handover and fresh live lease; typed SQLite row digests for pre-serving resume"
       ],
-      "boundary": "Offline operator, six-file co-located control/relay archive, private staging and retained checkpoint; separate reviewer and synthetic-only candidate builder",
+      "boundary": "Offline operator, six-file control/relay archive plus separately pinned collector snapshot, private staging, independent custody and reviewer; synthetic-only recovery driver",
       "deploymentScope": "OPTIONAL_OFFLINE_TOOL",
       "custody": "Passphrase, archive and independently retained public key/checkpoint require separate operator custody; software signing/master/relay keys are included inside encrypted archive.",
-      "limitations": "Maintenance-only sequential snapshots; no complete all-service DR, hardware key protection, power-loss durability qualification or current-policy approval. Evidence authenticity cannot prove arbitrary policy table contents. Synthetic migration requires a trusted historical full-snapshot witness; old custody digest alone is insufficient. It builds a separate quarantined database candidate, never advances custody or activates services, and is excluded from deployed application/offline packages. Larger archives are explicitly unsupported; no silent truncation or deletion. Unreferenced intact ciphertext is retained. Restore verifies a control/relay pair only, never current policy or other service state.",
+      "limitations": "Maintenance-only sequential snapshots; no complete all-service DR, hardware key protection, power-loss durability qualification or current-policy approval. Evidence authenticity cannot prove arbitrary policy table contents. Synthetic migration requires a trusted historical full-snapshot witness; old custody digest alone is insufficient. It builds a separate quarantined database candidate, never advances custody or activates services, and is excluded from deployed application/offline packages. Larger archives are explicitly unsupported; no silent truncation or deletion. Unreferenced intact ciphertext is retained. Restore verifies a control/relay pair only, never current policy or other service state. Maintenance-only sequential snapshots; no complete all-service DR, hardware key protection, power-loss durability qualification or current-policy approval. Evidence authenticity cannot prove arbitrary policy table contents. Synthetic migration requires a trusted historical full-snapshot witness; old custody digest alone is insufficient. It builds a separate quarantined database candidate, never advances custody or activates services, and is excluded from deployed application/offline packages. Guarded recovery adds a separately pinned collector snapshot and preserves existing custody. Resume is restricted to unchanged pre-serving state. Complete signed telemetry replay is bounded to 1000 evidence records and 1000 alerts; no exporter cursor, endpoint queues/keys, connector state, production activation or independent administration is demonstrated.",
       "sources": [
         "scripts/backup.mjs",
         "apps/verifier/verify.mjs",
         "scripts/legacy-migration.mjs",
-        "services/admission/integrity.mjs"
+        "services/admission/integrity.mjs",
+        "scripts/guarded-recovery.mjs",
+        "scripts/recovery-rehearsal.mjs"
       ],
       "tests": [
         "tests/recovery.test.mjs",
         "tests/legacy-migration.test.mjs",
         "tests/helpers/legacy-migration-fixture.mjs",
         "tests/helpers/migration-worker.mjs",
-        "tests/recovery-stores.test.mjs"
+        "tests/recovery-stores.test.mjs",
+        "tests/guarded-recovery.test.mjs",
+        "tests/helpers/recovery-rehearsal.mjs",
+        "tests/helpers/recovery-worker.mjs"
       ]
     },
     {
@@ -731,6 +789,21 @@
     },
     "services/admission/integrity.mjs": {
       "sha256": "aeb23c6bd0bb99147f17b16ecf7499c44a4a4fa76c605d9667ab98bab030a700"
+    },
+    "scripts/guarded-recovery.mjs": {
+      "sha256": "7da98eca0dc0d712b387e0ce8d8556009aaa5e0ee3ffe621c9b87e86b8dd5445"
+    },
+    "scripts/recovery-rehearsal.mjs": {
+      "sha256": "f36c6893ec43fc32402b0146452b1bdd388ebba6a62ec02dfb10b0e6287a0a1b"
+    },
+    "tests/guarded-recovery.test.mjs": {
+      "sha256": "164b307e3c526129da75a01579f478d79912cb3656df4ea5bc0842514ba305c7"
+    },
+    "tests/helpers/recovery-rehearsal.mjs": {
+      "sha256": "0c240a66e6774001924377de041a35eb14d4d5ef3f1a962576f3d48e5d416eaf"
+    },
+    "tests/helpers/recovery-worker.mjs": {
+      "sha256": "4469a9ed7e7d0f86596bbcc45cc005dd8fd218769890503b4d623bc9944eb952"
     }
   }
 }
