@@ -356,7 +356,7 @@
     },
     {
       "id": "CR-19",
-      "purpose": "Encrypted maintenance backup, independently anchored restore and explicit synthetic legacy migration",
+      "purpose": "Encrypted maintenance backup, independently anchored restore and explicit synthetic legacy migration and guarded synthetic multi-store recovery",
       "mechanisms": [
         "scrypt N=32768 r=8 p=1; 32-byte salt; 256-bit derived key",
         "AES-256-GCM with 96-bit IV, 128-bit tag and SIEPMU_BACKUP_V1 AAD",
@@ -370,7 +370,7 @@
       "boundary": "Offline operator, six-file control/relay archive plus separately pinned collector snapshot, private staging, independent custody and reviewer; synthetic-only recovery driver",
       "deploymentScope": "OPTIONAL_OFFLINE_TOOL",
       "custody": "Passphrase, archive and independently retained public key/checkpoint require separate operator custody; software signing/master/relay keys are included inside encrypted archive.",
-      "limitations": "Maintenance-only sequential snapshots; no complete all-service DR, hardware key protection, power-loss durability qualification or current-policy approval. Evidence authenticity cannot prove arbitrary policy table contents. Synthetic migration requires a trusted historical full-snapshot witness; old custody digest alone is insufficient. It builds a separate quarantined database candidate, never advances custody or activates services, and is excluded from deployed application/offline packages. Larger archives are explicitly unsupported; no silent truncation or deletion. Unreferenced intact ciphertext is retained. Restore verifies a control/relay pair only, never current policy or other service state. Maintenance-only sequential snapshots; no complete all-service DR, hardware key protection, power-loss durability qualification or current-policy approval. Evidence authenticity cannot prove arbitrary policy table contents. Synthetic migration requires a trusted historical full-snapshot witness; old custody digest alone is insufficient. It builds a separate quarantined database candidate, never advances custody or activates services, and is excluded from deployed application/offline packages. Guarded recovery adds a separately pinned collector snapshot and preserves existing custody. Resume is restricted to unchanged pre-serving state. Complete signed telemetry replay is bounded to 1000 evidence records and 1000 alerts; no exporter cursor, endpoint queues/keys, connector state, production activation or independent administration is demonstrated.",
+      "limitations": "Maintenance-only sequential snapshots; no complete all-service DR, hardware key protection, power-loss durability qualification or current-policy approval. Evidence authenticity cannot prove arbitrary policy table contents. Synthetic migration requires a trusted historical full-snapshot witness; old custody digest alone is insufficient. It builds a separate quarantined database candidate, never advances custody or activates services, and is excluded from deployed application/offline packages. Larger archives are explicitly unsupported; no silent truncation or deletion. Unreferenced intact ciphertext is retained. Restore verifies a control/relay pair only, never current policy or other service state. Guarded synthetic recovery separately pins the monitoring snapshot and preserves existing custody. Resume is restricted to unchanged pre-serving state. Telemetry replay is bounded to 1000 evidence records and 1000 alerts; exporter cursors, endpoint queues, connector state and production activation remain outside scope.",
       "sources": [
         "scripts/backup.mjs",
         "apps/verifier/verify.mjs",
@@ -387,7 +387,8 @@
         "tests/recovery-stores.test.mjs",
         "tests/guarded-recovery.test.mjs",
         "tests/helpers/recovery-rehearsal.mjs",
-        "tests/helpers/recovery-worker.mjs"
+        "tests/helpers/recovery-worker.mjs",
+        "tests/unified-recovery.test.mjs"
       ]
     },
     {
@@ -739,7 +740,7 @@
       "sha256": "aeb23c6bd0bb99147f17b16ecf7499c44a4a4fa76c605d9667ab98bab030a700"
     },
     "scripts/guarded-recovery.mjs": {
-      "sha256": "db81bfb1195f0abe9d89aca7079a55dfc1ae34592032001e7bdeaace76a70eff"
+      "sha256": "969db629af3bddc2121d1e718ed08b24a5bca80ec855a00697ee44bd115420ed"
     },
     "scripts/recovery-rehearsal.mjs": {
       "sha256": "f36c6893ec43fc32402b0146452b1bdd388ebba6a62ec02dfb10b0e6287a0a1b"
@@ -752,6 +753,9 @@
     },
     "tests/helpers/recovery-worker.mjs": {
       "sha256": "4469a9ed7e7d0f86596bbcc45cc005dd8fd218769890503b4d623bc9944eb952"
+    },
+    "tests/unified-recovery.test.mjs": {
+      "sha256": "a58146cfa4cb2490c1856cdcbdfbb353ad4af639458ae9a4ea08855be85b8af2"
     }
   }
 }

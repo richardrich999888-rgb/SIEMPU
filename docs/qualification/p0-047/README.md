@@ -16,9 +16,14 @@ this document does not predict a pass.
 The observed open PR inventory is `branch-reconciliation.json`, including every open
 PR head/base and tree. PRs #38–#42 are ancestors of #43/#45 and #44. PR #44 advanced to
 `64df68c13cb1fa7a3f27af2275a9dab9aca857c3`; #45 is
-`6ac57e5e6e561c73525de08b09950263d2fe7dee`. No published P0-046 branch was found.
-The correct review base is #45's `codex/p0-044-recovery-bounds`; the merge explicitly
-includes #44 and keeps #43. Older divergent PRs are inventoried, not silently merged.
+`6ac57e5e6e561c73525de08b09950263d2fe7dee`. The initial audit found no published
+P0-046 candidate. PR #46 subsequently appeared at
+`9d9d21acdfe2e6a30b7a5bbfc73bfb1fe95ac6be` and was reviewed and merged with both
+parents retained. The stacked review base is now #46's
+`codex/p0-046-unified-defence-assurance`. The late conflict/resolution record is in
+`branch-reconciliation.json`; P0-047 keeps the newer #44 reliability fixes, all ten
+unified recovery tests and the quarantine/verification separation. Older divergent
+PRs are inventoried, not silently merged.
 The existing PRs remain drafts and this author's inspection is not external approval.
 
 The first reconciled source is `f26cbe949ee056c0ceb74031bfe88ac72812ab21`.
@@ -35,7 +40,7 @@ The original source and failure log are retained in the evaluation package.
 | Item                   | Location                                                                            | Evidence limit                                                     |
 | ---------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | D1 architecture        | `ARCHITECTURE.md`                                                                   | Proposed host/custody boundaries, not observed deployment          |
-| D2 CORE/Mininet        | `deployment/real-network/emulate.py`                                                | Runtime blocked without root, namespaces and backend installation  |
+| D2 CORE/Mininet        | `deployment/real-network/emulate.py`                                                | Executed on hosted privileged runners; shared kernel, not independent hosts  |
 | D3 campaign            | `campaign.mjs`, `run-local.mjs`, `run-remote.mjs`, `CAMPAIGNS.md`                   | All NET IDs explicitly represented; unsupported steps stay blocked |
 | D4 adversarial         | retained baseline failure; existing nine-family campaign; `CAMPAIGNS.md`            | Applicant lab tests, not third-party assessment                    |
 | D5 performance         | generated `campaign.json`                                                           | Three short repetitions; no endurance/RTO guarantee                |
@@ -117,8 +122,13 @@ Both adapters start the actual service commands, use private hosts mappings, dro
 privileges to the fixture owner, set netem only on the created sender interface, retain
 observed qdisc counters, and tear down their own session. Do not run against an existing
 shared tenant interface. Profiles cover delay/jitter, loss/duplication, reordering and a
-complete sender outage, then queue reconnection. Implementations require execution on a
-privileged host before their runtime compatibility can be accepted.
+complete sender outage, then queue reconnection. Both backends executed on a privileged hosted runner at predecessor
+`3770f1b35fe01c0001cda9759a3f934e2fbef1e0`: 60 exchanges per backend, observed
+netem counters, complete sender outage and encrypted-queue reconnection. Those
+results remain bound to that source. Read the exact final-head workflow and retained
+artifact before applying them to a later revision. CORE uses official release 9.2.1,
+with its Debian package SHA-256 pinned in the workflow; Mininet uses the recorded
+distribution package. Both use namespaces on one host per job.
 
 ## Evidence collection and independent verification
 

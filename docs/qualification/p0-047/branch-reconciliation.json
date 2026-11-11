@@ -1,5 +1,4 @@
 {
-  "p0046Published": false,
   "integrationBase": "codex/p0-044-recovery-bounds",
   "reconciliationCommit": "f26cbe949ee056c0ceb74031bfe88ac72812ab21",
   "openPullRequests": [
@@ -316,5 +315,27 @@
       "headInCandidate": false
     }
   ],
-  "recordedAt": "2026-11-11T18:47:39.495703+00:00"
+  "recordedAt": "2026-11-11T18:47:39.495703+00:00",
+  "initialP0046Published": false,
+  "p0046Published": true,
+  "lateReconciliation": {
+    "reviewedAt": "2026-11-11T19:50:00Z",
+    "pullRequest": 46,
+    "head": "9d9d21acdfe2e6a30b7a5bbfc73bfb1fe95ac6be",
+    "headTree": "115add66bf9e3f1523bd87054282fcd4e8c4fdcb",
+    "previousP0047Head": "3770f1b35fe01c0001cda9759a3f934e2fbef1e0",
+    "conflicts": [
+      ".github/workflows/ci.yml",
+      "assurance/iaf/plan.json",
+      "assurance/qualification/run.mjs",
+      "assurance/sag/catalogue.json",
+      "docs/engineering/CURRENT_STATE.md",
+      "docs/qualification/GUARDED_DISASTER_RECOVERY.md",
+      "package.json",
+      "scripts/guarded-recovery.mjs",
+      "tests/sag-evaluation.test.mjs"
+    ],
+    "resolution": "Use reviewed PR46 quarantine verification and its exact crypto source hashes/tests; retain P047 deployment, CORE/Mininet, service guards, and all prior negative results. Combine gap notes and test paths. Both parents preserved. Prior test counts are not inherited as final-source results.",
+    "reviewScope": "Manual static review of recovery verification and its retained approval/expiry check, 10 new negative tests, bounded synthetic benchmark driver, workflow additions, test scheduling and source catalogue. No external human security approval established."
+  }
 }

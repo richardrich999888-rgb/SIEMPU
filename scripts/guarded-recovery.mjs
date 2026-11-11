@@ -393,13 +393,10 @@ function prepare(request, passphrase, existing = false) {
     try {
       restore(archive, service, passphrase, t.authorityKey, { checkpoint: t.checkpoint });
     } catch (error) {
-      // The bounded backup verifier now rejects these before verifyStores runs.
-      // Preserve the recovery API's error contract, never retry or bypass restore.
-      const code = {
-        'Backup referenced ciphertext missing': 'RECOVERY_RELAY_MISSING_OBJECT',
-        'Backup relay blob integrity': 'RECOVERY_RELAY_CORRUPTION',
-      }[error.message];
-      if (code) throw new Error(code, { cause: error });
+      if (error.message === 'Backup referenced ciphertext missing')
+        throw new Error('RECOVERY_RELAY_MISSING_OBJECT', { cause: error });
+      if (error.message === 'Backup relay blob integrity')
+        throw new Error('RECOVERY_RELAY_CORRUPTION', { cause: error });
       throw error;
     }
     mkdirSync(join(service, 'monitor'), { mode: 0o700 });
@@ -508,7 +505,12 @@ export async function stageGuardedRecovery(
     absent(p.plan.destination);
     renameSync(p.service, p.plan.destination);
     sync(dirname(p.plan.destination));
-    return { plan: p.plan, planDigest: hash(canonical(p.plan)) };
+    return {
+      plan: p.plan,
+      planDigest: hash(canonical(p.plan)),
+      recoveryState: 'QUARANTINED',
+      activationAuthorised: false,
+    };
   } finally {
     rmSync(p.staging, { recursive: true, force: true });
   }
@@ -534,6 +536,23 @@ export function reviewRecoveryResume(request, { passphrase, expectedPlanDigest, 
   } finally {
     rmSync(p.staging, { recursive: true, force: true });
   }
+}
+// Read-only verification of a quarantined, pre-serving working set. This function
+// cannot transfer writer custody, obtain a lease or authorize service activation.
+// VERIFIED is a point-in-time result against retained witnesses, never a live lease.
+export function verifyQuarantinedRecovery(request, options = {}) {
+  const { plan, trust } = reviewRecoveryResume(request, options);
+  const state = verifyRecoveryWorkingSet(plan, trust);
+  // Recheck expiry after the potentially expensive database verification too.
+  checkRecoveryApproval(plan, options.approval, trust.reviewerKey);
+  return {
+    recoveryState: 'VERIFIED',
+    activationAuthorised: false,
+    planDigest: hash(canonical(plan)),
+    checkpoint: state.checkpoint,
+    authority: state.authority,
+    objects: state.objects,
+  };
 }
 export function verifyRecoveryHandover(plan, receipt, key) {
   const p = receipt?.payload,

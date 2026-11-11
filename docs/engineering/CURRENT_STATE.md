@@ -1317,3 +1317,7 @@ PDB scope decision (₹1.62 cr estimate vs ₹3.0 cr for the full ₹1.5 cr gran
 5. Engage an independent cryptographic assessor with `V3_COMPOSITION.md` (external).
 6. Gateway readiness does not aggregate relay health (found in Demo 4); decide whether `/health/ready`
    should include it (changes container health semantics; needs an ADR).
+
+## P0-047 late P0-046 reconciliation
+
+Reviewed PR #46 at `9d9d21acdfe2e6a30b7a5bbfc73bfb1fe95ac6be` is now an ancestor of the P0-047 candidate. The merge preserves quarantine/verification separation, all ten unified recovery tests, both original recovery suites, P0-047 transport automation and previous failures. Both parents remain in history. Exact final-source tests must be rerun; prior PR results are historical only. External host/custody validation remains BLOCKED and provisional TRL 4 is unchanged.

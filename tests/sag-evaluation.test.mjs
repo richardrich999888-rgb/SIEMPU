@@ -197,6 +197,7 @@ test('reviewed crypto inventory includes application, laboratory and optional to
     'tests/guarded-recovery.test.mjs',
     'tests/helpers/recovery-rehearsal.mjs',
     'tests/helpers/recovery-worker.mjs',
+    'tests/unified-recovery.test.mjs',
   ]);
   const fencing = c.components.find((v) => v.id === 'CR-20');
   assert.equal(fencing.deploymentScope, 'APPLICATION');
