@@ -40,6 +40,27 @@ jobs:
         run: npm run validate
       - name: Required vertical slice acceptance tests
         run: npm run test:e2e
+      - name: Rehearse guarded synthetic multi-store recovery
+        run: npm run rehearse:recovery -- artifacts/guarded-recovery
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        if: always()
+        with:
+          name: guarded-recovery-evidence
+          path: artifacts/guarded-recovery/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Measure frozen unified recovery profiles
+        run: |
+          mkdir -p artifacts/p0-046
+          node assurance/bench/unified-recovery.mjs maintenance artifacts/p0-046/maintenance.json
+          node assurance/bench/unified-recovery.mjs guarded artifacts/p0-046/guarded.json
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        if: always()
+        with:
+          name: unified-recovery-measurements
+          path: artifacts/p0-046/
+          if-no-files-found: error
+          retention-days: 30
       - name: Local public-interface contracts and policy-release comparison
         run: node scripts/interop-assurance.mjs artifacts/interop-assurance
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
