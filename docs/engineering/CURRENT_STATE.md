@@ -1,5 +1,32 @@
 # Current engineering state (single authoritative handover file)
 
+## Guarded recovery hosted fixture contention (11 November 2026 IST)
+
+PR #44 head `01e41aca38e1f3f23c1c5dbbb9a4e001db80be4f`, tree
+`f6d2bd9b8b5c2f7da33dbb1b62f83efc8f6c931d`, matches local tested
+`ad8299722eaa2ddbde678d5bd1212ab03860454e` and hosted merge ref
+`befae6c440c69b7e37cfba4ad11e98dff6cc257f`. Local ten gates/683 native,
+3 E2E, 471 adversarial tests and both recovery profiles passed. ADV-04 finished
+in 73.873 seconds and ADV-07 in 133.379 seconds, within unchanged 180-second limits.
+Each rehearsal preserved its one acknowledged object and denied the stale writer.
+Final-source Security passed all three jobs:
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/43074408441
+
+Hosted CI failed ADV-05 (47/48): ADV-ADAPTER-10's direct fixture session-expiry
+write raised `database is locked` at test line 325, before readiness assertions.
+The other eight adversarial families and both recovery rehearsals passed.
+Run: https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/43074408411
+Downloaded adversarial artifact 13882721337 SHA-256 matched
+`e0b12d107070e43ea8d3c575686de8111c0eb3b76a5469e9f13f8b7b0b11b74d`.
+No overall CI pass is claimed. Container/testbed jobs were skipped downstream.
+
+This follow-up gives only the fixture connection the same bounded 5000-ms SQLite
+busy wait as the live authority, closes it in finally, and asserts an existing
+session was actually expired. All startup/expired-readiness denial assertions
+remain. No runtime or recovery protocol changes; refresh the source binding.
+Next: repeat the focused case, run full validation/E2E, publish without force,
+and inspect final hosted results. Final observed results belong in PR #44.
+
 ## Guarded recovery publication and batch follow-up (11 November 2026 IST)
 
 Draft PR: https://github.com/richardrich999888-rgb/SIEMPU/pull/44, still unmerged,

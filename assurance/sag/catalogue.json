@@ -630,7 +630,7 @@
       "sha256": "b0f13392ea0c676c146ef37c2bf5b90d6ab38c5235c66cf07703bdeb2f9a2430"
     },
     "tests/adapter-adversarial.test.mjs": {
-      "sha256": "af65e7a58db6bccc3a0eb793c7af0bbd1074f95ce5af15db2a0a55da1d005cb5"
+      "sha256": "b7f9f6404ff67330601f18dbd96ef017b5054aaec187f122b41033de22c90917"
     },
     "tests/additional-boundaries.test.mjs": {
       "sha256": "c23fc43cda693cc2d94cde6e024996113f0afc9d11df17742cf21002d9c19826"
