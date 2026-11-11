@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "kind": "APPLICANT_CRYPTO_INVENTORY",
-  "reviewDate": "2026-11-10",
+  "reviewDate": "2026-11-11",
   "coverage": "Reviewed application mechanisms and separately scoped laboratory/optional tools; not exhaustive discovery, cryptanalysis, an SBOM substitute or an agency decision.",
   "components": [
     {
@@ -363,18 +363,25 @@
         "ECDSA P-256 SHA-256 signed manifest and evidence chain",
         "SHA-256 file, record and retained-checkpoint comparison",
         "Independent full-snapshot manifest pin and exact legacy custody anchor; separate P-256 reviewer approval bound to the complete migration plan",
-        "Public-key candidate verification bound to an independently retained review-plan hash, exact logical-row preservation and writer handover parameters"
+        "Public-key candidate verification bound to an independently retained review-plan hash, exact logical-row preservation and writer handover parameters",
+        "Before-publication relay schema/ciphertext and stored-object/reference checks; bounded 64 MiB archive and 32 MiB decoded maintenance format"
       ],
       "boundary": "Offline operator, six-file co-located control/relay archive, private staging and retained checkpoint; separate reviewer and synthetic-only candidate builder",
       "deploymentScope": "OPTIONAL_OFFLINE_TOOL",
       "custody": "Passphrase, archive and independently retained public key/checkpoint require separate operator custody; software signing/master/relay keys are included inside encrypted archive.",
-      "limitations": "Maintenance-only sequential snapshots; no complete all-service DR, hardware key protection, power-loss durability qualification or current-policy approval. Evidence authenticity cannot prove arbitrary policy table contents. Synthetic migration requires a trusted historical full-snapshot witness; old custody digest alone is insufficient. It builds a separate quarantined database candidate, never advances custody or activates services, and is excluded from deployed application/offline packages.",
-      "sources": ["scripts/backup.mjs", "apps/verifier/verify.mjs", "scripts/legacy-migration.mjs"],
+      "limitations": "Maintenance-only sequential snapshots; no complete all-service DR, hardware key protection, power-loss durability qualification or current-policy approval. Evidence authenticity cannot prove arbitrary policy table contents. Synthetic migration requires a trusted historical full-snapshot witness; old custody digest alone is insufficient. It builds a separate quarantined database candidate, never advances custody or activates services, and is excluded from deployed application/offline packages. Larger archives are explicitly unsupported; no silent truncation or deletion. Unreferenced intact ciphertext is retained. Restore verifies a control/relay pair only, never current policy or other service state.",
+      "sources": [
+        "scripts/backup.mjs",
+        "apps/verifier/verify.mjs",
+        "scripts/legacy-migration.mjs",
+        "services/admission/integrity.mjs"
+      ],
       "tests": [
         "tests/recovery.test.mjs",
         "tests/legacy-migration.test.mjs",
         "tests/helpers/legacy-migration-fixture.mjs",
-        "tests/helpers/migration-worker.mjs"
+        "tests/helpers/migration-worker.mjs",
+        "tests/recovery-stores.test.mjs"
       ]
     },
     {
@@ -546,7 +553,7 @@
       "sha256": "b9c864bc3acd676ce57285f9b4d11da1bad9e41575eb7a9a5da87be61de464e6"
     },
     "scripts/backup.mjs": {
-      "sha256": "e8711a1b42a02f4acf3d71e1fdc861d30387c15a67c6fad6619cd62c1c3b6b3c"
+      "sha256": "6e881f8c16d62e6665b6fd5cf6c3b8c9f5a4d65e330af8b76c1f287e2ba7938e"
     },
     "scripts/bootstrap.mjs": {
       "sha256": "9fb57c9556c93bfc3caf90403621e21e70f679ed52605a225169a1d0c0fc350e"
@@ -718,6 +725,9 @@
     },
     "tests/writer-fencing.test.mjs": {
       "sha256": "072cee2e0424ea6e64dc073f0cc35cb2b140feea5772f1cc7edbd4e4e37d2d5c"
+    },
+    "tests/recovery-stores.test.mjs": {
+      "sha256": "8abc80e49fe8988e692c9905745f9765bc7705b8c26def7f5a4bbb40efcce304"
     }
   }
 }

@@ -40,3 +40,5 @@ Published obligations remain R1–R12 in `docs/requirements/README.md`. These ar
 | Independently verifiable evidence           | DEMO-5, offline Node/Rust verifiers and independently retained digest | Separate observer roots/checkpoints and administered host                  |
 
 New findings AUTH-STATE-01 and the unanchored-suffix variant are addressed by ADR 017; fencing is specified in ADR 018. The external sponsor/evaluator must agree closure evidence. No open gate is converted to VERIFIED.
+
+P0 044 adds bounded control/relay restore checks and a growth drill (see `P0-044_RECOVERY_STORES.md`). IAF-G08 and IAF-G10 remain PARTIAL_LAB; all-store recovery, retention, scale and independently current custody remain required.

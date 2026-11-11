@@ -1,5 +1,30 @@
 # Current engineering state (single authoritative handover file)
 
+## P0 044 control/relay recovery bounds (11 November 2026 IST)
+
+Branch `codex/p0-044-recovery-bounds`, base PR #43 `07ab59762f5a086152835709ea5df60d07890e74`.
+Baseline push/PR CI and Security runs 42785812150/42786747805 and
+42785812191/42786747888 were inspected as successful. Baseline recovery was freshly rerun:
+4 passed. New negative tests reproduced six inconsistent control/relay snapshots being published.
+These are baseline observations, not final-candidate results.
+
+Restore now verifies staged relay ciphertext and control references before publication, using
+existing envelope integrity checks. The maintenance archive has explicit input/decoded/metadata
+limits. No deletion, authority cache, changed crypto, startup activation or dependency is added.
+See `docs/qualification/P0-044_RECOVERY_STORES.md` for the finding, compatibility constraints,
+reproduction commands and retained failed attempts. A clean-source growth drill records
+control/relay backup and restore costs and recipient integrity at 0/20/60 objects.
+
+Freeze and execute the full native/E2E/adversarial gates; bind results and hosted checks to the
+final published SHA in the generated report and PR. Do not transfer earlier counts.
+Next: a reviewed streaming backup format, bounded retention design and all-service recovery
+with independent current custody and representative hosts. All 19 gaps remain open/partial.
+Provisional TRL 4 remains unchanged. No production merge or deployment.
+
+SAG grading is not established.
+
+TRL 5 qualification and IAF operational approval are not established.
+
 ## P0 043 checkpoint signing cost (10 November 2026 IST)
 
 Base: PR #42 `92353e1224e3eedb35db9d7420b6820a2574632a`; its four observed
