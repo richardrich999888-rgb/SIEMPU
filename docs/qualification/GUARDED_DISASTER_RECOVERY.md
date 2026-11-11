@@ -26,7 +26,7 @@ directory. The rehearsal accepts only an artifact destination: it generates fres
 synthetic fixtures, runs sealed and migrated-then-fenced profiles and removes the
 private fixture stores/keys. Public evidence, trust packets, plan, approval and
 handover are retained with source commit/tree/fingerprint and SHA-256 manifest.
-CI uploads `guarded-recovery-evidence`; ADV-04, DEMO-3 and security regression also
+CI uploads `guarded-recovery-evidence`; ADV-07, DEMO-3 and security regression also
 run these tests. Counts overlap. The recovery scripts are excluded from application,
 container and signed offline packages. No startup migration or network admin route
 is added. The full operator driver is a test helper, not a production recovery CLI.
@@ -173,3 +173,12 @@ Reconstruction development: 67/67 focused recovery tests and 12/12 packaging tes
 passed. The first full run was interrupted after format-check rejected one chained
 call layout in a test. Formatting was corrected without changing assertions; source
 bindings were refreshed. Final full-source results are recorded separately.
+
+The first frozen adversarial campaign on local `1c3cb081855f69a6b949b37d67ab3bbefa9deed9`
+failed: ADV-04 exceeded its fixed 180-second batch limit (180.055 seconds, terminated;
+55,869-byte log, below the 1 MiB output cap). The eight other families passed.
+The 67-test recovery suite moved to the smaller ADV-07 offline-recovery family.
+The test-path multiset, nine families, every assertion and the 180-second/1 MiB
+limits are unchanged. This is a scheduling correction, not a successful interrupted
+run or relaxed gate. Native validation on that source passed 683/683 and E2E 3/3;
+all final-source results are recorded separately in the draft PR and CI artifacts.

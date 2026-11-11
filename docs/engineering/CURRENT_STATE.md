@@ -1,5 +1,31 @@
 # Current engineering state (single authoritative handover file)
 
+## Guarded recovery publication and batch follow-up (11 November 2026 IST)
+
+Draft PR: https://github.com/richardrich999888-rgb/SIEMPU/pull/44, still unmerged,
+stacked on #42. Published head `9dab1a71121df09e51cc139727577600638a6bb6` has tree
+`236dffe87f76e9f3fe8e428e524646ed0ec86072`, exactly matching local tested commit
+`1c3cb081855f69a6b949b37d67ab3bbefa9deed9` and CI merge ref
+`49ef4da706c1c3f1e066e9295c366ab1faa69842`. Local all ten gates passed: 683/683
+native, 67/67 recovery subset, 3/3 E2E; coverage 98.05% lines / 91.25% branches /
+98.42% functions. Source digest `a4c5bc318d510efdfd5157c9c65f623e7a0b4c1f2f349026212816b9d35e1e03`.
+Hosted Security passed all three jobs:
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/43069935450
+Hosted CI passed all nine jobs:
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/43069936183
+
+The first follow-up full gate caught an unclassified assurance term in this
+status record (claims-audit test); the wording was corrected to “tested”.
+No test or claim-audit rule was relaxed.
+
+The local adversarial campaign failed ADV-04's 180-second batch budget (terminated,
+no complete TAP count); all other eight families passed and source remained unchanged.
+Move the 67-test recovery suite to smaller ADV-07, preserving every test path,
+assertion, family count and existing time/output limits. No runtime code or test
+assertion changes. Final reports/PR must distinguish this scheduling follow-up's
+observed results from the named predecessor. Run all required gates, publish the
+follow-up without force or merge, and verify the final hosted source.
+
 ## Guarded recovery reconstruction (11 November 2026 IST)
 
 Branch `codex/guarded-disaster-recovery`, based exactly on PR #42 commit
@@ -23,7 +49,7 @@ Final full-source results must be read from frozen reports and the separate draf
 Files: `scripts/guarded-recovery.mjs`, `scripts/recovery-rehearsal.mjs`,
 `tests/guarded-recovery.test.mjs`, two helpers, ADR-019 and
 `docs/qualification/GUARDED_DISASTER_RECOVERY.md`. Both scripts are excluded from
-application/offline packages; native, security, ADV-04 and DEMO-3 exercise the tests.
+application/offline packages; native, security, ADV-07 and DEMO-3 exercise the tests.
 No dependencies, runtime authority/crypto/custody code or applied SQL are changed.
 
 Reproduce: `npm run validate`, `npm run test:e2e`,

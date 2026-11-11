@@ -55,8 +55,7 @@
         "tests/incremental-custody.test.mjs",
         "tests/authority-state-custody.test.mjs",
         "tests/writer-fencing.test.mjs",
-        "tests/legacy-migration.test.mjs",
-        "tests/guarded-recovery.test.mjs"
+        "tests/legacy-migration.test.mjs"
       ],
       "oracle": "Rollback/fork/outage blocks key-bearing operations; recovery retains the independent checkpoint boundary."
     },
@@ -87,17 +86,18 @@
     },
     {
       "id": "ADV-07",
-      "title": "Endpoint persistence and offline updates",
-      "requirements": ["R2", "R5", "R10"],
+      "title": "Endpoint persistence, offline updates and guarded service recovery",
+      "requirements": ["R2", "R5", "R10", "R6"],
       "tests": [
         "apps/unit-client/vault-store.test.mjs",
         "apps/unit-client/trust.test.mjs",
         "apps/unit-client/authority-pin.test.mjs",
         "tests/offline-release.test.mjs",
         "tests/file-inspection.test.mjs",
-        "tests/managed-outbox.test.mjs"
+        "tests/managed-outbox.test.mjs",
+        "tests/guarded-recovery.test.mjs"
       ],
-      "oracle": "Tampered vault/update, stale state and untrusted authority keys are refused; no silent downgrade. Configured managed-endpoint inspection refuses detections and incomplete scans before encryption or plaintext return; default and browser clients remain unscanned."
+      "oracle": "Tampered vault/update, stale state and untrusted authority keys are refused; no silent downgrade. Configured managed-endpoint inspection refuses detections and incomplete scans before encryption or plaintext return; default and browser clients remain unscanned. Guarded recovery requires independent evidence, separate review, explicit handover and a fresh lease; interrupted recovery and stale writers cannot bypass these gates."
     },
     {
       "id": "ADV-08",
