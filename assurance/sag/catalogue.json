@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "kind": "APPLICANT_CRYPTO_INVENTORY",
-  "reviewDate": "2026-11-11",
+  "reviewDate": "2026-11-12",
   "coverage": "Reviewed application mechanisms and separately scoped laboratory/optional tools; not exhaustive discovery, cryptanalysis, an SBOM substitute or an agency decision.",
   "components": [
     {
@@ -327,18 +327,24 @@
       "purpose": "Optional managed endpoint durable queue",
       "mechanisms": [
         "AES-256-GCM; random 96-bit row nonce; configuration and row ID as authenticated data",
-        "HMAC-SHA256 binding of public endpoint configuration using separate 32-byte storage key"
+        "HMAC-SHA256 binding of public endpoint configuration using separate 32-byte storage key",
+        "Configured online send persists the sealed object before transmission; explicit same-object recovery uses fresh device proof and verified signed receipt"
       ],
       "boundary": "Managed endpoint only",
       "deploymentScope": "LAB_ONLY",
       "custody": "Separately supplied software storage key; original sealed objects and cached signed grants encrypted at rest. No plaintext file or personnel credential persistence.",
-      "limitations": "Not hardware custody, guaranteed erasure, deletion detection or whole-store rollback protection; SQLite/WAL overhead needs host quotas. Expired grants/objects do not silently renew.",
+      "limitations": "Not hardware custody, guaranteed erasure, deletion detection or whole-store rollback protection; SQLite/WAL overhead needs host quotas. Expired grants/objects do not silently renew. Lost-response recovery with real TLS services and software keys does not qualify the combined physical-token path. Without an outbox, online send remains non-durable. No implicit retries or queue rollback detection.",
       "sources": [
         "integrations/managed-endpoint/index.mjs",
         "integrations/managed-endpoint/outbox.mjs",
-        "packages/storage/private-sqlite.mjs"
+        "packages/storage/private-sqlite.mjs",
+        "integrations/managed-endpoint/delivery.mjs"
       ],
-      "tests": ["tests/managed-outbox.test.mjs", "tests/managed-endpoint/native.check.mjs"]
+      "tests": [
+        "tests/managed-outbox.test.mjs",
+        "tests/managed-endpoint/native.check.mjs",
+        "tests/managed-delivery.test.mjs"
+      ]
     },
     {
       "id": "CR-18",
@@ -460,8 +466,11 @@
     "integrations/india-dpi/iudx-resource-reader.mjs": {
       "sha256": "05df9aff7068ef329f20d6eb8091436a9aefe31321f282ec649413f667fad072"
     },
+    "integrations/managed-endpoint/delivery.mjs": {
+      "sha256": "7a982801de8bfed0444a3b267ebb1185e46333f4c19a6b830837d896a387be7d"
+    },
     "integrations/managed-endpoint/index.mjs": {
-      "sha256": "8df1ff08f3d3f7acda5ead0a896950e3980d0ca1638d83ecb7c63492b6360203"
+      "sha256": "4c5ab25d3e95b4709c73cdd433e18a0d5ac25dccefea00f1702bb8dfb732c2ed"
     },
     "integrations/managed-endpoint/outbox.mjs": {
       "sha256": "eedaaa404ed63b0ba200351e9920b811ef45d85cab7d3e6fdc27010ee5a44715"
@@ -521,7 +530,7 @@
       "sha256": "771c761410437fa2b73172e66c78e28ed852c44b92e130a24d95f3247c8f87e4"
     },
     "packages/integration/client.mjs": {
-      "sha256": "978424723fd2227e1250dc186fc72cdf218746c900bc0964dab8a99b039073f2"
+      "sha256": "a288a7444c732611d1de452602b30ea6d49163a816e3e14d61458f5e8b2bb536"
     },
     "packages/integration/sealed-transfer.mjs": {
       "sha256": "31092c4b9059d41e704ff1e885019293c590b5dcfc20420dab6c30afa7fd1f16"
@@ -565,8 +574,17 @@
     "scripts/bootstrap.mjs": {
       "sha256": "9fb57c9556c93bfc3caf90403621e21e70f679ed52605a225169a1d0c0fc350e"
     },
+    "scripts/guarded-recovery.mjs": {
+      "sha256": "969db629af3bddc2121d1e718ed08b24a5bca80ec855a00697ee44bd115420ed"
+    },
     "scripts/legacy-migration.mjs": {
       "sha256": "8609a52f9985f6ea7a20be433114dd2ba75e829960d34f929106cf7994db3f9a"
+    },
+    "scripts/recovery-rehearsal.mjs": {
+      "sha256": "f36c6893ec43fc32402b0146452b1bdd388ebba6a62ec02dfb10b0e6287a0a1b"
+    },
+    "services/admission/integrity.mjs": {
+      "sha256": "aeb23c6bd0bb99147f17b16ecf7499c44a4a4fa76c605d9667ab98bab030a700"
     },
     "services/control/core.mjs": {
       "sha256": "2803c67e5f86d66391dad7a30d24edf17a4f5e5f90fdbc7b322195f66f552e1b"
@@ -673,11 +691,20 @@
     "tests/file-inspection.test.mjs": {
       "sha256": "699a4681119a725429bb3fe649842a6ddabbac3d23e5b46ed99115825051e377"
     },
+    "tests/guarded-recovery.test.mjs": {
+      "sha256": "164b307e3c526129da75a01579f478d79912cb3656df4ea5bc0842514ba305c7"
+    },
     "tests/helpers/legacy-migration-fixture.mjs": {
       "sha256": "eaa03b4a78cb7391376f634f15a9223350bc8259cd2648d65328569908835e85"
     },
     "tests/helpers/migration-worker.mjs": {
       "sha256": "0c8768215a4320a54d3d4576c89aaadff35b46190d160a197545d720008a460f"
+    },
+    "tests/helpers/recovery-rehearsal.mjs": {
+      "sha256": "0c240a66e6774001924377de041a35eb14d4d5ef3f1a962576f3d48e5d416eaf"
+    },
+    "tests/helpers/recovery-worker.mjs": {
+      "sha256": "4469a9ed7e7d0f86596bbcc45cc005dd8fd218769890503b4d623bc9944eb952"
     },
     "tests/india-dpi-iudx.test.mjs": {
       "sha256": "e66d3fa0223d154b077a6127673141925cd4a7b595f443ba31be380ea5ac1c9c"
@@ -687,6 +714,9 @@
     },
     "tests/legacy-migration.test.mjs": {
       "sha256": "54d89a32be9b82b7e0b9fb7a622695c53fe5c8bd4268282db14c1c0bf02eb2ae"
+    },
+    "tests/managed-delivery.test.mjs": {
+      "sha256": "8b98dfccc5aca9237cb9847fa20a37b7b783568b1ac4030478d3bbf5993a1e66"
     },
     "tests/managed-endpoint/native.check.mjs": {
       "sha256": "01bd7e9ac9bd8db7bf67fa67a6420162fc17f065b00cfcfb2b6467f793dcca4f"
@@ -709,6 +739,9 @@
     "tests/pqc/end-to-end.test.mjs": {
       "sha256": "a073d80a3fd539bf61eeb26aa81d4afbb3d11fcc3279fd8b610e40072f482f92"
     },
+    "tests/recovery-stores.test.mjs": {
+      "sha256": "8abc80e49fe8988e692c9905745f9765bc7705b8c26def7f5a4bbb40efcce304"
+    },
     "tests/recovery.test.mjs": {
       "sha256": "e1b5851d3777ff4b385eaa00181a21752ce11169376bb4937a2f099146387413"
     },
@@ -727,35 +760,14 @@
     "tests/transport/tls.test.mjs": {
       "sha256": "4820f99ea08fc55d369942e935bfd4ceca4fa82b0ceaeffff25d6084a13ba607"
     },
+    "tests/unified-recovery.test.mjs": {
+      "sha256": "a58146cfa4cb2490c1856cdcbdfbb353ad4af639458ae9a4ea08855be85b8af2"
+    },
     "tests/verifier-replay.test.mjs": {
       "sha256": "0b0538ec7b9a62d6a6c9e5a2f084438c3cdee45d320f9004f56011f07e974b01"
     },
     "tests/writer-fencing.test.mjs": {
       "sha256": "072cee2e0424ea6e64dc073f0cc35cb2b140feea5772f1cc7edbd4e4e37d2d5c"
-    },
-    "tests/recovery-stores.test.mjs": {
-      "sha256": "8abc80e49fe8988e692c9905745f9765bc7705b8c26def7f5a4bbb40efcce304"
-    },
-    "services/admission/integrity.mjs": {
-      "sha256": "aeb23c6bd0bb99147f17b16ecf7499c44a4a4fa76c605d9667ab98bab030a700"
-    },
-    "scripts/guarded-recovery.mjs": {
-      "sha256": "969db629af3bddc2121d1e718ed08b24a5bca80ec855a00697ee44bd115420ed"
-    },
-    "scripts/recovery-rehearsal.mjs": {
-      "sha256": "f36c6893ec43fc32402b0146452b1bdd388ebba6a62ec02dfb10b0e6287a0a1b"
-    },
-    "tests/guarded-recovery.test.mjs": {
-      "sha256": "164b307e3c526129da75a01579f478d79912cb3656df4ea5bc0842514ba305c7"
-    },
-    "tests/helpers/recovery-rehearsal.mjs": {
-      "sha256": "0c240a66e6774001924377de041a35eb14d4d5ef3f1a962576f3d48e5d416eaf"
-    },
-    "tests/helpers/recovery-worker.mjs": {
-      "sha256": "4469a9ed7e7d0f86596bbcc45cc005dd8fd218769890503b4d623bc9944eb952"
-    },
-    "tests/unified-recovery.test.mjs": {
-      "sha256": "a58146cfa4cb2490c1856cdcbdfbb353ad4af639458ae9a4ea08855be85b8af2"
     }
   }
 }

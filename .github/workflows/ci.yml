@@ -292,7 +292,8 @@ jobs:
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6, resolved 2026-10-07
         if: always()
         with:
-          name: trl5-relevant-env-evidence
+          # A repeat must retain its own evidence rather than collide with the first attempt.
+          name: trl5-relevant-env-evidence-${{ github.run_id }}-${{ github.run_attempt }}
           path: artifacts/trl5/
           if-no-files-found: error
           retention-days: 30

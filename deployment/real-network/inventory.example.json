@@ -1,0 +1,42 @@
+{
+  "authorisedSyntheticExperiment": false,
+  "sourceCommit": "REPLACE_WITH_FROZEN_SHA",
+  "nodes": {
+    "A": {
+      "host": "sender.invalid",
+      "user": "siepmu",
+      "root": "/opt/siepmu/source",
+      "state": "/opt/siepmu/private/A"
+    },
+    "B": {
+      "host": "authority.invalid",
+      "user": "siepmu",
+      "root": "/opt/siepmu/source",
+      "state": "/opt/siepmu/private/B"
+    },
+    "C": {
+      "host": "relay.invalid",
+      "user": "siepmu",
+      "root": "/opt/siepmu/source",
+      "state": "/opt/siepmu/private/C"
+    },
+    "D": {
+      "host": "custodian.invalid",
+      "user": "siepmu",
+      "root": "/opt/siepmu/source",
+      "state": "/opt/siepmu/private/D"
+    },
+    "E": {
+      "host": "recipient.invalid",
+      "user": "siepmu",
+      "root": "/opt/siepmu/source",
+      "state": "/opt/siepmu/private/E"
+    },
+    "F": {
+      "host": "standby.invalid",
+      "user": "siepmu",
+      "root": "/opt/siepmu/source",
+      "state": "/opt/siepmu/private/F"
+    }
+  }
+}

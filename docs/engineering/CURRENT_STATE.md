@@ -1,33 +1,13 @@
 # Current engineering state (single authoritative handover file)
 
-## P0-046 late upstream test reliability reconciliation (11 November 2026 UTC)
+## P0-047 real-network preparation
 
-PR #44 advanced from the pinned `9dab1a7` to `64df68c13cb1fa7a3f27af2275a9dab9aca857c3` during final review. Its follow-up records an ADV-04 batch timeout and a live SQLite fixture write failing before expiry assertions. Port its unchanged 67-test recovery suite scheduling into ADV-07, preserving the complete test-path multiset and existing 180-second/1-MiB limits. Keep the ten new unified tests in ADV-04. Port the fixture-only 5000-ms busy wait, guaranteed close and positive row-change assertion; refresh the exact source binding. No runtime protocol, denial assertion or threshold changes. The pinned-PR benchmark comparison remains against the user-specified revisions. All final-source results must be independently rerun and bound in the delivery manifest.
-
-## P0-046 unified recovery candidate (11 November 2026 IST)
-
-Branch `codex/p0-046-unified-defence-assurance`, based on PR #45
-`6ac57e5e6e561c73525de08b09950263d2fe7dee`, selectively imports PR #44
-`9dab1a71121df09e51cc139727577600638a6bb6`. Common ancestor PR #42 is
-`92353e1224e3eedb35db9d7420b6820a2574632a`. See P0-046_RECONCILIATION.md.
-Both original recovery suites passed 79 tests during integration. New refusal/state tests and
-capacity tests were then exercised; these are pre-freeze observations, not final revision results.
-Frozen predecessor `b7a7d03aa69767e95a34c6e8f0b4ccfc4c0b0ddb` passed 707/709 native tests;
-two claims-audit tests rejected line-scoped dossier wording. Only that wording was corrected;
-the source-bound failure report is retained. The initial extension also had three harness assertion
-failures (plain Error lacks status); retained
-logs distinguish them from product behavior. No negative test was removed or relaxed.
-
-Freeze and run all native/E2E/adversarial, crypto, package and hosted gates on the exact published
-revision. The generated report and draft PR bind final SHA/tree, raw measurements, failures and
-workflow URLs. Do not copy PR #44/#45 counts forward. The new verification API has no activation,
-writer-transfer or lease side effects. No production merge or deployment.
-
-The five P0-046 candidate documents record architecture, TRL limits, proposed SAG scope, sponsorship
-request and all 19 retained gaps. Next: independent combined review; streaming/retention and full
-operational-store recovery; sponsor-nominated hosts, identity/module profile and acceptance scope.
-Provisional TRL 4 remains unchanged. SAG grading is not established.
-TRL 5 qualification and IAF operational approval are not established.
+Recovery branches #44 and #45 are explicitly reconciled. See
+[the P0-047 evaluation entry point](../qualification/p0-047/README.md) for source ancestry,
+actual-service deployment commands, bounded CORE/Mininet profiles and the NET-01–NET-12
+protocol. Generated results bind to their own source SHA; this entry does not predict a pass.
+Independent hosts, administrative custody, external reproduction and official evaluation
+remain blocked. Provisional TRL 4 and all 19 qualification-gap statuses are unchanged.
 
 ## P0 044 control/relay recovery bounds (11 November 2026 IST)
 
@@ -77,6 +57,59 @@ SAG grading is not established.
 
 TRL 5 qualification and IAF operational approval are not established.
 
+## Guarded recovery hosted fixture contention (11 November 2026 IST)
+
+PR #44 head `01e41aca38e1f3f23c1c5dbbb9a4e001db80be4f`, tree
+`f6d2bd9b8b5c2f7da33dbb1b62f83efc8f6c931d`, matches local tested
+`ad8299722eaa2ddbde678d5bd1212ab03860454e` and hosted merge ref
+`befae6c440c69b7e37cfba4ad11e98dff6cc257f`. Local ten gates/683 native,
+3 E2E, 471 adversarial tests and both recovery profiles passed. ADV-04 finished
+in 73.873 seconds and ADV-07 in 133.379 seconds, within unchanged 180-second limits.
+Each rehearsal preserved its one acknowledged object and denied the stale writer.
+Final-source Security passed all three jobs:
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/43074408441
+
+Hosted CI failed ADV-05 (47/48): ADV-ADAPTER-10's direct fixture session-expiry
+write raised `database is locked` at test line 325, before readiness assertions.
+The other eight adversarial families and both recovery rehearsals passed.
+Run: https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/43074408411
+Downloaded adversarial artifact 13882721337 SHA-256 matched
+`e0b12d107070e43ea8d3c575686de8111c0eb3b76a5469e9f13f8b7b0b11b74d`.
+No overall CI pass is claimed. Container/testbed jobs were skipped downstream.
+
+This follow-up gives only the fixture connection the same bounded 5000-ms SQLite
+busy wait as the live authority, closes it in finally, and asserts an existing
+session was actually expired. All startup/expired-readiness denial assertions
+remain. No runtime or recovery protocol changes; refresh the source binding.
+Next: repeat the focused case, run full validation/E2E, publish without force,
+and inspect final hosted results. Final observed results belong in PR #44.
+
+## Guarded recovery publication and batch follow-up (11 November 2026 IST)
+
+Draft PR: https://github.com/richardrich999888-rgb/SIEMPU/pull/44, still unmerged,
+stacked on #42. Published head `9dab1a71121df09e51cc139727577600638a6bb6` has tree
+`236dffe87f76e9f3fe8e428e524646ed0ec86072`, exactly matching local tested commit
+`1c3cb081855f69a6b949b37d67ab3bbefa9deed9` and CI merge ref
+`49ef4da706c1c3f1e066e9295c366ab1faa69842`. Local all ten gates passed: 683/683
+native, 67/67 recovery subset, 3/3 E2E; coverage 98.05% lines / 91.25% branches /
+98.42% functions. Source digest `a4c5bc318d510efdfd5157c9c65f623e7a0b4c1f2f349026212816b9d35e1e03`.
+Hosted Security passed all three jobs:
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/43069935450
+Hosted CI passed all nine jobs:
+https://github.com/richardrich999888-rgb/SIEMPU/actions/runs/43069936183
+
+The first follow-up full gate caught an unclassified assurance term in this
+status record (claims-audit test); the wording was corrected to “tested”.
+No test or claim-audit rule was relaxed.
+
+The local adversarial campaign failed ADV-04's 180-second batch budget (terminated,
+no complete TAP count); all other eight families passed and source remained unchanged.
+Move the 67-test recovery suite to smaller ADV-07, preserving every test path,
+assertion, family count and existing time/output limits. No runtime code or test
+assertion changes. Final reports/PR must distinguish this scheduling follow-up's
+observed results from the named predecessor. Run all required gates, publish the
+follow-up without force or merge, and verify the final hosted source.
+
 ## Guarded recovery reconstruction (11 November 2026 IST)
 
 Branch `codex/guarded-disaster-recovery`, based exactly on PR #42 commit
@@ -100,7 +133,7 @@ Final full-source results must be read from frozen reports and the separate draf
 Files: `scripts/guarded-recovery.mjs`, `scripts/recovery-rehearsal.mjs`,
 `tests/guarded-recovery.test.mjs`, two helpers, ADR-019 and
 `docs/qualification/GUARDED_DISASTER_RECOVERY.md`. Both scripts are excluded from
-application/offline packages; native, security, ADV-04 and DEMO-3 exercise the tests.
+application/offline packages; native, security, ADV-07 and DEMO-3 exercise the tests.
 No dependencies, runtime authority/crypto/custody code or applied SQL are changed.
 
 Reproduce: `npm run validate`, `npm run test:e2e`,
@@ -1284,3 +1317,7 @@ PDB scope decision (₹1.62 cr estimate vs ₹3.0 cr for the full ₹1.5 cr gran
 5. Engage an independent cryptographic assessor with `V3_COMPOSITION.md` (external).
 6. Gateway readiness does not aggregate relay health (found in Demo 4); decide whether `/health/ready`
    should include it (changes container health semantics; needs an ADR).
+
+## P0-047 late P0-046 reconciliation
+
+Reviewed PR #46 at `9d9d21acdfe2e6a30b7a5bbfc73bfb1fe95ac6be` is now an ancestor of the P0-047 candidate. The merge preserves quarantine/verification separation, all ten unified recovery tests, both original recovery suites, P0-047 transport automation and previous failures. Both parents remain in history. Exact final-source tests must be rerun; prior PR results are historical only. External host/custody validation remains BLOCKED and provisional TRL 4 is unchanged.

@@ -1,0 +1,76 @@
+name: P0-047 isolated emulation
+on:
+  push:
+    branches: ['codex/p0-047-real-network-validation']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: p047-emulation-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  mininet:
+    # Standard public-repository runner only; this is CI/emulation, never independent custody.
+    if: github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24.21.0
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Install the distribution Mininet backend
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends mininet iproute2 bridge-utils
+          mkdir -p artifacts/p0-047
+          dpkg-query -W mininet iproute2 bridge-utils > artifacts/p0-047/emulator-versions.txt
+      - name: Run actual services with separate local role directories
+        run: node deployment/real-network/run-local.mjs artifacts/p0-047/local .data/p047-local
+      - name: Run actual services on isolated Mininet links
+        run: |
+          node deployment/real-network/provision.mjs .data/p047-mininet multi-host
+          sudo env PATH="$PATH" /usr/bin/python3 deployment/real-network/emulate.py --backend mininet --state .data/p047-mininet --output artifacts/p0-047/mininet --execute
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        if: always()
+        with:
+          name: p047-ci-emulation-only
+          path: artifacts/p0-047/
+          if-no-files-found: error
+          retention-days: 14
+  core:
+    if: github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24.21.0
+      - name: Install the hash-pinned official CORE release
+        run: |
+          mkdir -p artifacts/p0-047
+          curl --fail --location --silent --show-error https://github.com/coreemu/core/releases/download/release-9.2.1/core_9.2.1_amd64.deb --output "$RUNNER_TEMP/core_9.2.1_amd64.deb"
+          echo "1ae0f42acaa6f4c8e47b3d3c90187cb857d3906e581d421886e28ab497d24a45  $RUNNER_TEMP/core_9.2.1_amd64.deb" | sha256sum --check
+          sudo apt-get update -qq
+          sudo env NO_PYTHON=1 apt-get install -y --no-install-recommends "$RUNNER_TEMP/core_9.2.1_amd64.deb" python3-venv
+          sudo /usr/bin/python3 -m venv /opt/core/venv
+          sudo /opt/core/venv/bin/pip install /opt/core/core-9.2.1-py3-none-any.whl
+          /opt/core/venv/bin/pip freeze > artifacts/p0-047/core-python-versions.txt
+          dpkg-query -W core iproute2 nftables > artifacts/p0-047/core-system-versions.txt
+      - name: Run actual services on isolated CORE links
+        run: |
+          node deployment/real-network/provision.mjs .data/p047-core multi-host
+          sudo env PATH="$PATH" /opt/core/venv/bin/python deployment/real-network/emulate.py --backend core --state .data/p047-core --output artifacts/p0-047/core --execute
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        if: always()
+        with:
+          name: p047-ci-core-emulation-only
+          path: artifacts/p0-047/
+          if-no-files-found: error
+          retention-days: 14

@@ -115,6 +115,17 @@ submits pending work through current authority checks. Expired objects become HE
 leave pending work for an explicit retry. `removeQueued(id)` discards local work, including
 submitted records, without recalling content or guaranteeing physical erasure.
 
+When an outbox is configured, `send()` also persists the sealed object before its first
+submission. A lost response leaves that exact object PENDING; inspect `listQueue()` and
+use `flushQueue()` after reconnecting or restarting. Do not repeat `send()` with the same
+plaintext to recover an ambiguous result: that creates a new object. Each flush makes one
+explicit attempt per pending object, obtains a fresh device proof and applies current
+authority checks. Only a verified signed submission receipt marks the record SUBMITTED;
+submission is distinct from recipient delivery and its acknowledgement. Submitted rows
+remain until explicitly removed and count toward capacity. An unconfigured outbox provides
+no durable online-send recovery. Whole-store rollback and loss of the storage key remain
+outside this continuity guarantee.
+
 Renewal is attempted before protected operations within two minutes of session expiry.
 `renewSession()` can also be requested explicitly while the session remains valid. Fresh TOTP,
 device proof and current session/user/device checks are required. Denial or an ambiguous

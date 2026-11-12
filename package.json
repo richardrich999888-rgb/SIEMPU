@@ -66,7 +66,10 @@
     "test:qualification": "node assurance/qualification/run.mjs",
     "test:legacy-migration": "node --test --test-concurrency=1 tests/legacy-migration.test.mjs",
     "test:guarded-recovery": "node --test --test-concurrency=1 tests/guarded-recovery.test.mjs tests/unified-recovery.test.mjs",
-    "rehearse:recovery": "node scripts/recovery-rehearsal.mjs"
+    "rehearse:recovery": "node scripts/recovery-rehearsal.mjs",
+    "testbed:real:provision": "node deployment/real-network/provision.mjs",
+    "testbed:real:local": "node deployment/real-network/run-local.mjs",
+    "testbed:real:remote": "node deployment/real-network/run-remote.mjs"
   },
   "devDependencies": {
     "@types/node": "24.10.0",
