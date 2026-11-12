@@ -36,29 +36,51 @@ export class IntegrationEndpoint {
     return this.#fileInspector ? 'ENDPOINT_REQUIRED' : 'UNSCANNED';
   }
   async call(method, path, body) {
-    const r = await requestBytes(this.url + path, {
-      method,
-      tls: this.tls,
-      headers: {
-        'content-type': 'application/json',
-        ...(this.token ? { authorization: 'Bearer ' + this.token } : {}),
-      },
-      body: body === undefined ? undefined : JSON.stringify(body),
-    });
-    if (r.status !== 200) {
-      // Error code only; never echo request or response bodies (may carry protected material).
-      let code = null;
-      try {
-        code = JSON.parse(r.body).code ?? null;
-      } catch {}
-      throw Object.assign(new Error('PLATFORM_REQUEST_REJECTED'), {
-        status: r.status,
+    // Fixed labels only: diagnostics must not serialize credentials, proofs or content.
+    const requestStage =
+      {
+        __proto__: null,
+        '/api/auth/login': 'LOGIN',
+        '/api/auth/challenge': 'DEVICE_CHALLENGE',
+        '/api/auth/bind': 'DEVICE_BIND',
+        '/api/auth/renew': 'SESSION_RENEWAL',
+        '/api/grants': 'CREATION_GRANT',
+        '/api/control': 'CONTROL_STATE',
+        '/api/objects': method === 'POST' ? 'OBJECT_SUBMISSION' : 'OBJECT_LIST',
+      }[path] ??
+      (/^\/api\/objects\/[^/]+\/claim$/.test(path)
+        ? 'KEY_RELEASE'
+        : /^\/api\/objects\/[^/]+\/ack$/.test(path)
+          ? 'DELIVERY_ACK'
+          : 'PLATFORM_REQUEST');
+    try {
+      const r = await requestBytes(this.url + path, {
         method,
-        path,
-        code,
+        tls: this.tls,
+        headers: {
+          'content-type': 'application/json',
+          ...(this.token ? { authorization: 'Bearer ' + this.token } : {}),
+        },
+        body: body === undefined ? undefined : JSON.stringify(body),
       });
+      if (r.status !== 200) {
+        // Error code only; never echo request or response bodies (may carry protected material).
+        let code = null;
+        try {
+          code = JSON.parse(r.body).code ?? null;
+        } catch {}
+        throw Object.assign(new Error('PLATFORM_REQUEST_REJECTED'), {
+          status: r.status,
+          method,
+          path,
+          code,
+        });
+      }
+      return JSON.parse(r.body);
+    } catch (error) {
+      error.requestStage = requestStage;
+      throw error;
     }
-    return JSON.parse(r.body);
   }
   async signed(path) {
     await this.ensureSession();

@@ -5,6 +5,7 @@ import { BubblewrapSandbox } from '../../packages/file-inspection/sandbox.mjs';
 import { ClamAvInspector } from '../../packages/file-inspection/clamav.mjs';
 import { IntegrationEndpoint } from '../../packages/integration/client.mjs';
 import { ManagedOutbox } from './outbox.mjs';
+import { sendWithOutbox, submitFromOutbox } from './delivery.mjs';
 
 const fail = (code) => Object.assign(new Error(code), { code });
 const record = (v, required, optional = []) => {
@@ -206,7 +207,10 @@ export async function openManagedEndpoint({
     return queueStore;
   };
   const dispatch = async (name, args) => {
-    if (name === 'send') return endpoint.submit(await endpoint.seal(...args));
+    if (name === 'send')
+      return queueStore
+        ? sendWithOutbox(endpoint, queueStore, ...args)
+        : endpoint.submit(await endpoint.seal(...args));
     if (name === 'refreshCreationGrant') {
       const store = queue();
       const grant = await endpoint.call('POST', '/api/grants', {
@@ -239,8 +243,7 @@ export async function openManagedEndpoint({
           store.update(item.id, 'HELD', 'EXPIRED_OBJECT');
           results.push({ objectId: item.id, state: 'HELD' });
         } else {
-          await endpoint.submit(store.get(item.id).sealed);
-          store.update(item.id, 'SUBMITTED');
+          await submitFromOutbox(endpoint, store, item.id);
           results.push({ objectId: item.id, state: 'SUBMITTED' });
         }
       }

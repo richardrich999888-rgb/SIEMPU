@@ -82,6 +82,7 @@
       "tests": [
         "tests/transport/tls.test.mjs",
         "tests/transport/secure-stack.test.mjs",
+        "tests/managed-delivery.test.mjs",
         "tests/routing-boundary.test.mjs",
         "tests/network-failure/recovery.test.mjs"
       ],
@@ -182,7 +183,7 @@
       "requirements": ["R1", "R5", "R8", "R10"],
       "owner": "SYNTRIASS + IAF integration owner",
       "title": "Plaintext boundary of synthetic document integration",
-      "current": "The new v2 staging path seals at the source and excludes plaintext, wrapped keys and personnel credentials from the connector. Legacy v1 remains a trusted plaintext endpoint, now requiring explicit enablement; legacy source stores are not migrated. P0-047 adds actual-service per-host manifests and an HTTPS software SDK campaign. Independent hosts and the full native companion path are not established.",
+      "current": "The new v2 staging path seals at the source and excludes plaintext, wrapped keys and personnel credentials from the connector. Legacy v1 remains a trusted plaintext endpoint, now requiring explicit enablement; legacy source stores are not migrated. P0-047 adds actual-service per-host manifests and an HTTPS software SDK campaign. Independent hosts and the full native companion path are not established. P0-047 continuation: configured managed online send now persists sealed work before submission; lost-response recovery is tested through real TLS services with software keys. The native physical-token path and independent hosts remain unqualified.",
       "implementationNeeded": "Validate the v2 trust boundary on representative hosts, migrate or retire legacy outboxes and deployment paths, and implement the supplied real-system contract with accepted endpoint placement.",
       "sponsorInputs": "IAF-06, Q17",
       "exitEvidence": "Canary and key scans of every declared untrusted process/store are negative; interface and trust-boundary review is accepted.",
@@ -247,7 +248,7 @@
       "requirements": ["R3", "R11"],
       "owner": "SYNTRIASS + IAF product owner",
       "title": "Scale, latency and communication modes",
-      "current": "Text/file workflows and synthetic impairment tests exist; fleet concurrency, large attachments, multi-recipient behavior and required real-time modes remain unqualified. P0-047 predeclares three ten-object repetitions with raw samples and suppressed unsupported p99. Endurance and equivalent-hardware comparison remain required. P0-046: Matched three-revision maintenance measurements and two-revision guarded measurements, plus existing sustained hosted matrix. Evidence is laboratory-only; status unchanged.",
+      "current": "Text/file workflows and synthetic impairment tests exist; fleet concurrency, large attachments, multi-recipient behavior and required real-time modes remain unqualified. P0-047 predeclares three ten-object repetitions with raw samples and suppressed unsupported p99. Endurance and equivalent-hardware comparison remain required. P0-046: Matched three-revision maintenance measurements and two-revision guarded measurements, plus existing sustained hosted matrix. Evidence is laboratory-only; status unchanged. OPEN-NET-047-01 remains open: one 3% packet-loss exchange exceeded the unchanged transport deadline at 691bee4. A passing repeat has logs only because artifact upload failed; protocol-stage diagnostics are added without relaxing acceptance.",
       "implementationNeeded": "Agree modes and load envelope; implement missing modes and queue/backpressure/capacity controls; run sustained representative tests.",
       "sponsorInputs": "IAF-03",
       "exitEvidence": "Latency percentiles, throughput, resource ceilings and long-duration recovery satisfy sponsor-agreed limits.",

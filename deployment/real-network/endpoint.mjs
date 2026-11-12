@@ -4,6 +4,7 @@ import { readFileSync, writeFileSync, existsSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 import { IntegrationEndpoint } from '../../packages/integration/client.mjs';
 import { ManagedOutbox } from '../../integrations/managed-endpoint/outbox.mjs';
+import { submitFromOutbox } from '../../integrations/managed-endpoint/delivery.mjs';
 import { hash } from '../../services/control/primitives.mjs';
 
 const [directory, operation, argument] = process.argv.slice(2),
@@ -68,8 +69,7 @@ try {
       const sealed = await client.sealUsingGrant(peer, payload, store.grant());
       const objectId = store.enqueue(sealed);
       if (operation === 'send') {
-        await client.submit(sealed);
-        store.update(objectId, 'SUBMITTED');
+        await submitFromOutbox(client, store, objectId);
       }
       result = {
         objectId,
@@ -84,10 +84,7 @@ try {
   } else if (operation === 'submit') {
     const store = q();
     try {
-      const item = store.get(argument);
-      assert.ok(item);
-      const submitted = await client.submit(item.sealed);
-      store.update(argument, 'SUBMITTED');
+      const submitted = await submitFromOutbox(client, store, argument);
       result = { objectId: argument, accepted: true, receipt: submitted.receipt };
     } finally {
       store.close();
