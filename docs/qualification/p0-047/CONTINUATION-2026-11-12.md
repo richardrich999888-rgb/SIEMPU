@@ -54,6 +54,25 @@ This is a call-sequence reproduction, not an execution of the complete native co
 Its harness, failure log and changed-source hashes are retained separately from frozen
 qualification evidence. Full-suite reports identify the exact final candidate.
 
+## Inventory binding correction
+
+The first continuation candidate `9b2ce0c` (local tree-equivalent `560d5a3`) failed
+the full native suite: 716/717 passed and `CRYPTO_REVIEW_DRIFT` rejected two stale
+inventory bindings, for `packages/integration/client.mjs` and the managed companion
+entry point. This failed candidate and its reports are retained. Its network results
+do not establish a passing full qualification baseline.
+
+Applicant code review confirms that the SDK change adds fixed diagnostic labels around
+the existing request; transport configuration, request bodies, proof generation and
+signature validation are unchanged. The companion change calls the reviewed durable
+delivery helper after inspection/sealing. That helper persists before publication,
+reopens encrypted state for each explicit attempt, invokes the normal SDK submission,
+and records success only after receipt verification. It introduces no cryptographic
+algorithm or key-custody change. The queue component inventory now includes the helper
+and its five-case regression; only the two changed bindings and two new file bindings
+are updated. The drift assertion and all acceptance thresholds remain enforced. This
+is applicant review pending draft-PR review, not independent cryptographic approval.
+
 ## Predeclared next measurements
 
 For this candidate, run the existing push and pull-request network matrices once each
