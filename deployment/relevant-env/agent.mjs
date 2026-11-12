@@ -81,6 +81,7 @@ const refusal = (error) => ({
   ok: false,
   status: error.status ?? null,
   code: error.code ?? error.message ?? 'ERROR',
+  requestStage: /^[A-Z_]{1,40}$/.test(error.requestStage ?? '') ? error.requestStage : null,
 });
 
 const commands = {
@@ -130,17 +131,20 @@ const commands = {
 
   /** Seal and submit online; returns timings and the payload digest. */
   async send({ user, to, bytes, seed = 1 }) {
-    const endpoint = await unit(user);
-    const data = syntheticBytes(bytes, seed);
-    const payload = endpoint.crypto.createFilePayload(
-      `synthetic-${seed}.bin`,
-      'application/octet-stream',
-      data,
-    );
     const t0 = performance.now();
+    let stage = 'AUTHENTICATE';
     try {
+      const endpoint = await unit(user);
+      const data = syntheticBytes(bytes, seed);
+      const payload = endpoint.crypto.createFilePayload(
+        `synthetic-${seed}.bin`,
+        'application/octet-stream',
+        data,
+      );
+      stage = 'SEAL';
       const sealed = await endpoint.seal(recipient(to), payload);
       const t1 = performance.now();
+      stage = 'SUBMIT';
       const result = await endpoint.submit(sealed);
       return {
         ok: true,
@@ -150,7 +154,7 @@ const commands = {
         submitMs: ms(t1),
       };
     } catch (error) {
-      return refusal(error);
+      return { ...refusal(error), stage, elapsedMs: ms(t0) };
     }
   },
 
@@ -194,15 +198,18 @@ const commands = {
 
   /** Claims, decrypts and acknowledges; returns the plaintext digest and signed receipts. */
   async receive({ user, objectId, from, ack = true }) {
-    const endpoint = await unit(user);
     const started = performance.now();
+    let stage = 'AUTHENTICATE';
     try {
+      const endpoint = await unit(user);
+      stage = 'RELEASE_AND_DECRYPT';
       const delivered = await endpoint.receiveWithRelease(
         objectId,
         recipient(from).signingPublicKey,
       );
       const plain = endpoint.crypto.unpackPayload(delivered.plaintext);
       const receiveMs = ms(started);
+      stage = 'ACKNOWLEDGE';
       const acknowledgement = ack ? await endpoint.acknowledge(objectId, delivered.release) : null;
       return {
         ok: true,
@@ -213,7 +220,7 @@ const commands = {
         ackEventId: acknowledgement?.payload.eventId ?? null,
       };
     } catch (error) {
-      return refusal(error);
+      return { ...refusal(error), stage, elapsedMs: ms(started) };
     }
   },
 
