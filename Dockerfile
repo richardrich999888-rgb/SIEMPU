@@ -1,5 +1,5 @@
 # Manifest-list digest resolved from the official Docker registry. Update with review and image scans.
-FROM node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df AS build
+FROM node:26.13.1-bookworm-slim@sha256:5df79989ed685e09f0a98019db4cebfb22fb9df1a53c0161664a011f7ff6b0f1 AS build
 ARG SIEPMU_BUILD_REVISION=unknown
 ARG SIEPMU_BUILD_TIMESTAMP=unknown
 WORKDIR /build
@@ -13,7 +13,7 @@ RUN npm ci --ignore-scripts --no-audit --no-fund \
 
 # The dependency-free runtime needs Node only. Keep build tooling out of the
 # shipped image and pin the independently resolved official Alpine manifest.
-FROM node:24.19.0-alpine3.24@sha256:d32cdf619f63fe0471182d08996dd516c6275bb5fd31ae06e55a570bd9e1ad43
+FROM node:26.13.1-alpine3.24@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5
 ARG SIEPMU_BUILD_REVISION=unknown
 ARG SIEPMU_BUILD_TIMESTAMP=unknown
 LABEL org.opencontainers.image.revision=$SIEPMU_BUILD_REVISION \
